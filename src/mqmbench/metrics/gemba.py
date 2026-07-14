@@ -10,10 +10,16 @@ This implementation uses a local HuggingFace model (no API key required),
 suited for running on the BYU supercomputer with HF_HUB_OFFLINE=1.
 """
 
+import json
+import logging
 import re
+from pathlib import Path
 from typing import Optional
 
-from transformers import pipeline as hf_pipeline
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+logger = logging.getLogger(__name__)
 
 GEMBA_PROMPT_TEMPLATE = """You are evaluating a machine translation from {source_lang} to {target_lang}.
 
@@ -26,6 +32,35 @@ ERROR: [severity: major|minor] [category: mistranslation|omission|grammar|regist
 If there are no errors, write: NO ERRORS"""
 
 SEVERITY_PENALTIES = {"major": 5.0, "minor": 1.0}
+
+_MODEL_CACHE: dict = {}
+
+
+def _load(model_name: str):
+    if model_name not in _MODEL_CACHE:
+        logger.info(f"Loading GEMBA model: {model_name}")
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer.padding_side = "left"
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        # bfloat16 halves VRAM; flash_attention_2 accelerates attention on A100/H100.
+        try:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                torch_dtype=torch.bfloat16,
+                attn_implementation="flash_attention_2",
+            ).to(device)
+            logger.info("  Using flash_attention_2")
+        except Exception:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                torch_dtype=torch.bfloat16,
+            ).to(device)
+        model.eval()
+        _MODEL_CACHE[model_name] = (tokenizer, model)
+    return _MODEL_CACHE[model_name]
 
 
 def _parse_gemba_output(text: str) -> float:
@@ -47,7 +82,10 @@ def score(
     model_name: str = "",
     source_lang: str = "English",
     target_lang: str = "the target language",
-    batch_size: int = 4,
+    batch_size: int = 32,
+    max_new_tokens: int = 32,
+    max_input_length: int = 384,
+    cache_file: Optional[str] = None,
 ) -> list[float]:
     """Compute GEMBA-MQM scores using a local LLM.
 
@@ -59,12 +97,16 @@ def score(
         model_name: HuggingFace model ID for the LLM.
         source_lang: Human-readable source language name for prompt.
         target_lang: Human-readable target language name for prompt.
-        batch_size: Number of prompts to process at once.
+        batch_size: Prompts per forward pass.
+        max_new_tokens: Max tokens to generate. 32 covers "NO ERRORS" (2 tokens)
+            and ~2 error lines; increase if outputs are getting truncated.
+        max_input_length: Truncate prompts to this many tokens.
+        cache_file: JSONL path for mid-run checkpointing. Resumes from last saved
+            position on restart. Flushed every 500 batches.
 
     Returns:
         List of MQM penalty scores (0 = perfect, higher = more errors).
-        NOTE: Lower is better, unlike other metrics. Caller should negate or
-        convert to quality_score = 1 / (1 + penalty) for correlation.
+        Caller converts via quality_score = 1 / (1 + penalty) so higher = better.
     """
     if not model_name:
         raise ValueError(
@@ -75,12 +117,31 @@ def score(
     if lang:
         target_lang = lang
 
-    pipe = hf_pipeline(
-        "text-generation",
-        model=model_name,
-        max_new_tokens=256,
-        do_sample=False,
-    )
+    n = len(sources)
+    penalties: list[Optional[float]] = [None] * n
+
+    # Load partial results from cache
+    start_idx = 0
+    if cache_file is not None:
+        cache_path = Path(cache_file)
+        if cache_path.exists():
+            with cache_path.open() as f:
+                for line in f:
+                    entry = json.loads(line)
+                    idx = entry["idx"]
+                    if idx < n:
+                        penalties[idx] = entry["penalty"]
+            completed = sum(1 for p in penalties if p is not None)
+            if completed > 0:
+                logger.info(f"GEMBA resuming from cache: {completed}/{n} segments already scored")
+            start_idx = next((i for i, p in enumerate(penalties) if p is None), n)
+
+    if start_idx >= n:
+        logger.info("GEMBA: all segments already scored from cache")
+        return [p if p is not None else 0.0 for p in penalties]
+
+    tokenizer, model = _load(model_name)
+    device = next(model.parameters()).device
 
     prompts = [
         GEMBA_PROMPT_TEMPLATE.format(
@@ -92,12 +153,51 @@ def score(
         for src, hyp in zip(sources, hypotheses)
     ]
 
-    penalties = []
-    for i in range(0, len(prompts), batch_size):
-        batch = prompts[i : i + batch_size]
-        outputs = pipe(batch)
-        for out in outputs:
-            generated = out[0]["generated_text"]
-            penalties.append(_parse_gemba_output(generated))
+    save_every = 500
+    batches_since_save = 0
+    cache_handle = open(cache_file, "a") if cache_file is not None else None
 
-    return penalties
+    try:
+        for i in range(start_idx, n, batch_size):
+            batch_prompts = prompts[i : i + batch_size]
+            enc = tokenizer(
+                batch_prompts,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=max_input_length,
+            ).to(device)
+
+            with torch.no_grad():
+                out_ids = model.generate(
+                    **enc,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                    pad_token_id=tokenizer.eos_token_id,
+                )
+
+            # Decode only the newly generated tokens, not the input prompt
+            new_ids = out_ids[:, enc["input_ids"].shape[1]:]
+            decoded = tokenizer.batch_decode(new_ids, skip_special_tokens=True)
+
+            for j, text in enumerate(decoded):
+                penalty = _parse_gemba_output(text)
+                global_idx = i + j
+                penalties[global_idx] = penalty
+                if cache_handle is not None:
+                    cache_handle.write(json.dumps({"idx": global_idx, "penalty": penalty}) + "\n")
+
+            batches_since_save += 1
+            if cache_handle is not None and batches_since_save >= save_every:
+                cache_handle.flush()
+                batches_since_save = 0
+
+            if (i - start_idx) % (batch_size * 200) == 0:
+                done = i - start_idx + len(decoded)
+                logger.info(f"GEMBA: {done + start_idx}/{n} segments scored")
+    finally:
+        if cache_handle is not None:
+            cache_handle.flush()
+            cache_handle.close()
+
+    return [p if p is not None else 0.0 for p in penalties]

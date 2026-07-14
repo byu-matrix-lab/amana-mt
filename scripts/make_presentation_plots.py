@@ -34,13 +34,20 @@ plt.rcParams.update({
 })
 
 METRIC_LABELS = {
-    "bleu": "BLEU",
-    "chrf": "ChrF",
-    "bertscore": "BERTScore",
-    "comet": "COMET",
-    "xcomet": "xCOMET",
-    "cometkiwi": "COMET-Kiwi",
+    "bleu":        "BLEU",
+    "chrf":        "ChrF",
+    "bertscore":   "BERTScore",
+    "bleurt":      "BLEURT",
+    "comet":       "COMET",
+    "xcomet":      "xCOMET",
+    "metricx":     "MetricX-24",
+    "cometkiwi":   "COMET-Kiwi",
+    "cometkiwi23": "COMET-Kiwi-23",
+    "gemba":       "GEMBA",
 }
+
+ALL_METRICS = ["bleu", "chrf", "bertscore", "bleurt", "comet", "xcomet",
+               "metricx", "cometkiwi", "cometkiwi23", "gemba"]
 
 TIER_COLORS = {
     "high":   "#2166ac",
@@ -64,8 +71,7 @@ def load_corr():
 # Figure 1: Spearman r by metric and resource tier (grouped bar)
 # ---------------------------------------------------------------------------
 def plot_tier_bar(df: pd.DataFrame):
-    metrics = [m for m in ["bleu", "chrf", "bertscore", "comet", "xcomet", "cometkiwi"]
-               if m in df["metric"].unique()]
+    metrics = [m for m in ALL_METRICS if m in df["metric"].unique()]
 
     # Average across languages within tier, exclude NaN (Tier 2 pending)
     tier_df = (
@@ -75,7 +81,10 @@ def plot_tier_bar(df: pd.DataFrame):
         .reset_index()
     )
 
-    fig, ax = plt.subplots(figsize=(10, 5.5))
+    # Designed for \columnwidth ≈ 3.31" (single-column ACL figure).
+    # figsize=7" wide → scale factor = 7/3.31 ≈ 2.11.
+    _S = 7 / 3.31
+    fig, ax = plt.subplots(figsize=(7, 3.2))
     x = np.arange(len(metrics))
     width = 0.25
     offsets = [-width, 0, width]
@@ -85,28 +94,33 @@ def plot_tier_bar(df: pd.DataFrame):
         for m in metrics:
             row = tier_df[(tier_df["metric"] == m) & (tier_df["resource_tier"] == tier)]
             vals.append(row["spearman_r"].values[0] if len(row) else np.nan)
-        bars = ax.bar(x + offsets[i], vals, width, label=tier.capitalize(),
-                      color=TIER_COLORS[tier], alpha=0.88, edgecolor="white", linewidth=0.5)
+        ax.bar(x + offsets[i], vals, width, label=tier.capitalize(),
+               color=TIER_COLORS[tier], alpha=0.88, edgecolor="white", linewidth=0.5)
 
     ax.set_xticks(x)
-    ax.set_xticklabels([METRIC_LABELS.get(m, m.upper()) for m in metrics])
-    ax.set_ylabel("Spearman r (avg. per resource tier)")
-    ax.set_title("MT Metric Correlation with Human Judgment\nby Resource Tier")
+    ax.set_xticklabels([METRIC_LABELS.get(m, m.upper()) for m in metrics],
+                       rotation=30, ha="right", fontsize=round(9 * _S))
+    ax.set_ylabel("Spearman $r$ (avg. per resource tier)", fontsize=round(9 * _S))
+    ax.set_title("MT Metric Correlation with Human Judgment by Resource Tier",
+                 fontsize=round(10 * _S))
     ax.set_ylim(-0.05, 1.0)
     ax.axhline(0, color="black", linewidth=0.7, linestyle="--")
-    ax.legend(title="Resource tier", frameon=False)
+    ax.legend(title="Resource tier", frameon=False,
+              fontsize=round(8 * _S), title_fontsize=round(8 * _S))
 
-    # Annotate surprise finding
-    ax.annotate("Medium > High\n(domain variance effect)",
-                xy=(x[-1] + offsets[1], tier_df[(tier_df["metric"] == metrics[-1]) &
-                    (tier_df["resource_tier"] == "medium")]["spearman_r"].values[0] + 0.02),
-                xytext=(x[-1] - 0.8, 0.75),
-                fontsize=11, color="#4dac26",
-                arrowprops=dict(arrowstyle="->", color="#4dac26", lw=1.2))
+    # Annotate medium > high surprise
+    comet_med = tier_df[(tier_df["metric"] == "comet") & (tier_df["resource_tier"] == "medium")]
+    if not comet_med.empty:
+        comet_idx = metrics.index("comet") if "comet" in metrics else 0
+        ax.annotate("Med > High",
+                    xy=(comet_idx + offsets[1], comet_med["spearman_r"].values[0] + 0.01),
+                    xytext=(comet_idx - 2.2, 0.68),
+                    fontsize=round(8 * _S), color="#4dac26",
+                    arrowprops=dict(arrowstyle="->", color="#4dac26", lw=1.2))
 
     plt.tight_layout()
     path = OUT / "presentation_tier_bar.png"
-    plt.savefig(path, bbox_inches="tight")
+    plt.savefig(path, bbox_inches="tight", dpi=200)
     plt.close()
     print(f"Saved {path}")
 
@@ -115,8 +129,7 @@ def plot_tier_bar(df: pd.DataFrame):
 # Figure 2: Per-language Spearman heatmap
 # ---------------------------------------------------------------------------
 def plot_language_heatmap(df: pd.DataFrame):
-    metrics = [m for m in ["bleu", "chrf", "bertscore", "comet", "xcomet", "cometkiwi"]
-               if m in df["metric"].unique()]
+    metrics = [m for m in ALL_METRICS if m in df["metric"].unique()]
 
     pivot = df.pivot_table(
         index="lang", columns="metric", values="spearman_r", aggfunc="mean"
@@ -131,20 +144,32 @@ def plot_language_heatmap(df: pd.DataFrame):
 
     col_labels = [METRIC_LABELS.get(m, m.upper()) for m in pivot.columns]
 
-    fig, ax = plt.subplots(figsize=(9, 6.5))
+    # Designed for \columnwidth ≈ 3.31" (single-column ACL figure).
+    # figsize=7" wide → scale factor = 7/3.31 ≈ 2.11.
+    # Multiply every desired-PDF pt size by 2.11 so it renders correctly when
+    # \includegraphics[width=\columnwidth] scales the image down.
+    _S = 7 / 3.31  # scale factor
+    fig, ax = plt.subplots(figsize=(7, 5))
     sns.heatmap(
         pivot, annot=True, fmt=".2f", cmap="RdYlGn",
         center=0, vmin=-0.2, vmax=0.9,
-        linewidths=0.4, linecolor="white",
+        linewidths=0.3, linecolor="white",
         xticklabels=col_labels,
-        ax=ax, cbar_kws={"label": "Spearman r", "shrink": 0.8},
-        annot_kws={"size": 11},
+        ax=ax, cbar_kws={"label": "Spearman r", "shrink": 0.6},
+        annot_kws={"size": round(7.5 * _S)},   # target ~7.5pt in PDF
     )
-    ax.set_title("Metric–Human Correlation per Language", pad=12)
+    ax.set_title("Metric–Human Correlation per Language", pad=8,
+                 fontsize=round(11 * _S))
     ax.set_xlabel("")
     ax.set_ylabel("")
+    ax.tick_params(axis="x", labelsize=round(9 * _S), rotation=30)
+    ax.tick_params(axis="y", labelsize=round(8 * _S))
 
-    # Tier divider lines + labels
+    # Align x-tick labels to the right after rotation
+    for lbl in ax.get_xticklabels():
+        lbl.set_ha("right")
+
+    # Tier divider lines
     langs = list(pivot.index)
     tier_boundaries = []
     prev_tier = lang_meta.loc[langs[0], "resource_tier"] if langs[0] in lang_meta.index else "unknown"
@@ -156,21 +181,19 @@ def plot_language_heatmap(df: pd.DataFrame):
     for b in tier_boundaries:
         ax.axhline(b, color="black", linewidth=1.5)
 
-    # Annotate Ukrainian outlier — place text inside the axes to avoid
-    # overlapping with the colorbar on the right.
+    # Mark the Ukrainian outlier by colouring its y-tick label red.
+    # A text-box annotation overlaps cell values at this figure size;
+    # the caption already explains the domain-outlier status.
     if "uk" in langs:
         uk_idx = langs.index("uk")
-        ax.annotate("domain outlier\n(Telegram)",
-                    xy=(0, uk_idx + 0.5),
-                    xytext=(len(metrics) / 2, uk_idx - 0.6),
-                    fontsize=9, color="#c0392b", va="center", ha="center",
-                    arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1.0),
-                    bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="#c0392b",
-                              alpha=0.85))
+        for tick in ax.get_yticklabels():
+            if tick.get_text().strip() == "uk":
+                tick.set_color("#c0392b")
+                tick.set_fontweight("bold")
 
     plt.tight_layout()
     path = OUT / "presentation_language_heatmap.png"
-    plt.savefig(path, bbox_inches="tight")
+    plt.savefig(path, bbox_inches="tight", dpi=200)
     plt.close()
     print(f"Saved {path}")
 
@@ -342,11 +365,262 @@ def plot_anomaly(df: pd.DataFrame):
     print(f"Saved {path}")
 
 
+def plot_kiwi23_vs_comet(df: pd.DataFrame):
+    """Single-panel scatter: Kiwi-23 (y) vs COMET (x), all languages.
+
+    Used in §5.3 to show Hebrew as the sole outlier above the diagonal.
+    """
+    if "comet" not in df["metric"].unique() or "cometkiwi23" not in df["metric"].unique():
+        print("Skipping kiwi23_vs_comet: cometkiwi23 not in correlations.csv")
+        return
+
+    comet_df = df[df["metric"] == "comet"][["lang", "resource_tier", "spearman_r"]].rename(
+        columns={"spearman_r": "comet_r"})
+    kiwi_df = df[df["metric"] == "cometkiwi23"][["lang", "spearman_r"]].rename(
+        columns={"spearman_r": "kiwi23_r"})
+    merged = comet_df.merge(kiwi_df, on="lang").dropna(subset=["comet_r", "kiwi23_r"])
+
+    # Designed for \columnwidth ≈ 3.31" (single-column ACL figure).
+    # At that width, 6.5"→3.31" = 0.51× scale; size-7 labels appear as ~3.6pt.
+    # Use 6.5×4 to reduce column height from ~2.8" to ~2.0".
+    fig, ax = plt.subplots(figsize=(6.5, 4.0))
+
+    for tier in TIER_ORDER:
+        sub = merged[merged["resource_tier"] == tier]
+        if sub.empty:
+            continue
+        ax.scatter(sub["comet_r"], sub["kiwi23_r"], label=tier.capitalize(),
+                   color=TIER_COLORS[tier], s=70, alpha=0.88, zorder=3)
+        for _, row in sub.iterrows():
+            lang = row["lang"].upper()
+            offset = (0.008, 0.008)
+            if lang == "HE":
+                offset = (0.010, 0.012)
+            ax.annotate(lang, (row["comet_r"], row["kiwi23_r"]),
+                        xytext=(row["comet_r"] + offset[0], row["kiwi23_r"] + offset[1]),
+                        fontsize=7, ha="left", va="bottom",
+                        color=TIER_COLORS[tier],
+                        fontweight="bold" if lang == "HE" else "normal")
+
+    all_v = pd.concat([merged["comet_r"], merged["kiwi23_r"]]).dropna()
+    lo, hi = all_v.min() - 0.04, all_v.max() + 0.04
+    ax.plot([lo, hi], [lo, hi], "k--", lw=0.9, alpha=0.45, label="Equal performance")
+
+    # Annotate HE outlier
+    he = merged[merged["lang"] == "he"]
+    if not he.empty:
+        ax.annotate(
+            "HE: abjad script,\nnon-concatenative morphology\n"
+            r"$\Delta\rho = +0.35$",
+            xy=(he["comet_r"].values[0], he["kiwi23_r"].values[0]),
+            xytext=(0.0, 0.65),
+            fontsize=8.5, color="#2166ac",
+            arrowprops=dict(arrowstyle="->", color="#2166ac", lw=1.2),
+            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#2166ac", alpha=0.9),
+        )
+
+    ax.set_xlim(lo, hi)
+    ax.set_ylim(lo, hi)
+    ax.set_xlabel("COMET (reference-based) Spearman $r$", fontsize=13)
+    ax.set_ylabel("COMET-Kiwi-23 (reference-free) Spearman $r$", fontsize=13)
+    ax.set_title("Reference-free QE vs. Reference-based COMET", fontsize=14)
+    ax.legend(title="Resource tier", frameon=False, fontsize=10)
+
+    plt.tight_layout()
+    path = OUT / "presentation_kiwi23_vs_comet.png"
+    plt.savefig(path, bbox_inches="tight")
+    plt.close()
+    print(f"Saved {path}")
+
+
+FEAT_LABELS = {
+    "resource_tier=high":         "High-resource tier",
+    "resource_tier=medium":       "Medium-resource tier",
+    "resource_tier=low":          "Low-resource tier",
+    "script_type=abjad":          "Abjad script",
+    "script_type=abugida":        "Abugida script",
+    "script_type=logographic":    "Logographic script",
+    "morphology_type=agglutinative": "Agglutinative",
+    "morphology_type=isolating":  "Isolating",
+    "direction=pivot":            "Pivot direction",
+    "direction=x_to_en":          "→ English direction",
+    "word_order=1":               "SOV word order",
+    "word_order=7":               "Free word order",
+    "word_segmentation":          "No word spaces",
+    "num_cases":                  "Case count",
+    "affix_direc":                "Affix directionality",
+}
+
+_FOCAL_METRICS = ["comet", "metricx", "cometkiwi", "cometkiwi23"]
+
+
+def plot_ridge_coefficients():
+    """2×2 horizontal bar charts: top-6 Ridge coefficients for 4 focal metrics."""
+    coef_path = RESULTS / "predictor" / "coefficients.csv"
+    if not coef_path.exists():
+        print("Skipping ridge coefficients: results/predictor/coefficients.csv not found")
+        return
+
+    coef_df = pd.read_csv(coef_path)
+    coef_df["coefficient"] = coef_df["coefficient"].astype(float)
+
+    fig, axes = plt.subplots(2, 2, figsize=(13, 9))
+    axes = axes.flatten()
+
+    pos_color = "#2166ac"
+    neg_color = "#d6604d"
+
+    for ax, metric in zip(axes, _FOCAL_METRICS):
+        sub = coef_df[coef_df["metric"] == metric].copy()
+        sub = sub.reindex(sub["coefficient"].abs().sort_values(ascending=False).index)
+        sub = sub.head(6).sort_values("coefficient")
+
+        labels = [FEAT_LABELS.get(f, f) for f in sub["feature"]]
+        vals = sub["coefficient"].tolist()
+        colors = [pos_color if v >= 0 else neg_color for v in vals]
+
+        bars = ax.barh(labels, vals, color=colors, alpha=0.85, edgecolor="white", linewidth=0.5)
+        ax.axvline(0, color="black", linewidth=0.8)
+        ax.set_title(METRIC_LABELS.get(metric, metric.upper()), fontsize=14, fontweight="bold")
+        ax.set_xlabel("Standardized coefficient", fontsize=11)
+        ax.tick_params(axis="y", labelsize=10)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+        # Value labels at end of each bar
+        for bar, v in zip(bars, vals):
+            xpos = v + (0.0005 if v >= 0 else -0.0005)
+            ha = "left" if v >= 0 else "right"
+            ax.text(xpos, bar.get_y() + bar.get_height() / 2,
+                    f"{v:+.3f}", va="center", ha=ha, fontsize=8.5)
+
+    # Legend
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor=pos_color, alpha=0.85, label="Increases advantage over BLEU"),
+        Patch(facecolor=neg_color, alpha=0.85, label="Decreases advantage over BLEU"),
+    ]
+    fig.legend(handles=legend_elements, loc="lower center", ncol=2,
+               fontsize=11, frameon=False, bbox_to_anchor=(0.5, -0.02))
+
+    fig.suptitle("Top Typological Predictors of Metric Advantage over BLEU\n"
+                 "(Ridge regression, LOLO-CV, standardized coefficients)",
+                 fontsize=14, y=1.01)
+    plt.tight_layout()
+    path = OUT / "presentation_ridge_coefficients.png"
+    plt.savefig(path, bbox_inches="tight")
+    plt.close()
+    print(f"Saved {path}")
+
+
 if __name__ == "__main__":
     plot_pipeline_diagram()   # no data needed
     df = load_corr()
     plot_tier_bar(df)
     plot_language_heatmap(df)
     plot_kiwi_comparison(df)
+    plot_kiwi23_vs_comet(df)
+    plot_ridge_coefficients()
     plot_anomaly(df)          # reads tier_anomaly.csv separately
     print("Done. Files in results/plots/")
+
+
+# ---------------------------------------------------------------------------
+# Figure: Score discrimination collapse — COMET vs Kiwi-22 for Hebrew
+# ---------------------------------------------------------------------------
+def plot_score_discrimination():
+    """Side-by-side violin plots: COMET vs Kiwi-22 score distributions for Hebrew,
+    bucketed by MQM quality (poor / medium / perfect).
+
+    Mechanistic evidence: COMET collapses all Hebrew scores into a narrow band
+    (Cohen's d ≈ 0.47, discrimination failure), while reference-free Kiwi-22
+    maintains clear separation (Cohen's d ≈ 1.73). Both trained on WMT22 era data;
+    the only difference is whether a reference is used.
+    """
+    surf_path = RESULTS / "surface_similarity.csv"
+    if not surf_path.exists():
+        print("Skipping score discrimination plot: run analyze_surface_similarity.py first")
+        return
+
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import pandas as pd, numpy as np
+
+    surf = pd.read_csv(surf_path)
+    he_surf = surf[surf["lang"] == "he"].copy()
+    he_surf["segment_id"] = "he_" + he_surf["system"].astype(str) + "_" + he_surf["globalSegId"].astype(str)
+
+    comet_df  = pd.read_csv(RESULTS / "scores_comet.csv")[["segment_id", "comet"]]
+    kiwi_df   = pd.read_csv(RESULTS / "scores_cometkiwi.csv")[["segment_id", "cometkiwi"]]
+
+    df = he_surf.merge(comet_df, on="segment_id", how="inner")
+    df = df.merge(kiwi_df, on="segment_id", how="inner")
+
+    quality_order = ["poor\n(MQM<−5)", "medium\n(−5 to −1)", "perfect\n(MQM=0)"]
+    df["quality"] = pd.cut(
+        df["mqm_score"],
+        bins=[-999, -5, -1, 0.001],
+        labels=quality_order,
+    )
+    df = df.dropna(subset=["quality"])
+
+    # Designed for \textwidth ≈ 6.75" (figure* in appendix).
+    # At that width, size-11 text renders at ~10.6pt — clearly readable.
+    COLORS = {"comet": "#d6604d", "cometkiwi": "#2166ac"}
+    METRIC_INFO = [
+        ("comet",     "COMET-22 score",     "COMET-22\n(reference-based)"),
+        ("cometkiwi", "COMET-Kiwi score",   "COMET-Kiwi 22\n(reference-free)"),
+    ]
+
+    fig, axes = plt.subplots(1, 2, figsize=(7, 4))
+
+    for ax, (col_name, ylabel, title) in zip(axes, METRIC_INFO):
+        color = COLORS[col_name]
+        groups = [df[df["quality"] == q][col_name].dropna().values for q in quality_order]
+        non_empty = [(q, g) for q, g in zip(quality_order, groups) if len(g) >= 2]
+        q_labels, groups = zip(*non_empty) if non_empty else ([], [])
+
+        positions = list(range(len(groups)))
+        vp = ax.violinplot(list(groups), positions=positions,
+                           showmedians=True, showextrema=False)
+        for body in vp["bodies"]:
+            body.set_facecolor(color)
+            body.set_alpha(0.65)
+        vp["cmedians"].set_color("black")
+        vp["cmedians"].set_linewidth(2.5)
+
+        ax.set_xticks(positions)
+        ax.set_xticklabels(list(q_labels), fontsize=9)
+        ax.set_ylabel(ylabel, fontsize=10)
+        ax.set_title(f"Hebrew — {title}", fontsize=11)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+        # Annotate n per bucket
+        for i, (q, g) in enumerate(zip(q_labels, groups)):
+            ax.text(i, ax.get_ylim()[0], f"n={len(g)}",
+                    ha="center", va="bottom", fontsize=8, color="#555")
+
+        # Cohen's d (perfect vs poor)
+        g_perf = df[df["quality"] == "perfect\n(MQM=0)"][col_name].dropna()
+        g_poor = df[df["quality"] == "poor\n(MQM<−5)"][col_name].dropna()
+        if len(g_perf) > 1 and len(g_poor) > 1:
+            pooled_std = np.sqrt((g_perf.std()**2 + g_poor.std()**2) / 2)
+            d = (g_perf.mean() - g_poor.mean()) / pooled_std if pooled_std > 0 else 0
+            strength = "poor" if d < 0.5 else ("moderate" if d < 0.8 else "strong")
+            ax.text(0.97, 0.97, f"Cohen's d = {d:.2f}\n({strength})",
+                    transform=ax.transAxes, ha="right", va="top",
+                    fontsize=9, color=color,
+                    bbox=dict(boxstyle="round,pad=0.3", fc="white",
+                              ec=color, alpha=0.9))
+
+    fig.suptitle(
+        "Discrimination Collapse: COMET Cannot Separate Hebrew Translation Quality;\n"
+        "Reference-Free Kiwi-22 Maintains Strong Discrimination (Both WMT22-Era)",
+        fontsize=10, y=1.01,
+    )
+    plt.tight_layout()
+    path = OUT / "presentation_score_discrimination.png"
+    plt.savefig(path, bbox_inches="tight", dpi=200)
+    plt.close()
+    print(f"Saved {path}")

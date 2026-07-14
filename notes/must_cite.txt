@@ -1,0 +1,42 @@
+Prior work the domain-confounds-resource claim directly builds on
+
+Zouhar, Ding, Currey, Badeka, Wang & Thompson, "Fine-Tuned Machine Translation Metrics Struggle in Unseen Domains," ACL 2024 Short Papers, pp. 488–500 (arXiv 2402.18747)
+Kocmi et al., "Findings of the WMT24 General MT Shared Task," ACL Anthology 2024.wmt-1.1, pp. 1–46 — specifically the Cs→Uk "different domains" statement
+
+Prior work the morphology claim must explicitly contrast
+
+Mondshine, Paz-Argaman & Tsarfaty, "Beyond N-Grams: Rethinking Evaluation Metrics and Strategies for Multilingual Abstractive Summarization," ACL 2025 Long Papers Vol. 1, pp. 19019–19035 (arXiv 2507.08342)
+
+Prior work that anticipates your medium > high anomaly finding
+
+Yari, Kulkarni, Khan & Koto, "Revisiting Metric Reliability for Fine-grained Evaluation of MT and Summarization in Indian Languages," arXiv 2510.07061 (October 2025)
+
+The dominant benchmark paper (reviewers will check whether you engage with it)
+
+Freitag et al., "Are LLMs Breaking MT Metrics? Results of the WMT24 Metrics Shared Task," ACL Anthology 2024.wmt-1.2, pp. 47–81
+
+The top-performing metric you need to include or explicitly justify omitting
+
+Juraska, Deutsch, Finkelstein & Freitag, "MetricX-24," WMT 2024, ACL Anthology 2024.wmt-1.35, pp. 492–504
+
+Methodological precedents reviewers will expect
+
+Deutsch, Foster & Freitag, "Ties Matter: Meta-Evaluating Modern Metrics with Pairwise Accuracy and Tie Calibration," arXiv 2305.14324
+Kocmi & Federmann, "GEMBA-MQM: Detecting Translation Quality Error Spans," WMT 2023 (statmt.org 2023.wmt-1.64)
+Kocmi, Federmann et al., "To Ship or Not to Ship: An Extensive Evaluation of Automatic Metrics for MT," EACL 2021
+
+Synthetic Tier 2 validation concerns you need to address
+
+Lu et al., "MQM-APE: Toward High-Quality Error Annotation Predictors with Automatic Post-Editing in LLM Translation Evaluators," arXiv 2409.14335 — the span-precision numbers (9.0% span, 4.9% major error) will be used against you if you don't cite and address them
+
+Direction asymmetry literature (the closest prior, which you extend)
+
+Bugliarello, Mielke, Anastasopoulos, Cotterell & Okazaki, "It's Easier to Translate out of English than into it," arXiv 2005.02354
+
+Low-resource metric reliability precedents
+
+Sai et al., "IndicMT Eval," arXiv 2212.10180
+Falcão, Borg, Aranberri & Abela, "COMET for Low-Resource MT Evaluation: English-Maltese and Spanish-Basque," LREC-COLING 2024
+
+
+That's 13 mandatory citations. A few carry more weight than others: Zouhar 2024, Kocmi 2024 (WMT24 findings), Mondshine 2025, and the MQM-APE paper are the ones where missing them would likely trigger a rejection or major revision request specifically. The rest are expected in the literature review but won't sink the paper alone if absent.

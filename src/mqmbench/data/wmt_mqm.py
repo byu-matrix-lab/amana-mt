@@ -103,17 +103,80 @@ _LANG_FROM_FILENAME = {
 }
 
 
+def build_sacrebleu_ref_lookup(
+    lang_pair: str,
+    testset: str,
+    ref_index: int = 0,
+    global_seg_id_offset: int = 0,
+) -> dict[int, str]:
+    """Build a {globalSegId: reference_text} dict from a cached sacreBLEU dataset.
+
+    Args:
+        lang_pair: e.g. "he-en" or "en-es".
+        testset: sacreBLEU test set name, e.g. "wmt23" or "wmt24".
+        ref_index: Which reference file to use when multiple are available (0 = first).
+        global_seg_id_offset: Value added to the 0-indexed line number to get the
+            globalSegId. Determined empirically per (testset, lang_pair):
+            - "wmt23"/"he-en": offset=0  (globalSegId is 0-indexed, min=0)
+            - "wmt24"/"en-es": offset=2  (globalSegId=1 is a canary, real segs start at 2)
+
+    Returns:
+        Dict mapping globalSegId (int) → reference string, or {} on failure.
+        The dict can be passed to load_wmt_mqm_spans via ref_lookups.
+    """
+    import os
+
+    # Read pre-cached sacreBLEU ref files directly (avoids XML decompression errors).
+    # Files follow the naming convention: ~/.sacrebleu/<testset>/<testset>.<lp>.ref-refA, ref-refB, ...
+    ref_labels = ["refA", "refB", "refC"]
+    cache_dir = Path(os.path.expanduser("~/.sacrebleu")) / testset
+    candidates = []
+    for label in ref_labels:
+        p = cache_dir / f"{testset}.{lang_pair}.ref-{label}"
+        if p.exists():
+            candidates.append(p)
+
+    if candidates and ref_index < len(candidates):
+        ref_path = candidates[ref_index]
+        try:
+            lines = ref_path.read_text(encoding="utf-8").splitlines()
+            logger.info(f"    Loaded {len(lines)} refs from {ref_path}")
+            return {i + global_seg_id_offset: ref for i, ref in enumerate(lines)}
+        except Exception as exc:
+            logger.warning(f"Could not read {ref_path}: {exc}")
+
+    # Fallback: try sacreBLEU API (may fail on some cluster environments)
+    try:
+        from sacrebleu.utils import get_reference_files, smart_open
+        ref_files = get_reference_files(testset, lang_pair)
+        with smart_open(ref_files[ref_index]) as fh:
+            lines = [l.strip() for l in fh.readlines()]
+        return {i + global_seg_id_offset: ref for i, ref in enumerate(lines)}
+    except Exception as exc:
+        logger.warning(f"Could not load sacreBLEU refs for {lang_pair}/{testset}: {exc}")
+        return {}
+
+
+# Known offsets: (testset, lang_pair) → global_seg_id_offset for build_sacrebleu_ref_lookup
+_SACREBLEU_OFFSETS: dict[tuple[str, str], int] = {
+    ("wmt23", "he-en"): 0,
+    ("wmt24", "en-es"): 2,
+}
+
+
 def load_wmt_mqm_spans(
     span_dir: str | Path,
     lang_pairs: list[str] | None = None,
+    ref_lookups: dict[str, dict[int, str]] | None = None,
 ) -> pd.DataFrame:
     """Load raw WMT MQM span annotations from Google's TSV release.
 
     Args:
-        span_dir: Directory containing the downloaded TSV files
-                  (e.g. data/wmt_mqm_spans/).
-        lang_pairs: Language pairs to keep (e.g. ['en-de', 'zh-en']).
-                    If None, loads all found files.
+        span_dir: Directory containing the downloaded TSV files.
+        lang_pairs: Language pairs to keep. If None, loads all found files.
+        ref_lookups: Optional dict mapping lang code → {globalSegId: reference_text}.
+            Used to populate the 'reference' column, which the TSVs do not include.
+            Build with build_sacrebleu_ref_lookup().
 
     Returns:
         DataFrame with span-level annotation rows compatible with converter.py:
@@ -189,9 +252,15 @@ def load_wmt_mqm_spans(
         raw.loc[no_error_mask, "severity"] = "no_error"
         raw.loc[no_error_mask, "error_type"] = "no_error"
 
-        # Build segment_id: use seg_id column if present, else enumerate
-        if "seg_id" in raw.columns:
-            raw["segment_id"] = raw["lang"] + "_" + raw["seg_id"].astype(str)
+        # Build segment_id including system so each (system, segment) is unique.
+        # WMT TSVs use "system"/"globalsegid" (after lowercasing) as the key columns.
+        seg_col = next((c for c in ("globalsegid", "seg_id", "docsegid") if c in raw.columns), None)
+        sys_col = "system" if "system" in raw.columns else None
+        if seg_col and sys_col:
+            raw["segment_id"] = (raw["lang"] + "_" + raw[sys_col].astype(str)
+                                 + "_" + raw[seg_col].astype(str))
+        elif seg_col:
+            raw["segment_id"] = raw["lang"] + "_" + raw[seg_col].astype(str)
         else:
             raw["segment_id"] = raw["lang"] + "_" + raw.index.astype(str)
 
@@ -202,6 +271,19 @@ def load_wmt_mqm_spans(
         for col in ["source", "hypothesis", "reference"]:
             if col not in raw.columns:
                 raw[col] = ""
+
+        # Fill reference from sacreBLEU lookup when available (TSVs omit references).
+        if ref_lookups and "lang" in raw.columns and "globalsegid" in raw.columns:
+            lang_val = raw["lang"].iloc[0]
+            if lang_val in ref_lookups:
+                lookup = ref_lookups[lang_val]
+                raw["reference"] = (
+                    raw["globalsegid"].astype(str)
+                    .str.strip()
+                    .apply(lambda x: lookup.get(int(x), "") if x.lstrip("-").isdigit() else "")
+                )
+                filled = (raw["reference"] != "").sum()
+                logger.info(f"    Reference lookup: {filled}/{len(raw)} rows filled for {lang_val}")
 
         raw["annotation_tier"] = AnnotationTier.HUMAN_MQM
 

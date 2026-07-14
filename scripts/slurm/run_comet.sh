@@ -1,12 +1,12 @@
 #!/bin/bash --login
 
 #SBATCH --job-name=mqmbench_comet
-#SBATCH --partition=dw
+#SBATCH --partition=dwmatrix
 #SBATCH --qos=matrix
-#SBATCH --time=20:00:00
+#SBATCH --time=28:00:00
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
-#SBATCH --mem=160G
+#SBATCH --mem=512G
 #SBATCH --gres=gpu:1
 #SBATCH --requeue
 #SBATCH --signal=SIGHUP@90

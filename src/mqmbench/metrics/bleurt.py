@@ -7,11 +7,15 @@ trained on BLEURT's WMT rating data. Input order: reference then hypothesis
 Output scores are in approximately [-1, 2]; higher = better quality.
 """
 
+import ctypes
+import gc
 import logging
 from typing import Optional
 
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+_libc = ctypes.cdll.LoadLibrary("libc.so.6")
 
 logger = logging.getLogger(__name__)
 
@@ -70,5 +74,7 @@ def score(
         with torch.no_grad():
             logits = model(**inputs).logits.squeeze(-1)
         scores.extend(logits.cpu().tolist())
+        gc.collect()
+        _libc.malloc_trim(0)
 
     return scores

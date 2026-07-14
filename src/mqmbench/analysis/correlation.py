@@ -57,25 +57,42 @@ ACCURACY_ERRORS = {"mistranslation", "omission", "addition", "untranslated"}
 FLUENCY_ERRORS = {"grammar", "spelling", "punctuation", "register", "style"}
 
 # Morphological type classification (structural property, independent of script/family).
-# isolating   = minimal inflection, meaning via word order (zh, th, lo, vi)
+# isolating     = minimal inflection, meaning via word order (zh, th, lo, km, my, vi)
+#   km (Khmer): Austroasiatic/Mon-Khmer — isolating like Vietnamese, NOT agglutinative
+#   my (Burmese): Sino-Tibetan/Tibeto-Burman — predominantly analytic/isolating
 # agglutinative = transparent suffixes/prefixes stack predictably (tr, fi, et, ka, kk, sw,
-#                 km, my, am, ja, ta — ja is agglutinative in its verbal morphology)
+#                 am, ja, ta — ja is agglutinative in its verbal morphology)
+#   am (Amharic): Semitic root-and-pattern morphology is templatic/fusional in the strict
+#                 sense, but am is commonly treated as agglutinative in NLP typology work
+#                 due to its transparent suffix stacking; we follow that convention here.
 # fusional     = inflection fuses multiple features per morpheme (de, ru, es, cs, fr, pl,
 #                uk, is, lt, lv, he, ps, bn, hi, gu, xh, zu, ha, ht)
 MORPHOLOGY_TYPES = {
-    "isolating":    ["zh", "th", "lo"],
-    "agglutinative": ["tr", "fi", "et", "ka", "kk", "sw", "km", "my", "am", "ja", "ta"],
+    "isolating":    ["zh", "th", "lo", "km", "my"],
+    "agglutinative": ["tr", "fi", "et", "ka", "kk", "sw", "am", "ja", "ta"],
     "fusional":     ["de", "ru", "es", "cs", "fr", "pl", "uk", "is", "lt", "lv",
                      "he", "ps", "bn", "hi", "gu", "xh", "zu", "ha", "ht"],
 }
 
-# WMT language pair direction: X→en vs en→X.
-# Matters because COMET/BERTScore were trained predominantly on en→X data.
+# WMT language pair direction — derived from actual segment_id prefixes in the data.
+# "x_to_en"  = non-English source, English target (COMET trained mostly en→X, so this is OOD)
+# "en_to_x"  = English source, non-English target
+# "pivot"     = neither language is English (de-fr, hi-bn, bn-hi, zu-xh, xh-zu)
+#               Pivot pairs stress all metrics: COMET-Kiwi's source encoder is off-domain;
+#               BLEU/ChrF reference overlap still works but no reference-free path.
+#
+# Verified from data:
+#   x_to_en: zh (zh-en 2020), uk (uk-en 2022), km (km-en 2020), ps (ps-en 2020),
+#             gu (gu-en 2019), kk (kk-en 2019), he (he-en MQM)
+#   pivot:   fr (de-fr 2019), bn (hi-bn 2021), hi (bn-hi 2021), xh (zu-xh 2021),
+#            zu (xh-zu 2021)
+#   en_to_x: everything else (de ru es cs tr ha is lt lv pl fi et ta ja; FLORES tier2)
 TRANSLATION_DIRECTIONS = {
-    "x_to_en": ["zh", "he"],    # zh-en, he-en
-    "en_to_x": ["de", "ru", "es", "cs", "tr", "uk", "fr", "pl", "fi", "et", "is",
-                "lt", "lv", "bn", "hi", "gu", "ta", "ja", "kk", "xh", "zu",
-                "ha", "km", "ps", "sw", "ht", "lo", "th", "my", "am", "ka"],
+    "x_to_en": ["zh", "he", "uk", "km", "ps", "gu", "kk"],
+    "pivot":   ["fr", "bn", "hi", "xh", "zu"],
+    "en_to_x": ["de", "ru", "es", "cs", "tr", "pl", "fi", "et", "is",
+                "lt", "lv", "ta", "ja", "ha",
+                "sw", "ht", "lo", "th", "my", "am", "ka"],
 }
 
 
@@ -270,17 +287,25 @@ def run_williams_tests(
 
     rows = []
     for lang, group in scores_df.groupby("lang"):
-        human = group[human_column].tolist()
-        ref_scores = group[reference_metric].tolist()
         for metric in metric_columns:
             if metric == reference_metric or metric not in group.columns:
                 continue
-            t, p = williams_test(human, group[metric].tolist(), ref_scores)
+            # Drop rows where either metric or reference is NaN (e.g. GEMBA is
+            # NaN for non-MQM tiers). Williams test requires complete cases for
+            # all three variables.
+            valid = group[[human_column, reference_metric, metric]].dropna()
+            if len(valid) < 6:
+                continue
+            t, p = williams_test(
+                valid[human_column].tolist(),
+                valid[metric].tolist(),
+                valid[reference_metric].tolist(),
+            )
             rows.append({
                 "lang": lang,
                 "metric": metric,
                 "reference_metric": reference_metric,
-                "n": len(human),
+                "n": len(valid),
                 "t_statistic": t,
                 "p_value": p,
                 "significant_p05": p < 0.05 if not np.isnan(p) else False,
@@ -385,11 +410,14 @@ def correlate_metric_vs_human(
     kr, kp = _kendall(human_scores, metric_scores)
     pa = pairwise_accuracy(human_scores, metric_scores)
     spa = soft_pairwise_accuracy(human_scores, metric_scores)
-    ci_lo, ci_hi = _bootstrap_ci(
-        human_scores, metric_scores,
-        stat_fn=lambda x, y: stats.spearmanr(x, y).statistic,
-        n_boot=n_boot,
-    )
+    if n_boot > 0:
+        ci_lo, ci_hi = _bootstrap_ci(
+            human_scores, metric_scores,
+            stat_fn=lambda x, y: stats.spearmanr(x, y).statistic,
+            n_boot=n_boot,
+        )
+    else:
+        ci_lo, ci_hi = float("nan"), float("nan")
     return {
         "lang": lang, "metric": metric_name, "n": len(human_scores),
         "pairwise_acc": pa, "spa": spa,
@@ -423,7 +451,7 @@ def run_correlation_analysis(
             else "unknown"
         )
         for metric in metric_columns:
-            if metric not in group.columns:
+            if metric not in group.columns or group[metric].isna().all():
                 continue
             result = correlate_metric_vs_human(human, group[metric].tolist(), metric, str(lang))
             result["resource_tier"] = lang_to_tier.get(str(lang), "unknown")
@@ -604,7 +632,7 @@ def run_domain_analysis(
         for metric in metric_columns:
             if metric not in group.columns or group[metric].isna().all():
                 continue
-            result = correlate_metric_vs_human(human, group[metric].tolist(), metric, str(lang))
+            result = correlate_metric_vs_human(human, group[metric].tolist(), metric, str(lang), n_boot=0)
             result["resource_tier"] = lang_to_tier.get(str(lang), "unknown")
             result["language_family"] = lang_to_family.get(str(lang), "unknown")
             result["script_type"] = lang_to_script.get(str(lang), "unknown")
@@ -614,6 +642,83 @@ def run_domain_analysis(
     if not rows:
         return pd.DataFrame()
     return pd.DataFrame(rows).sort_values(["domain", "metric", "lang"]).reset_index(drop=True)
+
+
+def run_domain_controlled_comparison(
+    scores_df: pd.DataFrame,
+    metric_columns: list[str],
+    human_column: str = "quality_score",
+    resource_tiers: Optional[dict[str, list[str]]] = None,
+) -> pd.DataFrame:
+    """Natural experiment: domain vs. resource-level as driver of metric reliability.
+
+    Tests the core claim that Ukrainian's near-zero correlation is a domain confound,
+    not a language/resource effect. Uses two controlled comparisons:
+
+    Comparison A — Hold direction constant (x_to_en), vary domain:
+        uk (medium, x_to_en, other/conversational) vs.
+        km (low, x_to_en, wiki) vs. ps (low, x_to_en, wiki) vs.
+        gu (medium, x_to_en, news) vs. kk (medium, x_to_en, news)
+    If domain drives reliability: uk < km ≈ ps < gu ≈ kk
+
+    Comparison B — Hold domain constant (news), vary resource level:
+        de/zh/ru (high, news) vs. cs/tr/fr/... (medium, news) vs. ha (low, news)
+    If resource level drives reliability: high > medium > low
+
+    Returns:
+        DataFrame with columns: lang, direction, domain, resource_tier, metric,
+        spearman_r, n, comparison_group.
+    """
+    if resource_tiers is None:
+        resource_tiers = RESOURCE_TIERS
+
+    lang_to_tier = {lang: tier for tier, langs in resource_tiers.items() for lang in langs}
+    lang_to_dir = {lang: d for d, langs in TRANSLATION_DIRECTIONS.items() for lang in langs}
+
+    rows = []
+    for lang, group in scores_df.groupby("lang"):
+        lang_str = str(lang)
+        direction = lang_to_dir.get(lang_str, "en_to_x")
+        tier = lang_to_tier.get(lang_str, "unknown")
+        domain = (
+            group["domain"].mode().iloc[0]
+            if "domain" in group.columns and not group["domain"].isna().all()
+            else "unknown"
+        )
+        if len(group) < 10 or group[human_column].isna().all():
+            continue
+
+        # Assign comparison group
+        if direction == "x_to_en":
+            comparison_group = "A_direction_controlled"
+        elif domain == "news":
+            comparison_group = "B_domain_controlled_news"
+        else:
+            comparison_group = "other"
+
+        human = group[human_column].tolist()
+        for metric in metric_columns:
+            if metric not in group.columns or group[metric].isna().all():
+                continue
+            sr, _ = _spearman(human, group[metric].tolist())
+            rows.append({
+                "lang": lang_str,
+                "direction": direction,
+                "domain": domain,
+                "resource_tier": tier,
+                "metric": metric,
+                "spearman_r": sr,
+                "n": len(group),
+                "comparison_group": comparison_group,
+            })
+
+    if not rows:
+        return pd.DataFrame()
+    return (
+        pd.DataFrame(rows)
+        .sort_values(["comparison_group", "metric", "spearman_r"])
+        .reset_index(drop=True)
+    )
 
 
 def analyze_tier_anomaly(
@@ -735,7 +840,7 @@ def run_system_level_analysis(
         for metric in metric_columns:
             if metric not in sys_df.columns or sys_df[metric].isna().all():
                 continue
-            result = correlate_metric_vs_human(human, sys_df[metric].tolist(), metric, str(lang))
+            result = correlate_metric_vs_human(human, sys_df[metric].tolist(), metric, str(lang), n_boot=0)
             result["resource_tier"] = lang_to_tier.get(str(lang), "unknown")
             result["language_family"] = lang_to_family.get(str(lang), "unknown")
             result["script_type"] = lang_to_script.get(str(lang), "unknown")
@@ -828,11 +933,18 @@ def run_direction_analysis(
     human_column: str = "quality_score",
     resource_tiers: Optional[dict[str, list[str]]] = None,
 ) -> pd.DataFrame:
-    """Correlation analysis split by translation direction (X→en vs. en→X).
+    """Correlation analysis split by translation direction: X→en, en→X, or pivot.
 
-    Metrics like COMET and BERTScore were trained predominantly on en→X data.
-    If they are less calibrated for X→en, we expect lower Spearman r for
-    zh-en and he-en compared to en→X languages of similar resource level.
+    Three categories derived from actual WMT evaluation language pairs:
+      - x_to_en:  non-English source, English target (zh-en, uk-en, km-en, …)
+      - en_to_x:  English source, non-English target (en-de, en-cs, en-ru, …)
+      - pivot:    neither language is English (de-fr, hi-bn, zu-xh, …)
+                  Pivot pairs stress COMET-Kiwi (source is off-domain) while
+                  surface metrics are unaffected (no source required).
+
+    Ukrainian (uk-en 2022, domain='other') is x_to_en AND the only non-news/non-wiki
+    language — controlling for direction (km-en, ps-en also x_to_en, domain=wiki)
+    isolates domain as the primary driver of Ukrainian's near-zero correlation.
 
     Returns:
         DataFrame like run_correlation_analysis() with a 'direction' column.
@@ -849,14 +961,21 @@ def run_direction_analysis(
     for lang, group in scores_df.groupby("lang"):
         human = group[human_column].tolist()
         direction = lang_to_dir.get(str(lang), "en_to_x")
+        # Record domain for the Ukrainian domain-vs-direction analysis
+        domain = (
+            group["domain"].mode().iloc[0]
+            if "domain" in group.columns and not group["domain"].isna().all()
+            else "unknown"
+        )
         for metric in metric_columns:
             if metric not in group.columns or group[metric].isna().all():
                 continue
-            result = correlate_metric_vs_human(human, group[metric].tolist(), metric, str(lang))
+            result = correlate_metric_vs_human(human, group[metric].tolist(), metric, str(lang), n_boot=0)
             result["resource_tier"] = lang_to_tier.get(str(lang), "unknown")
             result["language_family"] = lang_to_family.get(str(lang), "unknown")
             result["script_type"] = lang_to_script.get(str(lang), "unknown")
             result["direction"] = direction
+            result["domain"] = domain
             rows.append(result)
 
     if not rows:
@@ -921,14 +1040,14 @@ def run_length_analysis(
     df = scores_df.copy()
     df["_src_len"] = df["source"].fillna("").str.split().str.len()
 
-    def _bin(n):
-        if n < bins[0]:
-            return f"short (<{bins[0]})"
-        elif n <= bins[1]:
-            return f"medium ({bins[0]}–{bins[1]})"
-        return f"long (>{bins[1]})"
-
-    df["length_bin"] = df["_src_len"].apply(_bin)
+    short_label  = f"short (<{bins[0]})"
+    medium_label = f"medium ({bins[0]}–{bins[1]})"
+    long_label   = f"long (>{bins[1]})"
+    df["length_bin"] = np.select(
+        [df["_src_len"] < bins[0], df["_src_len"] <= bins[1]],
+        [short_label, medium_label],
+        default=long_label,
+    )
 
     rows = []
     for (lang, length_bin), group in df.groupby(["lang", "length_bin"]):
@@ -938,14 +1057,14 @@ def run_length_analysis(
         for metric in metric_columns:
             if metric not in group.columns or group[metric].isna().all():
                 continue
-            result = correlate_metric_vs_human(human, group[metric].tolist(), metric, str(lang))
+            result = correlate_metric_vs_human(human, group[metric].tolist(), metric, str(lang), n_boot=0)
             result["resource_tier"] = lang_to_tier.get(str(lang), "unknown")
             result["length_bin"] = length_bin
             rows.append(result)
 
     if not rows:
         return pd.DataFrame()
-    bin_order = [f"short (<{bins[0]})", f"medium ({bins[0]}–{bins[1]})", f"long (>{bins[1]})"]
+    bin_order = [short_label, medium_label, long_label]
     result_df = pd.DataFrame(rows)
     result_df["length_bin"] = pd.Categorical(result_df["length_bin"], categories=bin_order, ordered=True)
     return result_df.sort_values(["length_bin", "metric", "lang"]).reset_index(drop=True)
@@ -1008,3 +1127,136 @@ def run_rater_agreement_analysis(
     if not rows:
         return pd.DataFrame()
     return pd.DataFrame(rows).sort_values(["agreement_bin", "metric", "lang"]).reset_index(drop=True)
+
+
+def run_direction_morphology_interaction(
+    scores_df: pd.DataFrame,
+    metric_columns: list[str],
+    human_column: str = "quality_score",
+    resource_tiers: Optional[dict[str, list[str]]] = None,
+) -> pd.DataFrame:
+    """2×3 interaction analysis: translation direction × morphological type.
+
+    This is the central novel claim of the paper: that the translation direction
+    (X→en vs. en→X) and morphological type (isolating/agglutinative/fusional)
+    interact to predict metric reliability, with the interaction term being more
+    predictive than either factor alone.
+
+    Effect sizes are computed as eta-squared (proportion of variance explained).
+    Each cell reports the mean Spearman r across languages in that cell,
+    bootstrapped 95% CIs over the languages in the cell, and the cell n.
+
+    Contrasts Mondshine et al. (ACL 2025) summarization results:
+    - Their n-gram result: fusional hurts surface metrics (consistent with ours)
+    - Their neural result: COMET *better* for fusional (opposite of our MT claim)
+    - MT direction adds a confound absent from their monolingual summarization setting.
+
+    Returns:
+        DataFrame with columns: direction, morphology_type, metric,
+        mean_spearman_r, ci_lo, ci_hi, n_langs, total_segments,
+        and effect sizes: direction_eta_sq, morphology_eta_sq, interaction_eta_sq.
+        Also includes a 'marginal_direction' and 'marginal_morphology' subtable
+        as separate frames returned in a dict; here we return the full cell table.
+    """
+    if resource_tiers is None:
+        resource_tiers = RESOURCE_TIERS
+
+    lang_to_tier = {lang: tier for tier, langs in resource_tiers.items() for lang in langs}
+    lang_to_morph = {lang: mtype for mtype, langs in MORPHOLOGY_TYPES.items() for lang in langs}
+    lang_to_dir = {lang: d for d, langs in TRANSLATION_DIRECTIONS.items() for lang in langs}
+
+    rows = []
+    for lang, group in scores_df.groupby("lang"):
+        lang_str = str(lang)
+        direction = lang_to_dir.get(lang_str, "en_to_x")
+        morph = lang_to_morph.get(lang_str, "fusional")
+        tier = lang_to_tier.get(lang_str, "unknown")
+        human = group[human_column].tolist()
+        if len(human) < 10:
+            continue
+        for metric in metric_columns:
+            if metric not in group.columns or group[metric].isna().all():
+                continue
+            sr, _ = _spearman(human, group[metric].tolist())
+            rows.append({
+                "lang": lang_str,
+                "direction": direction,
+                "morphology_type": morph,
+                "resource_tier": tier,
+                "metric": metric,
+                "spearman_r": sr,
+                "n": len(group),
+            })
+
+    if not rows:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(rows)
+
+    # Aggregate into 2×3 cells with bootstrap CIs over language-level r values
+    cell_rows = []
+    for (metric, direction, morph), cell in df.groupby(["metric", "direction", "morphology_type"]):
+        r_vals = cell["spearman_r"].dropna().tolist()
+        n_langs = len(r_vals)
+        if n_langs == 0:
+            continue
+        mean_r = float(np.mean(r_vals))
+        # Bootstrap CI over language-level r values
+        if n_langs >= 3:
+            rng = np.random.default_rng(42)
+            boot = [float(np.mean(rng.choice(r_vals, size=n_langs, replace=True)))
+                    for _ in range(1000)]
+            ci_lo, ci_hi = float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))
+        else:
+            ci_lo, ci_hi = float("nan"), float("nan")
+        cell_rows.append({
+            "metric": metric,
+            "direction": direction,
+            "morphology_type": morph,
+            "mean_spearman_r": mean_r,
+            "ci_lo": ci_lo,
+            "ci_hi": ci_hi,
+            "n_langs": n_langs,
+            "total_segments": int(cell["n"].sum()),
+        })
+
+    if not cell_rows:
+        return pd.DataFrame()
+
+    cell_df = pd.DataFrame(cell_rows)
+
+    # Compute simple eta-squared for direction, morphology, and interaction
+    # using the language-level r values (ANOVA over spearman_r as dependent variable)
+    eta_rows = []
+    for metric, mdf in df.groupby("metric"):
+        y = mdf["spearman_r"].dropna().values
+        if len(y) < 4:
+            continue
+        grand_mean = y.mean()
+        ss_total = ((y - grand_mean) ** 2).sum()
+        if ss_total == 0:
+            continue
+
+        dir_means = mdf.groupby("direction")["spearman_r"].mean()
+        morph_means = mdf.groupby("morphology_type")["spearman_r"].mean()
+        ss_dir = sum(
+            (mdf["direction"] == d).sum() * (m - grand_mean) ** 2
+            for d, m in dir_means.items()
+        )
+        ss_morph = sum(
+            (mdf["morphology_type"] == mt).sum() * (m - grand_mean) ** 2
+            for mt, m in morph_means.items()
+        )
+        ss_interaction = max(0.0, ss_total - ss_dir - ss_morph)
+        eta_rows.append({
+            "metric": metric,
+            "direction_eta_sq": float(ss_dir / ss_total),
+            "morphology_eta_sq": float(ss_morph / ss_total),
+            "interaction_eta_sq": float(ss_interaction / ss_total),
+        })
+
+    if eta_rows:
+        eta_df = pd.DataFrame(eta_rows)
+        cell_df = cell_df.merge(eta_df, on="metric", how="left")
+
+    return cell_df.sort_values(["metric", "direction", "morphology_type"]).reset_index(drop=True)

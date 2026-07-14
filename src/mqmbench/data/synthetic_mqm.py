@@ -5,6 +5,7 @@ model. Designed to run on the BYU supercomputer with HF_HUB_OFFLINE=1.
 Results are cached to JSONL files so the model only runs once per language.
 """
 
+import gc
 import logging
 import re
 from pathlib import Path
@@ -17,33 +18,43 @@ from mqmbench.data.utils import read_jsonl_cache, write_jsonl_cache
 
 logger = logging.getLogger(__name__)
 
-PROMPT_TEMPLATE = """You are a strict professional translation reviewer. Even fluent translations contain minor errors — word choice, register, grammar, or awkward phrasing. Your job is to find them.
+_LANG_NAMES = {
+    "sw": "Swahili", "ht": "Haitian Creole", "lo": "Lao", "th": "Thai",
+    "my": "Burmese", "am": "Amharic", "ka": "Georgian",
+}
+
+PROMPT_TEMPLATE = """You are a strict professional translation reviewer. Machine translations almost always contain errors — mistranslations, omissions, fluency problems, or word-choice issues. Your job is to find them. Be critical.
 
 Evaluate the translation from English to {target_lang}.
 
 === EXAMPLES ===
 
 Source: The patient must take the medication twice daily with food.
-Translation: Le patient devra prendre le médicament deux fois par jour.
+Translation (French): Le patient devra prendre le médicament deux fois par jour.
 Review:
 ERROR: [severity: minor] [category: omission] [span: par jour]
 
+Source: The government announced new economic reforms to combat inflation.
+Translation (Swahili): Serikali ilitangaza mageuzi ya uchumi kupambana na mfumko.
+Review:
+ERROR: [severity: minor] [category: omission] [span: kupambana na mfumko]
+
 Source: Scientists discovered a new species of deep-sea fish near the Mariana Trench.
-Translation: Los científicos descubrieron una nueva especie de pez de aguas profundas cerca de la Fosa de las Marianas.
+Translation (Spanish): Los científicos descubrieron una nueva especie de pez de aguas profundas cerca de la Fosa de las Marianas.
 Review:
 NO ERRORS
 
 Source: The contract will expire at the end of the fiscal year unless renewed.
-Translation: Il contratto scadrà alla fine dell anno fiscale se non rinnovato.
+Translation (Amharic): ውሉ እስካልታደሰ ድረስ በዓመቱ መጨረሻ ያበቃል።
 Review:
-ERROR: [severity: minor] [category: grammar] [span: dell anno]
+ERROR: [severity: major] [category: mistranslation] [span: በዓመቱ መጨረሻ]
 
 === YOUR TASK ===
 
 Source: {source}
-Translation: {hypothesis}
+Translation ({target_lang}): {hypothesis}
 
-Review (identify ALL errors, or output NO ERRORS if truly none):"""
+Review (list ALL errors found, or output NO ERRORS only if the translation is genuinely perfect):"""
 
 _ERROR_PATTERN = re.compile(
     r"ERROR:\s*\[severity:\s*(major|minor)\]\s*"
@@ -121,25 +132,28 @@ def generate_synthetic_mqm(
     if langs_to_annotate:
         logger.info(f"Loading local LLM for synthetic MQM: {model_name}")
         pipe = hf_pipeline("text-generation", model=model_name,
-                           max_new_tokens=256, do_sample=False)
+                           max_new_tokens=64, do_sample=True, temperature=0.3,
+                           return_full_text=False,
+                           batch_size=32)
+        pipe.tokenizer.pad_token = pipe.tokenizer.eos_token
+        pipe.tokenizer.padding_side = "left"
 
         for lang in langs_to_annotate:
             group = segments_df[segments_df["lang"] == lang]
             logger.info(f"Generating synthetic MQM for {lang} ({len(group)} segments)...")
             rows_list = group.to_dict(orient="records")
 
+            lang_name = _LANG_NAMES.get(lang, lang)
             prompts = [
                 PROMPT_TEMPLATE.format(
-                    target_lang=lang,
+                    target_lang=lang_name,
                     source=row["source"],
                     hypothesis=row["hypothesis"],
                 )
                 for row in rows_list
             ]
 
-            outputs = []
-            for i in range(0, len(prompts), batch_size):
-                outputs.extend(pipe(prompts[i : i + batch_size]))
+            outputs = list(pipe(prompts))
 
             lang_rows = []
             for row, out in zip(rows_list, outputs):
@@ -155,5 +169,17 @@ def generate_synthetic_mqm(
 
             write_jsonl_cache(cache_files[lang], lang_rows)
             span_rows.extend(lang_rows)
+
+        # Free the LLM from GPU and CPU memory before returning; the caller
+        # will load separate neural MT metric models (xCOMET, COMET-Kiwi, etc.)
+        # and keeping the LLM alive causes OOM.
+        del pipe
+        gc.collect()
+        try:
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:
+            pass
 
     return pd.DataFrame(span_rows)

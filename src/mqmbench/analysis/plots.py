@@ -555,7 +555,7 @@ def plot_morphology_analysis(morph_df: pd.DataFrame, out_path):
     sns.heatmap(pivot, annot=True, fmt=".2f", cmap="coolwarm", center=0,
                 linewidths=0.5, ax=ax)
     ax.set_title("Mean Spearman ρ by Morphological Type and Metric\n"
-                 "(agglutinative langs: tr/fi/et/ka/ta/ja; isolating: zh/th/lo; fusional: de/ru/es/...)")
+                 "(agglutinative: tr/fi/et/ka/ta/ja; isolating: zh/th/lo/km/my; fusional: de/ru/lv/lt/...)")
     ax.set_xlabel("Metric")
     ax.set_ylabel("Morphological Type")
     plt.tight_layout()
