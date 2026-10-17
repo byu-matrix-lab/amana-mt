@@ -38,6 +38,15 @@ notes/wmt_review.md
 
 # LaTeX report (compiled on Overleaf)
 latex/
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.fdb_latexmk
+*.fls
+*.synctex.gz
 
 # HuggingFace cache
 .cache/
