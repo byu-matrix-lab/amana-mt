@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use AmanaMT, please cite this work."
+title: "AmanaMT: Translation Direction Predicts Automatic Metric Reliability"
+type: conference-paper
+authors:
+  - family-names: Thompson
+    given-names: Isaac
+repository-code: "https://github.com/byu-matrix-lab/amana-mt"
+url: "https://www2.statmt.org/wmt26/pdf/2026.wmt-1.42.pdf"
+license: MIT

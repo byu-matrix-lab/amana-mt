@@ -1,3 +1,3 @@
-"""Multilingual MQM Benchmark — MT metric evaluation across 12 languages."""
+"""AmanaMT: multilingual meta-evaluation of MT metric reliability."""
 
 __version__ = "0.1.0"

@@ -30,6 +30,12 @@ env/
 # Core dumps
 core.*
 
+# Local archives and correspondence
+*.zip
+archive/
+notes/advisor_emails.md
+notes/wmt_review.md
+
 # LaTeX report (compiled on Overleaf)
 latex/
 

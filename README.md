@@ -1,171 +1,123 @@
-# Multilingual MQM Benchmark: MT Metric Meta-Evaluation
+# AmanaMT
 
-A benchmark for measuring how well automated MT metrics correlate with human
-quality judgment across languages of varying resource levels, broken down by
-error category. The pipeline is modular and designed for contribution to a
-reusable evaluation harness.
+Research code for **AmanaMT: Translation Direction Predicts Automatic Metric
+Reliability**.
 
-## Research Questions
+AmanaMT is a multilingual machine-translation metric meta-evaluation spanning
+**730,748 segments, 33 languages, three annotation tiers, and 10 automatic
+metrics**. It combines professional MQM annotations, crowd-sourced Direct
+Assessment, and a clearly separated exploratory synthetic-MQM tier.
 
-1. **Resource-level degradation** — How does metric–human correlation degrade
-   as languages become lower-resource?
-2. **Error category sensitivity** — Do metrics handle accuracy vs. fluency
-   errors differently across resource levels?
-3. **Non-translation detection** — Which metrics most reliably flag severe
-   quality failures?
-4. **Script type effects** (Dr. Fulda) — Do metrics relying on subword overlap
-   or contextualized embeddings perform differently for logographic vs.
-   alphabetic vs. abjad scripts?
-5. **Language family effects** (Dr. Fulda) — Are there systematic patterns
-   within language families that hold across metrics?
+[Read the WMT paper](https://www2.statmt.org/wmt26/pdf/2026.wmt-1.42.pdf)
 
-## Metrics Evaluated
+## Main findings
 
-| Metric | Type | Reference-free |
-|--------|------|---------------|
-| BLEU | n-gram overlap | No |
-| ChrF++ | character n-gram | No |
-| BERTScore | contextual embedding | No |
-| COMET | neural DA-trained | No |
-| xCOMET | neural MQM-trained | No |
-| GEMBA-MQM | LLM-as-judge | Yes |
+- Translation direction explains substantially more between-language variance
+  in COMET reliability than morphological type (`eta²_direction = 0.309`
+  versus `eta²_morphology = 0.073`). The six joint direction-by-morphology
+  cells explain `eta²_cell = 0.618`.
+- Ukrainian's near-zero COMET correlation is explained by a non-news domain
+  label, rather than by Ukrainian itself.
+- Russian's weak pooled result separates into stronger per-year signals, an
+  example of Simpson's paradox caused by combining heterogeneous WMT system
+  generations.
+- MetricX-24, xCOMET, and COMET outperform surface-overlap baselines across
+  resource tiers; their advantage is largest in morphologically complex and
+  non-news settings.
 
-## Language Coverage (13 Languages)
+These are empirical findings for the benchmark's observed language-direction
+cells, not universal claims. In particular, one direction-by-morphology cell is
+empty and seven Tier-2 languages do not have human MT annotations.
 
-| Language | ISO | Resource tier | Annotation tier | Family | Script |
-|----------|-----|---------------|-----------------|--------|--------|
-| German | de | high | Tier 1a – Real MQM | Indo-European | alphabetic |
-| Chinese | zh | high | Tier 1a – Real MQM | Sino-Tibetan | logographic |
-| Russian | ru | high | Tier 1a – Real MQM | Indo-European | alphabetic |
-| Hebrew | he | high | Tier 1a – Real MQM | Afro-Asiatic (Semitic) | abjad |
-| Spanish | es | medium | Tier 1a – Real MQM | Indo-European | alphabetic |
-| Czech | cs | medium | Tier 1b – Real DA | Indo-European | alphabetic |
-| Turkish | tr | medium | Tier 1b – Real DA | Turkic | alphabetic |
-| Ukrainian | uk | medium | Tier 1b – Real DA | Indo-European | alphabetic |
-| Hausa | ha | low | Tier 1b – Real DA | Afro-Asiatic (Chadic) | alphabetic |
-| Khmer | km | low | Tier 1b – Real DA | Austroasiatic | abugida |
-| Pashto | ps | low | Tier 1b – Real DA | Indo-European (Iranian) | abjad |
-| Swahili | sw | low | Tier 2 – Synthetic | Niger-Congo | alphabetic |
-| Haitian Creole | ht | low | Tier 2 – Synthetic | Creole | alphabetic |
-| Lao | lo | low | Tier 2 – Synthetic | Tai-Kadai | abugida |
+## Evaluation design
 
-## Data Design
+| Tier | Annotation source | Role |
+| --- | --- | --- |
+| 1a | Professional WMT MQM | Human-annotated core evaluation |
+| 1b | WMT Direct Assessment | Broader human-annotated coverage |
+| 2 | Llama-3.1-8B synthetic MQM | Exploratory extension only |
 
-Three annotation tiers, clearly distinguished throughout all outputs:
+Tier 2 is explicitly labeled synthetic and unvalidated against human judgment.
+GEMBA is excluded from that tier to avoid judging Llama-generated annotations
+with a closely related LLM-based procedure. It is also excluded from DA tiers,
+where its MQM-oriented backbone is not directly comparable.
 
-| Tier | Annotation source | Dataset |
-|------|-------------------|---------|
-| 1a – Real MQM | Professional MQM annotations | `RicardoRei/wmt-mqm-human-evaluation` |
-| 1b – Real DA | Direct Assessment z-scores | `RicardoRei/wmt-da-human-evaluation` |
-| 2 – Synthetic | GEMBA-MQM via local LLM | FLORES+ source/ref + NLLB-200 MT output |
+The evaluated suite includes lexical metrics (BLEU, chrF), learned reference-
+based metrics (COMET, xCOMET, MetricX-24), reference-free quality estimation,
+and GEMBA-MQM where the design permits it. Analyses report Pearson and Spearman
+correlations, Kendall variants, soft pairwise accuracy, bootstrap confidence
+intervals, direction/morphology cells, and year-stratified robustness checks.
 
-**Notes on Tier 2:** Synthetic annotations are generated by a local LLM
-(`meta-llama/Llama-3.1-8B-Instruct`) using GEMBA-MQM style prompting. Since
-GEMBA-MQM is also one of the *evaluated* metrics, Tier 2 results for that
-metric should be interpreted with caution. All outputs label Tier 2 entries as
-`annotation_tier = synthetic_mqm`.
+## Repository map
 
-**MQM scoring:** Tier 2 annotations use MQM severity weighting: critical=25,
-major=5, minor=1. Sentence-level quality scores are computed as
-`quality_score = 1 / (1 + error_penalty)`, normalized to [0, 1].
-
-**Tier 1a/1b scoring:** Per-language min-max normalization to [0, 1] to avoid
-cross-language scale distortion.
-
-## Project Structure
-
-```
+```text
 src/mqmbench/
-  constants.py          # AnnotationTier constants
-  config.py             # Dynaconf settings loader
-  pipeline.py           # Main orchestration
-  data/
-    utils.py            # Shared: ISO→BCP47 mapping, JSONL cache helpers
-    wmt_mqm.py          # Tier 1a loader (WMT MQM HuggingFace dataset)
-    wmt_da.py           # Tier 1b loader (WMT DA HuggingFace dataset)
-    flores.py           # Tier 2 source/reference (FLORES+)
-    nllb.py             # Tier 2 hypothesis generation (NLLB-200, cached)
-    synthetic_mqm.py    # Tier 2 annotation generation (local LLM, cached)
-    converter.py        # Span-level MQM → sentence-level quality scores
-  metrics/
-    bleu.py             # sacrebleu wrapper
-    chrf.py             # ChrF++ wrapper
-    bertscore.py        # BERTScore (mDeBERTa-v3-base)
-    comet.py            # COMET + xCOMET (Unbabel)
-    gemba.py            # GEMBA-MQM (local HF text-generation pipeline)
-  analysis/
-    correlation.py      # Pearson, Spearman, Kendall; by tier/script/family
-    plots.py            # Five output figures
+  data/       dataset loading, normalization, and MQM span conversion
+  metrics/    lexical, neural, and LLM-based metric adapters
+  analysis/   correlations, confidence intervals, and plots
+  pipeline.py end-to-end orchestration and cache-aware execution
 scripts/
-  run_pipeline.py       # CLI entry point
-  slurm/
-    run_comet.sh        # Full pipeline with GPU metrics
-    run_nllb.sh         # Cache Tier 2 hypotheses (run once before full pipeline)
-    run_synthetic_mqm.sh # Cache Tier 2 annotations (run once before full pipeline)
+  run_pipeline.py       primary CLI
+  slurm/                cluster launchers
+tests/
+  test_converter.py     MQM aggregation regression tests
+settings.toml           experiment configuration
 ```
+
+Large datasets, model caches, and generated results are intentionally excluded
+from Git. The paper's generated tables and claims are produced from pipeline
+outputs rather than being hand-entered into analysis code.
 
 ## Setup
 
-```bash
-# Create venv and install
-uv venv .venv --python 3.11
-uv pip install -e ".[metrics]"
+Python 3.9 or newer is supported. The project uses
+[uv](https://docs.astral.sh/uv/), although a standard editable pip install also
+works.
 
-# For development
+```bash
+uv venv --python 3.11
 uv pip install -e ".[metrics,dev]"
 ```
 
-## Configuration
+For the lightweight MQM conversion tests, only pandas and pytest are needed:
 
-Edit `settings.toml` before running:
-
-- `metrics.gemba_model` — local HuggingFace model for GEMBA metric and Tier 2
-  annotation generation. Default: `meta-llama/Llama-3.1-8B-Instruct`.
-  Must be pre-downloaded on the login node before submitting SLURM jobs.
-- `metrics.run_gemba` — set `true` to include GEMBA as an evaluated metric.
-- `data.wmt_mqm_pairs` — language pairs to load from WMT MQM dataset.
-- `data.wmt_da_target_langs` — target languages to load from WMT DA dataset.
-
-## Running
-
-**On a login node (BLEU/ChrF only — no GPU, no Tier 2):**
 ```bash
-# Edit settings.toml: run = ["bleu", "chrf"]
-.venv/bin/python scripts/run_pipeline.py --settings settings.toml
+python -m pytest -q
 ```
 
-**On the supercomputer (full pipeline):**
+## Running the benchmark
+
+Start with the inexpensive lexical metrics:
+
 ```bash
-# Step 1 (once): pre-download model weights on login node (network available here)
-.venv/bin/python -c "
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-AutoTokenizer.from_pretrained('facebook/nllb-200-distilled-600M')
-AutoModelForSeq2SeqLM.from_pretrained('facebook/nllb-200-distilled-600M')
-"
+.venv/bin/python scripts/run_pipeline.py \
+  --settings settings.toml \
+  --only-metrics bleu chrf
+```
 
-# Step 2 (once): cache Tier 2 MT hypotheses
+The GPU-backed workflow is split into cacheable SLURM stages:
+
+```bash
 sbatch scripts/slurm/run_nllb.sh
-
-# Step 3 (once): cache Tier 2 synthetic annotations
 sbatch scripts/slurm/run_synthetic_mqm.sh
-
-# Step 4: full pipeline with GPU metrics
 sbatch scripts/slurm/run_comet.sh
 ```
 
-## Outputs
+Review `settings.toml` before execution. Model identifiers, enabled metrics,
+language pairs, cache paths, and output paths are configuration rather than
+library constants. Hugging Face weights must be downloaded where network
+access is available before starting offline cluster jobs.
 
-```
-results/
-  correlations.csv          # Per-language Pearson/Spearman/Kendall, with annotation_tier
-  tier_summary.csv          # Aggregated by resource tier (high/medium/low)
-  script_type_summary.csv   # Aggregated by script type (logographic/alphabetic/abjad/abugida)
-  family_summary.csv        # Aggregated by language family
-  category_correlations.csv # Accuracy vs. fluency breakdown (Tier 1a only, when available)
-  plots/
-    correlation_by_tier.png      # Main result: metric correlation by resource level
-    correlation_by_script.png    # Metric correlation by script type
-    correlation_by_family.png    # Metric correlation by language family
-    category_heatmap.png         # Metric × error category heatmap (Tier 1a only)
-    nontranslation_detection.png # Severe-error detection rate per metric
-```
+## Reproducibility notes
+
+- The three annotation tiers remain separate in outputs; do not pool synthetic
+  and human judgments without preserving the tier label.
+- Year-stratified analyses are necessary for multi-year WMT language pairs.
+- Some neural metric checkpoints require accepting upstream model licenses.
+- Full reproduction requires substantial model storage and GPU time. Unit
+  tests exercise data conversion without downloading models.
+
+## License
+
+Code is released under the [MIT License](LICENSE). Upstream datasets and model
+weights retain their own licenses and terms of use.
