@@ -8,10 +8,17 @@ Adds:
     reports 95% CI on the fraction of bootstrap samples where CK23 beats COMET.
 
 Language coverage (15 languages, all metric scores pre-computed):
-  Agglutinative (X→en + en→X): fi, tr, et, ja, kk, ta, ha
-  Fusional      (X→en + en→X): cs, lt, pl, is, gu [en→X only: lv]
+  Agglutinative (X→en + en→X): fi, tr, et, ja, kk, ta
+  Fusional      (X→en + en→X): cs, lt, pl, is, gu, ha [en→X only: lv]
   Fusional      (X→en only):    ps
   Isolating     (X→en only):    km
+
+  Morphology labels are derived from MORPHOLOGY_TYPES (correlation.py), not
+  hardcoded here (see MORPHOLOGY below). Hausa's classification there is
+  fusional: its Afroasiatic verbal-grade system (tone/vowel apophony fusing
+  aspect, transitivity, and direction into one form) is fusional-type
+  behavior, even though it also has real agglutinative affixation — a
+  documented case of genuinely mixed typology.
 
 Run on login node (no GPU needed):
   cd /path/to/project && python scripts/analyze_direction_separated.py
@@ -27,6 +34,7 @@ from scipy.stats import spearmanr
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from mqmbench.data.wmt_da import load_wmt_da
+from mqmbench.analysis.correlation import MORPHOLOGY_TYPES
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 
@@ -38,18 +46,18 @@ KEY_METRICS = ["comet", "cometkiwi23", "metricx"]
 # All WMT DA languages with English on one side (excluding MQM Tier 1a de/ru/zh
 # and domain-confounded uk, and non-English pivot pairs).
 ALL_LANGS = ["fi", "tr", "et", "lt", "cs", "ja",   # original 6
-             "kk", "ta", "ha",                       # new agglutinative
+             "kk", "ta", "ha",                       # new agglutinative/fusional
              "pl", "is", "gu", "lv",                 # new fusional
              "km", "ps"]                             # new isolating + fusional X-only
 
-MORPHOLOGY = {
-    "fi": "agglutinative", "et": "agglutinative", "ja": "agglutinative",
-    "tr": "agglutinative", "kk": "agglutinative", "ta": "agglutinative",
-    "ha": "agglutinative",
-    "lt": "fusional", "cs": "fusional", "pl": "fusional",
-    "is": "fusional", "gu": "fusional", "lv": "fusional", "ps": "fusional",
-    "km": "isolating",
-}
+# Derived from the single canonical MORPHOLOGY_TYPES dict (correlation.py) —
+# not hand-maintained here. A prior version of this file hardcoded its own
+# copy of this mapping and drifted from the canonical one for Hausa (listed
+# agglutinative here, fusional in MORPHOLOGY_TYPES), producing inconsistent
+# morphology labels across tables that a reviewer had to catch. Deriving
+# from one source makes that class of bug structurally impossible.
+_LANG_TO_MORPH = {lang: mtype for mtype, langs in MORPHOLOGY_TYPES.items() for lang in langs}
+MORPHOLOGY = {lang: _LANG_TO_MORPH[lang] for lang in ALL_LANGS}
 
 # Lookup table predictions — best metric per (morphology, direction) cell.
 # Updated to reflect paper claims: CK23 for agglutinative (any) and fusional X→en.

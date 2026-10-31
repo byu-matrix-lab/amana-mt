@@ -19,27 +19,19 @@ Design:
 
 import csv
 import os
+import sys
 import json
 import numpy as np
 from collections import defaultdict
+from pathlib import Path
 
-# ── Lookups from correlation.py ────────────────────────────────────────────────
-MORPHOLOGY_TYPES = {
-    "isolating":     ["zh", "th", "lo", "km", "my"],
-    "agglutinative": ["tr", "fi", "et", "ka", "kk", "sw", "am", "ja", "ta"],
-    "fusional":      ["de", "ru", "cs", "fr", "pl", "uk", "is", "lt", "lv",
-                      "ps", "bn", "hi", "gu", "xh", "zu", "ha", "ht",
-                      "es", "he"],
-}
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from mqmbench.analysis.correlation import (
+    MORPHOLOGY_TYPES, TRANSLATION_DIRECTIONS, TIER2_LANGS,
+)
+
 LANG_TO_MORPH = {lang: mt for mt, langs in MORPHOLOGY_TYPES.items() for lang in langs}
-
-TRANSLATION_DIRECTIONS = {
-    "x_to_en": ["zh", "uk", "km", "ps", "gu", "kk", "he"],
-    "pivot":   ["fr", "bn", "hi", "xh", "zu"],
-    "en_to_x": ["de", "ru", "cs", "tr", "pl", "fi", "et", "is",
-                 "lt", "lv", "ta", "ja", "ha", "sw", "ht", "lo",
-                 "th", "my", "am", "ka", "es"],
-}
 LANG_TO_DIR = {lang: d for d, langs in TRANSLATION_DIRECTIONS.items() for lang in langs}
 
 # Exclude ensemble (derived), gemba (LLM judge), and bleu (it is the baseline)
@@ -71,6 +63,8 @@ def load_data(project_dir):
         if not r["spearman_r"] or r["metric"] in EXCLUDE_METRICS:
             continue
         lang = r["lang"]
+        if lang in TIER2_LANGS:
+            continue  # Tier-2 synthetic annotations excluded from main analysis
         if lang not in typo or lang not in bleu_r:
             continue
         row = {

@@ -31,6 +31,7 @@ from mqmbench.constants import AnnotationTier
 from mqmbench.data.converter import annotations_to_sentence_scores
 from mqmbench.data.utils import lang_from_pair
 from mqmbench.data.wmt_mqm import (
+    _REF_FILE_OVERRIDES,
     _SACREBLEU_OFFSETS,
     build_sacrebleu_ref_lookup,
     load_wmt_mqm_spans,
@@ -104,7 +105,10 @@ def main():
     for lp in missing_pairs:
         testset = _WMT_YEAR[lp]
         offset = _SACREBLEU_OFFSETS.get((testset, lp), 0)
-        lookup = build_sacrebleu_ref_lookup(lp, testset, global_seg_id_offset=offset)
+        ref_override = _REF_FILE_OVERRIDES.get((testset, lp))
+        lookup = build_sacrebleu_ref_lookup(
+            lp, testset, global_seg_id_offset=offset, ref_file_override=ref_override
+        )
         if lookup:
             lang_code = lang_from_pair(lp)
             ref_lookups[lang_code] = lookup

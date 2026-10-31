@@ -62,6 +62,7 @@ from mqmbench.data.synthetic_mqm import generate_synthetic_mqm
 from mqmbench.data.wmt_da import load_wmt_da
 from mqmbench.data.wmt_mqm import (
     build_sacrebleu_ref_lookup, load_wmt_mqm, load_wmt_mqm_spans, _SACREBLEU_OFFSETS,
+    _REF_FILE_OVERRIDES,
 )
 
 logger = logging.getLogger(__name__)
@@ -173,7 +174,10 @@ def run_pipeline(
             if testset is None:
                 continue
             offset = _SACREBLEU_OFFSETS.get((testset, lp), 0)
-            lookup = build_sacrebleu_ref_lookup(lp, testset, global_seg_id_offset=offset)
+            ref_override = _REF_FILE_OVERRIDES.get((testset, lp))
+            lookup = build_sacrebleu_ref_lookup(
+                lp, testset, global_seg_id_offset=offset, ref_file_override=ref_override
+            )
             if lookup:
                 lang_code = lang_from_pair(lp)
                 ref_lookups[lang_code] = lookup

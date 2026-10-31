@@ -47,12 +47,27 @@ def rename_wmt_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_segment_id(df: pd.DataFrame) -> pd.Series:
-    """Construct a unique segment_id from available WMT identifier columns."""
+    """Construct a unique segment_id from available WMT identifier columns.
+
+    Some WMT DA releases (e.g. RicardoRei/wmt-da-human-evaluation) provide none
+    of doc_id/seg_id/sys_name, and lp/year/domain are themselves constant within
+    a language (e.g. all of uk-en is lp="uk-en", year=2022, domain="other") --
+    the naive join above then collapses to a single repeated ID for every row in
+    that language (found via advisor review, 2026-09-11: 16,470 Ukrainian rows
+    sharing one segment_id). That didn't corrupt the merges that use it because
+    they fall back to positional alignment when segment_id is non-unique, but
+    it's a landmine: silently correct only as long as row order never changes.
+    Append a per-group occurrence counter so segment_id is always genuinely
+    unique, regardless of which identifier columns are actually present.
+    """
     id_cols = [c for c in ("lp", "year", "domain", "doc_id", "seg_id", "sys_name")
                if c in df.columns]
     if id_cols:
-        return df[id_cols].astype(str).agg("_".join, axis=1)
-    return df.index.astype(str)
+        base = df[id_cols].astype(str).agg("_".join, axis=1)
+    else:
+        base = pd.Series("row", index=df.index)
+    occurrence = base.groupby(base).cumcount().astype(str)
+    return base + "_" + occurrence
 
 
 def read_jsonl_cache(path: Path) -> list[dict]:

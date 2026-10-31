@@ -95,6 +95,10 @@ TRANSLATION_DIRECTIONS = {
                 "sw", "ht", "lo", "th", "my", "am", "ka"],
 }
 
+# Tier-2: synthetic MQM only, no human annotations.
+# Excluded from all Tier-1 aggregates (Table 2 cell means, Ridge predictor).
+TIER2_LANGS: frozenset[str] = frozenset({"sw", "ht", "lo", "th", "my", "am", "ka"})
+
 
 def _pearson(x: list[float], y: list[float]) -> tuple[float, float]:
     r, p = stats.pearsonr(x, y)
@@ -256,7 +260,7 @@ def williams_test(
 
     # Determinant of the 3x3 correlation matrix
     K = 1 - r1h**2 - r2h**2 - r12**2 + 2 * r1h * r2h * r12
-    denom_sq = 2 * K / (n - 1)
+    denom_sq = 2 * K  # denominator is sqrt(2K), not sqrt(2K/(n-1))
     if denom_sq <= 0:
         return float("nan"), float("nan")
 
@@ -1136,6 +1140,18 @@ def run_direction_morphology_interaction(
     resource_tiers: Optional[dict[str, list[str]]] = None,
 ) -> pd.DataFrame:
     """2×3 interaction analysis: translation direction × morphological type.
+
+    KNOWN BUG, NOT YET FIXED HERE: this function does not filter TIER2_LANGS
+    (defined above in this same module) out of the en_to_x cells, which
+    contaminates eta^2_dir/eta^2_morph/eta^2_interact — this is the exact bug
+    that produced wrong headline numbers in an earlier paper draft (see
+    scripts/recompute_dir_morph_table.py, which recomputes this analysis
+    correctly from the raw CSVs as a standalone workaround and is what the
+    paper's macros actually trace to). The output of this function
+    (direction_morphology_interaction.csv) is stale/contaminated and has been
+    moved to results/stale_pre_tier2_fix/ — do not read it back in anywhere.
+    If you rerun the full pipeline, add a TIER2_LANGS exclusion here before
+    trusting this function's output again.
 
     This is the central novel claim of the paper: that the translation direction
     (X→en vs. en→X) and morphological type (isolating/agglutinative/fusional)

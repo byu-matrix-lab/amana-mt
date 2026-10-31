@@ -83,6 +83,22 @@ def annotations_to_sentence_scores(df: pd.DataFrame) -> pd.DataFrame:
     grouped["quality_score"] = 1.0 / (1.0 + grouped["error_penalty"])
 
     grouped = grouped.drop(columns=["num_words"])
+
+    # Guard against segment_id collisions across genuinely different segments
+    # (found via advisor review, 2026-09-11: Hebrew's span segment_id is built
+    # from lang+system+seg_id with no document/year disambiguator upstream, so
+    # the same system+seg_id string can collide across different underlying
+    # (source, hypothesis) pairs -- the groupby above already keeps those as
+    # separate rows since it also groups on source/hypothesis/reference, but
+    # the resulting segment_id column can still be non-unique afterward,
+    # which silently breaks any downstream merge keyed only on segment_id
+    # (it fell back to positional alignment, which requires row order to
+    # match exactly between independently-computed dataframes -- fragile).
+    # Disambiguate here so every caller gets a genuinely unique key.
+    if grouped["segment_id"].duplicated().any():
+        occurrence = grouped.groupby("segment_id").cumcount().astype(str)
+        grouped["segment_id"] = grouped["segment_id"] + "_" + occurrence
+
     return grouped
 
 

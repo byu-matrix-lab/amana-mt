@@ -108,6 +108,7 @@ def build_sacrebleu_ref_lookup(
     testset: str,
     ref_index: int = 0,
     global_seg_id_offset: int = 0,
+    ref_file_override: Path | str | None = None,
 ) -> dict[int, str]:
     """Build a {globalSegId: reference_text} dict from a cached sacreBLEU dataset.
 
@@ -118,13 +119,30 @@ def build_sacrebleu_ref_lookup(
         global_seg_id_offset: Value added to the 0-indexed line number to get the
             globalSegId. Determined empirically per (testset, lang_pair):
             - "wmt23"/"he-en": offset=0  (globalSegId is 0-indexed, min=0)
-            - "wmt24"/"en-es": offset=2  (globalSegId=1 is a canary, real segs start at 2)
+            - "wmt24"/"en-es": offset=-1 (globalSegId is 1-indexed with
+              globalSegId=1 a canary row) when using ref_file_override below;
+              offset=2 was used against sacreBLEU's own news-only "wmt24"
+              cache, which is a DIFFERENT, narrower file (see ref_file_override).
+        ref_file_override: If given, read reference lines directly from this
+            path instead of the sacreBLEU cache. Needed for "wmt24"/"en-es":
+            sacreBLEU's own "wmt24" testset only ships the news-domain subset
+            of the shared task's actual test set, but WMT24 en-es MQM data
+            spans four domains (news/literary/social/speech) sharing one
+            globalSegId numbering scheme. Indexing into the news-only cache
+            file with that numbering silently returns the wrong reference for
+            non-news rows. results/external_refs/wmt24_en-es_multidomain_refA.txt
+            is the real, full multi-domain reference release (see its README).
 
     Returns:
         Dict mapping globalSegId (int) → reference string, or {} on failure.
         The dict can be passed to load_wmt_mqm_spans via ref_lookups.
     """
     import os
+
+    if ref_file_override is not None:
+        lines = Path(ref_file_override).read_text(encoding="utf-8").splitlines()
+        logger.info(f"    Loaded {len(lines)} refs from override {ref_file_override}")
+        return {i + global_seg_id_offset: ref for i, ref in enumerate(lines)}
 
     # Read pre-cached sacreBLEU ref files directly (avoids XML decompression errors).
     # Files follow the naming convention: ~/.sacrebleu/<testset>/<testset>.<lp>.ref-refA, ref-refB, ...
@@ -160,7 +178,24 @@ def build_sacrebleu_ref_lookup(
 # Known offsets: (testset, lang_pair) → global_seg_id_offset for build_sacrebleu_ref_lookup
 _SACREBLEU_OFFSETS: dict[tuple[str, str], int] = {
     ("wmt23", "he-en"): 0,
-    ("wmt24", "en-es"): 2,
+    # sacreBLEU's own "wmt24" cache is news-only; when using it directly the
+    # offset is +2 (globalSegId=1 is a canary). When _REF_FILE_OVERRIDES below
+    # is used instead (the correct, full multi-domain file), the offset is -1.
+    ("wmt24", "en-es"): -1,
+}
+
+# (testset, lang_pair) -> path to a reference file that should be used INSTEAD
+# of the sacreBLEU cache. Needed for wmt24/en-es: sacreBLEU's "wmt24" testset
+# only ships the news-domain subset of the shared task's test set, but en-es
+# MQM data spans four domains (news/literary/social/speech) sharing one
+# globalSegId numbering scheme -- indexing into the news-only file with that
+# numbering silently returns the wrong reference for non-news rows (confirmed:
+# ~80% of en-es MQM rows are non-news). This is the official, full
+# multi-domain reference release from
+# https://github.com/wmt-conference/wmt24-news-systems (txt/references/en-es.refA.txt).
+_REF_FILE_OVERRIDES: dict[tuple[str, str], Path] = {
+    ("wmt24", "en-es"): Path(__file__).resolve().parents[3]
+    / "results" / "external_refs" / "wmt24_en-es_multidomain_refA.txt",
 }
 
 

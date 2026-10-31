@@ -26,7 +26,7 @@ from mqmbench.config import init_settings, settings
 from mqmbench.constants import AnnotationTier
 from mqmbench.data.converter import annotations_to_sentence_scores
 from mqmbench.data.utils import lang_from_pair
-from mqmbench.data.wmt_mqm import load_wmt_mqm_spans
+from mqmbench.data.wmt_mqm import build_sacrebleu_ref_lookup, load_wmt_mqm_spans
 
 
 def parse_args():
@@ -60,7 +60,17 @@ def main():
         return
 
     print("Loading he-en spans from TSV...", flush=True)
-    spans = load_wmt_mqm_spans(span_dir, lang_pairs=he_pairs)
+    # BUG FIX (found via advisor review, 2026-09-11): the Google MQM span TSVs do not
+    # include reference text at all (see load_wmt_mqm_spans docstring) -- without
+    # ref_lookups, every row's 'reference' column silently defaults to "". This script
+    # previously called load_wmt_mqm_spans without ref_lookups, so every reference-based
+    # metric scored here (confirmed: COMET-22, BLEURT) was scored against an empty
+    # string instead of the real WMT23 reference, producing a compressed, near-random
+    # score distribution that was misread as a genuine OOD-training-coverage effect.
+    # Metrics scored via the main pipeline fallback (BLEU, BERTScore, xCOMET) were
+    # unaffected since that path already builds ref_lookups correctly.
+    ref_lookup = build_sacrebleu_ref_lookup("he-en", "wmt23", global_seg_id_offset=0)
+    spans = load_wmt_mqm_spans(span_dir, lang_pairs=he_pairs, ref_lookups={"he": ref_lookup} if ref_lookup else None)
     if spans.empty:
         print("ERROR: no span data loaded for he-en", file=sys.stderr)
         sys.exit(1)
