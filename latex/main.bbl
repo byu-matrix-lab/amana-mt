@@ -1,0 +1,241 @@
+\begin{thebibliography}{27}
+\providecommand{\natexlab}[1]{#1}
+% NOTE (2026-09-12): the three Rei et al. entries (rei2022comet22,
+% rei2022cometkiwi, rei2023scaling) were manually reordered below to
+% 2022a -> 2022b -> 2023 (bibtex/acl_natbib.bst's own sort places 2023
+% between them -- confirmed via isolated reproduction outside this
+% document, not a data/citation-key bug, just how that style's sort key
+% handles same-first-author entries with differing full author lists).
+% If you ever rerun bibtex on this file, this reordering will be
+% silently lost and must be reapplied by hand.
+
+\bibitem[{Bojar et~al.(2017)Bojar, Chatterjee, Federmann, Graham, Haddow,
+  Huang, Huck, Koehn, Liu, Logacheva et~al.}]{bojar2017wmt}
+Ond{\v{r}}ej Bojar, Rajen Chatterjee, Christian Federmann, Yvette Graham, Barry
+  Haddow, Shujian Huang, Matthias Huck, Philipp Koehn, Qun Liu, Varvara
+  Logacheva, et~al. 2017.
+\newblock \href {https://aclanthology.org/W17-4717} {Findings of the 2017
+  conference on machine translation ({WMT}17)}.
+\newblock In \emph{Proceedings of the Second Conference on Machine
+  Translation}, pages 169--214.
+
+\bibitem[{Bugliarello et~al.(2020)Bugliarello, Mielke, Anastasopoulos,
+  Cotterell, and Okazaki}]{bugliarello2020xmi}
+Emanuele Bugliarello, Sabrina~J. Mielke, Antonios Anastasopoulos, Ryan
+  Cotterell, and Naoaki Okazaki. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.acl-main.149} {It's easier to
+  translate out of {English} than into it: Measuring neural translation
+  difficulty by cross-mutual information}.
+\newblock In \emph{Proceedings of the 58th Annual Meeting of the Association
+  for Computational Linguistics}, pages 1640--1649.
+
+\bibitem[{Deutsch et~al.(2023)Deutsch, Foster, and Freitag}]{deutsch2023ties}
+Daniel Deutsch, George Foster, and Markus Freitag. 2023.
+\newblock \href {https://aclanthology.org/2023.emnlp-main.798} {Ties matter:
+  Meta-evaluating modern metrics with pairwise accuracy and tie calibration}.
+\newblock In \emph{Proceedings of the 2023 Conference on Empirical Methods in
+  Natural Language Processing}, pages 12914--12929.
+
+\bibitem[{Dryer and Haspelmath(2013)}]{wals}
+Matthew~S. Dryer and Martin Haspelmath, editors. 2013.
+\newblock \href {https://wals.info} {\emph{{WALS} Online}}.
+\newblock Max Planck Institute for Evolutionary Anthropology, Leipzig.
+
+\bibitem[{Dubey et~al.(2024)Dubey, Jauhri, Pandey, Kadian, Al-Dahle, Letman
+  et~al.}]{dubey2024llama3}
+Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad
+  Al-Dahle, Aiesha Letman, et~al. 2024.
+\newblock \href {https://arxiv.org/abs/2407.21783} {The {Llama} 3 herd of
+  models}.
+\newblock \emph{arXiv preprint arXiv:2407.21783}.
+
+\bibitem[{Freitag et~al.(2021)Freitag, Foster, Grangier, Ratnakar, Tan, and
+  Macherey}]{freitag2021experts}
+Markus Freitag, George Foster, David Grangier, Viresh Ratnakar, Qijun Tan, and
+  Wolfgang Macherey. 2021.
+\newblock \href {https://doi.org/10.1162/tacl_a_00437} {Experts, errors, and
+  context: A large-scale study of human evaluation for machine translation}.
+\newblock In \emph{Transactions of the Association for Computational
+  Linguistics}, volume~9, pages 1460--1474.
+
+\bibitem[{Freitag et~al.(2023)Freitag, Mathur, Lo, Avramidis, Rei, Thompson,
+  Kocmi, Blain, Deutsch, Stewart, Zerva, Castilho, Lavie, and
+  Foster}]{freitag2023results}
+Markus Freitag, Nitika Mathur, Chi-kiu Lo, Eleftherios Avramidis, Ricardo Rei,
+  Brian Thompson, Tom Kocmi, Frederic Blain, Daniel Deutsch, Craig Stewart,
+  Chrysoula Zerva, Sheila Castilho, Alon Lavie, and George Foster. 2023.
+\newblock \href {https://aclanthology.org/2023.wmt-1.51} {Results of the
+  {WMT}23 metrics shared task: Metrics might be guilty but references are not
+  innocent}.
+\newblock In \emph{Proceedings of the Eighth Conference on Machine
+  Translation}, pages 578--628.
+
+\bibitem[{Goyal et~al.(2022)Goyal, Gao, Chaudhary, Chen, Wenzek, Ju, Krishnan,
+  Ranzato, Guzm{\'a}n, and Fan}]{goyal2022flores}
+Naman Goyal, Cynthia Gao, Vishrav Chaudhary, Peng-Jen Chen, Guillaume Wenzek,
+  Da~Ju, Sanjana Krishnan, Marc{'}Aurelio Ranzato, Francisco Guzm{\'a}n, and
+  Angela Fan. 2022.
+\newblock \href {https://doi.org/10.1162/tacl_a_00474} {The {FLORES}-101
+  evaluation benchmark for low-resource and multilingual machine translation}.
+\newblock In \emph{Transactions of the Association for Computational
+  Linguistics}, volume~10, pages 522--538.
+
+\bibitem[{Graham et~al.(2017)Graham, Baldwin, Moffat, and
+  Zobel}]{graham2017crowd}
+Yvette Graham, Timothy Baldwin, Alistair Moffat, and Justin Zobel. 2017.
+\newblock \href {https://doi.org/10.1017/S1351324915000339} {Can machine
+  translation systems be evaluated by the crowd alone}.
+\newblock \emph{Natural Language Engineering}, 23(1):3--30.
+
+\bibitem[{Guerreiro et~al.(2024)Guerreiro, Rei, van Stigt, Coheur, Colombo, and
+  Martins}]{guerreiro2023xcomet}
+Nuno~M. Guerreiro, Ricardo Rei, Daan van Stigt, Luisa Coheur, Pierre Colombo,
+  and Andr{\'e} F.~T. Martins. 2024.
+\newblock \href {https://doi.org/10.1162/tacl_a_00683} {{xCOMET}: Transparent
+  machine translation evaluation through fine-grained error detection}.
+\newblock In \emph{Transactions of the Association for Computational
+  Linguistics}, volume~12, pages 979--995.
+
+\bibitem[{Juraska et~al.(2024)Juraska, Deutsch, Finkelstein, and
+  Freitag}]{juraska2024metricx}
+Juraj Juraska, Daniel Deutsch, Mara Finkelstein, and Markus Freitag. 2024.
+\newblock \href {https://aclanthology.org/2024.wmt-1.35} {{MetricX-24}: The
+  google submission to the {WMT} 2024 metrics shared task}.
+\newblock In \emph{Proceedings of the Ninth Conference on Machine Translation},
+  pages 492--504.
+
+\bibitem[{Kocmi et~al.(2024)Kocmi, Avramidis, Bawden, Bojar, Dvorkovich,
+  Federmann, Fishel, Freitag, Gowda, Grundkiewicz et~al.}]{kocmi2024findings}
+Tom Kocmi, Eleftherios Avramidis, Rachel Bawden, Ond{\v{r}}ej Bojar, Anton
+  Dvorkovich, Christian Federmann, Mark Fishel, Markus Freitag, Thamme Gowda,
+  Roman Grundkiewicz, et~al. 2024.
+\newblock \href {https://aclanthology.org/2024.wmt-1.1} {Findings of the {WMT}
+  2024 general machine translation shared task: The {LLM} era is here but {MT}
+  is not solved yet}.
+\newblock In \emph{Proceedings of the Ninth Conference on Machine Translation},
+  pages 1--46.
+
+\bibitem[{Kocmi and Federmann(2023{\natexlab{a}})}]{kocmi2023gembamqm}
+Tom Kocmi and Christian Federmann. 2023{\natexlab{a}}.
+\newblock \href {https://aclanthology.org/2023.wmt-1.64} {{GEMBA-MQM}:
+  Detecting translation quality error spans with {GPT}-4}.
+\newblock In \emph{Proceedings of the Eighth Conference on Machine
+  Translation}, pages 768--775.
+
+\bibitem[{Kocmi and Federmann(2023{\natexlab{b}})}]{kocmi2023large}
+Tom Kocmi and Christian Federmann. 2023{\natexlab{b}}.
+\newblock \href {https://aclanthology.org/2023.eamt-1.19} {Large language
+  models are state-of-the-art evaluators of translation quality}.
+\newblock In \emph{Proceedings of the 24th Annual Conference of the European
+  Association for Machine Translation}, pages 193--203.
+
+\bibitem[{Mondshine et~al.(2025)Mondshine, Paz-Argaman, and
+  Tsarfaty}]{mondshine2025ngrams}
+Itai Mondshine, Tzuf Paz-Argaman, and Reut Tsarfaty. 2025.
+\newblock \href {https://arxiv.org/abs/2507.08342} {Beyond {N}-grams:
+  Rethinking evaluation metrics and strategies for multilingual abstractive
+  summarization}.
+\newblock In \emph{Proceedings of the 63rd Annual Meeting of the Association
+  for Computational Linguistics (Volume 1: Long Papers)}, pages 19019--19035.
+
+\bibitem[{{NLLB Team} and Costa-juss{\`a}(2022)}]{costa2022no}
+{NLLB Team} and Marta~R. Costa-juss{\`a}. 2022.
+\newblock \href {https://arxiv.org/abs/2207.04672} {No language left behind:
+  Scaling human-centered machine translation}.
+\newblock \emph{arXiv preprint arXiv:2207.04672}.
+
+\bibitem[{Papineni et~al.(2002)Papineni, Roukos, Ward, and
+  Zhu}]{papineni2002bleu}
+Kishore Papineni, Salim Roukos, Todd Ward, and Wei-Jing Zhu. 2002.
+\newblock \href {https://doi.org/10.3115/1073083.1073135} {{BLEU}: a method for
+  automatic evaluation of machine translation}.
+\newblock In \emph{Proceedings of the 40th Annual Meeting of the Association
+  for Computational Linguistics}, pages 311--318.
+
+\bibitem[{Popovi{\'c}(2015)}]{popovic2015chrf}
+Maja Popovi{\'c}. 2015.
+\newblock \href {https://doi.org/10.18653/v1/W15-3049} {chr{F}: character
+  n-gram {F}-score for automatic {MT} evaluation}.
+\newblock In \emph{Proceedings of the Tenth Workshop on Statistical Machine
+  Translation}, pages 392--395.
+
+\bibitem[{Rei et~al.(2022{\natexlab{a}})Rei, de~Souza, Alves, Zerva, Farinha,
+  Glushkova, Lavie, Coheur, and Martins}]{rei2022comet22}
+Ricardo Rei, Jos{\'e} G.~C. de~Souza, Duarte Alves, Chrysoula Zerva, Ana~C
+  Farinha, Taisiya Glushkova, Alon Lavie, Luisa Coheur, and Andr{\'e} F.~T.
+  Martins. 2022{\natexlab{a}}.
+\newblock \href {https://aclanthology.org/2022.wmt-1.52} {{COMET-22}:
+  Unbabel-{IST} 2022 submission for the metrics shared task}.
+\newblock In \emph{Proceedings of the Seventh Conference on Machine Translation
+  (WMT)}, pages 578--585.
+
+\bibitem[{Rei et~al.(2022{\natexlab{b}})Rei, Treviso, Guerreiro, Zerva,
+  Farinha, Maroti, de~Souza, Glushkova, Alves, Coheur, Lavie, and
+  Martins}]{rei2022cometkiwi}
+Ricardo Rei, Marcos Treviso, Nuno~M. Guerreiro, Chrysoula Zerva, Ana~C Farinha,
+  Christine Maroti, Jos{\'e} G.~C. de~Souza, Taisiya Glushkova, Duarte Alves,
+  Luisa Coheur, Alon Lavie, and Andr{\'e} F.~T. Martins. 2022{\natexlab{b}}.
+\newblock \href {https://aclanthology.org/2022.wmt-1.60} {{CometKiwi}:
+  {IST}-unbabel 2022 submission for the quality estimation shared task}.
+\newblock In \emph{Proceedings of the Seventh Conference on Machine Translation
+  (WMT)}, pages 634--645.
+
+\bibitem[{Rei et~al.(2023)Rei, Guerreiro, Pombal, van Stigt, Treviso, Coheur,
+  de~Souza, and Martins}]{rei2023scaling}
+Ricardo Rei, Nuno~M. Guerreiro, Jos{\'e} Pombal, Daan van Stigt, Marcos
+  Treviso, Luisa Coheur, Jos{\'e} G.~C. de~Souza, and Andr{\'e} F.~T. Martins.
+  2023.
+\newblock \href {https://aclanthology.org/2023.wmt-1.73} {Scaling up
+  {CometKiwi}: Unbabel-{IST} 2023 submission for the quality estimation shared
+  task}.
+\newblock In \emph{Proceedings of the Eighth Conference on Machine
+  Translation}, pages 841--848.
+
+\bibitem[{Sellam et~al.(2020)Sellam, Das, and Parikh}]{sellam2020bleurt}
+Thibault Sellam, Dipanjan Das, and Ankur Parikh. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.acl-main.704} {{BLEURT}:
+  Learning robust metrics for text generation}.
+\newblock In \emph{Proceedings of the 58th Annual Meeting of the Association
+  for Computational Linguistics}, pages 7881--7892.
+
+\bibitem[{Thompson et~al.(2024)Thompson, Mathur, Deutsch, and
+  Khayrallah}]{thompson2024spa}
+Brian Thompson, Nitika Mathur, Daniel Deutsch, and Huda Khayrallah. 2024.
+\newblock \href {https://aclanthology.org/2024.wmt-1.118} {Improving
+  statistical significance in human evaluation of automatic metrics via soft
+  pairwise accuracy}.
+\newblock In \emph{Proceedings of the Ninth Conference on Machine Translation},
+  pages 1222--1234.
+
+\bibitem[{Williams(1959)}]{williams1959}
+Evan~James Williams. 1959.
+\newblock \href {https://doi.org/10.1111/j.2517-6161.1959.tb00346.x} {The
+  comparison of regression variables}.
+\newblock \emph{Journal of the Royal Statistical Society: Series B
+  (Methodological)}, 21(2):396--399.
+
+\bibitem[{Yari et~al.(2025)Yari, Kulkarni, Khan, and Koto}]{yari2025item}
+Amir~Hossein Yari, Kalmit Kulkarni, Ahmad~Raza Khan, and Fajri Koto. 2025.
+\newblock \href {https://arxiv.org/abs/2510.07061} {Revisiting metric
+  reliability for fine-grained evaluation of {MT} and summarization in {Indian}
+  languages}.
+\newblock \emph{arXiv preprint arXiv:2510.07061}.
+
+\bibitem[{Zhang et~al.(2020)Zhang, Kishore, Wu, Weinberger, and
+  Artzi}]{zhang2019bertscore}
+Tianyi Zhang, Varsha Kishore, Felix Wu, Kilian~Q Weinberger, and Yoav Artzi.
+  2020.
+\newblock \href {https://openreview.net/forum?id=SkeHuCVFDr} {{BERTScore}:
+  Evaluating text generation with {BERT}}.
+\newblock In \emph{International Conference on Learning Representations}.
+
+\bibitem[{Zouhar et~al.(2024)Zouhar, Ding, Currey, Badeka, Wang, and
+  Thompson}]{zouhar2024domain}
+Vil{\'e}m Zouhar, Shuoyang Ding, Anna Currey, Tatyana Badeka, Jenyuan Wang, and
+  Brian Thompson. 2024.
+\newblock \href {https://doi.org/10.18653/v1/2024.acl-short.45} {Fine-tuned
+  machine translation metrics struggle in unseen domains}.
+\newblock In \emph{Proceedings of the 62nd Annual Meeting of the Association
+  for Computational Linguistics (Volume 2: Short Papers)}, pages 488--500.
+
+\end{thebibliography}
