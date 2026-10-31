@@ -1,0 +1,6 @@
+morphology,direction,n_langs,n_ck23_wins,frac_ck23_wins,ci_lo,ci_hi,predicted,langs
+agglutinative,en_to_x,6,6,1.0,1.0,1.0,cometkiwi23,"et,fi,ja,kk,ta,tr"
+agglutinative,x_to_en,6,6,1.0,1.0,1.0,cometkiwi23,"et,fi,ja,kk,ta,tr"
+fusional,en_to_x,7,7,1.0,1.0,1.0,cometkiwi23,"cs,gu,ha,is,lt,lv,pl"
+fusional,x_to_en,7,5,0.7142857142857143,0.42857142857142855,1.0,cometkiwi23,"cs,gu,ha,is,lt,pl,ps"
+isolating,x_to_en,1,1,1.0,1.0,1.0,metricx,km

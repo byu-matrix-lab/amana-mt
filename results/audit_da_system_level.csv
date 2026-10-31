@@ -1,0 +1,12 @@
+testset,lp,n_systems,ref,sys_pearson,sys_spearman
+wmt20,cs-en,12,cs-en.ref.txt,0.867,0.937
+wmt20,ja-en,10,ja-en.ref.txt,0.975,0.927
+wmt20,pl-en,14,pl-en.ref.txt,0.538,0.481
+wmt20,ta-en,14,ta-en.ref.txt,0.953,0.864
+wmt21.news,cs-en,8,cs-en.refA.txt,0.578,0.619
+wmt21.news,ja-en,16,ja-en.refA.txt,0.83,0.677
+wmt21.news,is-en,10,is-en.refA.txt,0.858,0.939
+wmt21.news,ha-en,14,ha-en.refA.txt,0.929,0.925
+wmt22,cs-en,11,cs-en.refB.txt,0.961,0.882
+wmt22,ja-en,14,ja-en.refA.txt,0.99,0.851
+wmt22,uk-en,9,uk-en.refA.txt,0.898,0.683

@@ -1,0 +1,11 @@
+testset,lp,direction,da_protocol,n,n_metrics,n_systems,n_surface,tau_rankings,top1_MQM,top1_DA,top1_same,top3_overlap,best_surface_rank_MQM,best_surface_rank_DA
+wmt20,en-de,en_to_x,source-based (bilingual),6013,32,9,10,0.9030303030303031,all-rembert-20-ref,all-rembert-20-ref,True,2,2,2
+wmt20,zh-en,x_to_en,crowd ref-based,15391,36,9,11,0.3587301587301588,BLEURT-0.1-all-ref,all-rembert-20-ref,False,2,1,2
+wmt21.news,en-de,en_to_x,source-based (bilingual),3121,29,9,3,0.7733990147783251,C-SPEC-refA,COMET-DA_2021-refA,False,1,19,22
+wmt21.news,en-ru,en_to_x,source-based (bilingual),4891,26,10,3,0.8830769230769231,COMET-DA_2021-refA,COMET-DA_2021-refA,True,2,15,17
+wmt21.news,zh-en,x_to_en,crowd ref-based,4324,30,8,3,0.016091954022988506,C-SPECpn-refA,MTEQA-refA,False,0,24,4
+wmt22,en-de,en_to_x,source-based appraise,8090,31,10,5,0.8623655913978495,metricx_xl_MQM_2020-refA,metricx_xxl_DA_2019-refA,False,1,8,8
+wmt22,en-ru,en_to_x,source-based appraise,8404,30,11,5,0.8896551724137931,metricx_xxl_MQM_2020-refA,metricx_xxl_MQM_2020-refA,True,2,10,8
+wmt22,zh-en,x_to_en,crowd ref-based,17643,31,11,5,-0.22580645161290322,metricx_xxl_MQM_2020-refA,f200spBLEU-refA,False,0,11,1
+wmt23,en-de,en_to_x,source-based DA+SQM,5520,43,12,4,0.4634146341463414,XCOMET-Ensemble-refA,mbr-metricx-qe-src,False,0,13,15
+wmt23,zh-en,x_to_en,source-based DA+SQM,13260,43,15,4,0.7386489479512736,MetricX-23-QE-c-src,mbr-metricx-qe-src,False,1,27,24

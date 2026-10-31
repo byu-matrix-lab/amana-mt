@@ -1,0 +1,9 @@
+lang,testset,metric,official_metric_name,our_checkpoint,n_segments,n_systems,pearson_r,spearman_r,source
+he,wmt23,comet,COMET-refA,Unbabel/wmt22-comet-da,8883,12,0.8667,0.8367,mt-metrics-eval-v2/wmt23/metric-scores/he-en/COMET-refA.seg.score
+he,wmt23,bleurt,BLEURT-20-refA,Elron/bleurt-large-512,8883,12,0.8317,0.8167,mt-metrics-eval-v2/wmt23/metric-scores/he-en/BLEURT-20-refA.seg.score
+he,wmt23,xcomet,XCOMET-Ensemble-refA,Unbabel/XCOMET-XL,8883,12,0.9204,0.9235,mt-metrics-eval-v2/wmt23/metric-scores/he-en/XCOMET-Ensemble-refA.seg.score
+he,wmt23,metricx,MetricX-23-refA,google/metricx-24-hybrid-large-v2p6-bfloat16,8883,12,0.6908,0.7332,mt-metrics-eval-v2/wmt23/metric-scores/he-en/MetricX-23-refA.seg.score
+es,wmt24,comet,COMET-22-refA,Unbabel/wmt22-comet-da,8716,14,0.8979,0.9254,mt-metrics-eval-v2/wmt24/metric-scores/en-es/COMET-22-refA.seg.score
+es,wmt24,bleurt,BLEURT-20-refA,Elron/bleurt-large-512,8716,14,0.572,0.6233,mt-metrics-eval-v2/wmt24/metric-scores/en-es/BLEURT-20-refA.seg.score
+es,wmt24,xcomet,XCOMET-refA,Unbabel/XCOMET-XL,8716,14,0.9349,0.9349,mt-metrics-eval-v2/wmt24/metric-scores/en-es/XCOMET-refA.seg.score
+es,wmt24,metricx,MetricX-24-refA,google/metricx-24-hybrid-large-v2p6-bfloat16,8716,14,0.8118,0.7686,mt-metrics-eval-v2/wmt24/metric-scores/en-es/MetricX-24-refA.seg.score
