@@ -1,0 +1,382 @@
+\documentclass[final]{beamer}
+
+\usepackage[size=a0,orientation=portrait,scale=1.05]{beamerposter}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tcolorbox}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{qrcode}
+\usepackage{eso-pic}
+\usetikzlibrary{arrows.meta,positioning}
+
+% Generated from the same analysis outputs as the paper.
+\input{../latex/macros_generated}
+\input{poster_stats_generated}
+
+% BYU / MATRIX visual language, adapted from the Mapudungun poster.
+\definecolor{byuNavy}{HTML}{002E5D}
+\definecolor{byuRoyal}{HTML}{003DA5}
+\definecolor{byuLightBlue}{HTML}{BDD6E6}
+\definecolor{amanaGreen}{HTML}{00966C}
+\definecolor{amanaLight}{HTML}{BDD6E6}
+\definecolor{warningOrange}{HTML}{D14124}
+\definecolor{softGray}{HTML}{C7C9C7}
+\definecolor{bodyGray}{HTML}{002E5D}
+
+\newlength{\contentwidth}
+\setlength{\contentwidth}{\dimexpr\paperwidth-20mm\relax}
+\newlength{\halfcontent}
+\setlength{\halfcontent}{0.5\contentwidth}
+\newlength{\logox}
+\setlength{\logox}{0.895\contentwidth}
+\newlength{\medallionx}
+\setlength{\medallionx}{0.105\contentwidth}
+
+\newcommand{\headertitlefont}{\fontsize{60}{66}\selectfont\bfseries}
+\newcommand{\headerauthorfont}{\fontsize{32}{38}\selectfont}
+\newcommand{\boxsep}{\vspace{0.48em}}
+\newcommand{\entox}{en$\rightarrow$X}
+\newcommand{\xtoen}{X$\rightarrow$en}
+
+\usetheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{headline}{}
+\setbeamertemplate{frametitle}{}
+\setbeamertemplate{itemize item}{\color{byuRoyal}$\blacktriangleright$}
+\setbeamercolor{background canvas}{bg=white}
+\setbeamercolor{normal text}{fg=bodyGray}
+\setbeamersize{text margin left=0pt,text margin right=0pt}
+
+% Reserve room for the footer.  Its visible artwork is drawn at fixed page
+% coordinates below so it shares the exact same 10 mm margin as the poster.
+\setbeamercolor{footline}{bg=white,fg=white}
+\setbeamertemplate{footline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.7cm,dp=1.25cm,center]{footline}
+    \strut
+  \end{beamercolorbox}%
+}
+
+\tcbuselibrary{skins,breakable}
+\arrayrulecolor{byuRoyal}
+\tcbset{posterbox/.style={
+  colframe=byuRoyal, boxrule=2pt, arc=4pt,
+  fonttitle=\Large\bfseries\color{white},
+  colbacktitle=byuRoyal, toptitle=3pt, bottomtitle=3pt,
+  titlerule=0pt, enhanced,
+  before upper={\large\setlength\parskip{0.35em}},
+}}
+\newenvironment{posteritems}{%
+  \begin{itemize}\setlength{\itemsep}{0.18em}\setlength{\parskip}{0pt}%
+}{\end{itemize}}
+\newtcolorbox{sectionbox}[1]{posterbox,
+  colback=white,left=9pt,right=9pt,top=4pt,bottom=4pt,title=#1}
+\newtcolorbox{introbox}[1]{posterbox,
+  colback=byuLightBlue,left=9pt,right=9pt,top=4pt,bottom=4pt,title=#1}
+\newtcolorbox{takeawaybox}[1]{posterbox,
+  colframe=amanaGreen,colback=amanaLight,colbacktitle=amanaGreen,
+  left=9pt,right=9pt,top=4pt,bottom=4pt,title=#1}
+\newtcolorbox{warningbox}[2][]{posterbox,
+  colframe=warningOrange,colback=warningOrange!7,colbacktitle=warningOrange,
+  left=9pt,right=9pt,top=4pt,bottom=4pt,title=#2,#1}
+
+\begin{document}
+% The print service requires a blank 10 mm margin on every edge.  Draw the
+% safety border in the foreground so full-width header and footer artwork
+% cannot accidentally enter the printer's non-printable area.
+\AddToShipoutPictureFG*{%
+  \begin{tikzpicture}[remember picture,overlay]
+    % A 30 mm footer inside the common 10 mm page margin.
+    \fill[byuNavy,rounded corners=4pt]
+      ([xshift=10mm,yshift=10mm]current page.south west)
+      rectangle ([xshift=-10mm,yshift=40mm]current page.south east);
+    \node[text=white,font=\Large\bfseries,inner sep=0pt]
+      at ([yshift=25mm]current page.south)
+      {AmanaMT \textbullet\ WMT 2026 @ EMNLP};
+    % Enforce the printer's blank safety border in the foreground.
+    \fill[white] (current page.north west)
+      rectangle ([yshift=-10mm]current page.north east);
+    \fill[white] (current page.south west)
+      rectangle ([yshift=10mm]current page.south east);
+    \fill[white] (current page.south west)
+      rectangle ([xshift=10mm]current page.north west);
+    \fill[white] (current page.south east)
+      rectangle ([xshift=-10mm]current page.north east);
+  \end{tikzpicture}%
+}
+\begin{frame}[t]{}
+\vspace{1cm}
+
+% HEADER
+\hspace*{10mm}\begin{beamercolorbox}[wd=\contentwidth]{headline}
+  \begin{tikzpicture}
+    \fill[byuNavy,rounded corners=4pt]
+      (0,0) rectangle (\contentwidth,15.5cm);
+    \node[anchor=center] at (\medallionx,8cm)
+      {\includegraphics[height=13.5cm]{byu_medallion_white_navy.pdf}};
+    \node[anchor=center] at (\logox,8cm)
+      {\includegraphics[height=11.5cm]{matrixlab_white_transparent_cropped.pdf}};
+    \node[anchor=center,text=white,font=\headertitlefont,
+          text width=0.61\contentwidth,align=center] at (\halfcontent,10.6cm)
+      {AmanaMT: Translation Direction Predicts\\Automatic Metric Reliability};
+    \node[anchor=center,text=white,font=\headerauthorfont,
+          text width=0.61\contentwidth,align=center] at (\halfcontent,5.3cm)
+      {Isaac Thompson};
+    \node[anchor=center,text=white!80!byuNavy,font=\headerauthorfont,align=center]
+          at (\halfcontent,2.6cm)
+      {Brigham Young University \textbullet\ BYU MATRIX Lab};
+  \end{tikzpicture}
+\end{beamercolorbox}
+
+\vspace{0.1cm}
+\begin{columns}[t,totalwidth=\paperwidth]
+\begin{column}{10mm}\end{column}
+
+% LEFT COLUMN
+\begin{column}{0.49\contentwidth}
+
+\begin{introbox}{Research Question}
+{\Large\bfseries Which factors best predict whether an MT metric agrees with
+human judgments across resource tiers, translation directions, morphological
+types, and domains?}
+\begin{posteritems}
+  \item \textbf{Translation direction is the strongest signal.}
+\end{posteritems}
+\end{introbox}
+
+\boxsep
+
+\begin{takeawaybox}{What Is AmanaMT?}
+\begin{columns}[c,totalwidth=\linewidth]
+  \begin{column}{0.31\linewidth}\centering
+    {\fontsize{43}{48}\selectfont\bfseries\color{amanaGreen}\TotalSegments}\\[-0.1em]
+    {\normalsize segments}
+  \end{column}
+  \begin{column}{0.31\linewidth}\centering
+    {\fontsize{43}{48}\selectfont\bfseries\color{amanaGreen}\NumLanguages}\\[-0.1em]
+    {\normalsize languages}
+  \end{column}
+  \begin{column}{0.31\linewidth}\centering
+    {\fontsize{43}{48}\selectfont\bfseries\color{amanaGreen}\NumMetrics}\\[-0.1em]
+    {\normalsize metrics}
+  \end{column}
+\end{columns}
+\vspace{0.15em}
+
+\begin{posteritems}
+  \item A unified analysis of the past decade of Workshop on Machine Translation
+        (WMT) shared tasks, extended to 33 languages.
+  \item \textit{Amana} means trust, reliability, and honesty in Hausa.
+\end{posteritems}
+\end{takeawaybox}
+
+\boxsep
+
+\begin{sectionbox}{How Is the Benchmark Built?}
+\centering
+\includegraphics[width=0.80\linewidth]{figures/pipeline_poster.pdf}
+
+\raggedright
+\begin{posteritems}
+  \item \textbf{MQM} means Multidimensional Quality Metrics and categorizes
+        errors by type and severity. \textbf{DA} means Direct Assessment and
+        gives each sentence a human score. \textbf{NLLB} means No Language Left
+        Behind, the model that generated the synthetic translations.
+  \item Ten metrics are evaluated with segment-level Spearman $\rho$ against
+        human or exploratory synthetic quality judgments.
+\end{posteritems}
+\end{sectionbox}
+
+\boxsep
+
+\begin{sectionbox}{What Best Predicts Metric Reliability?}
+\centering
+\includegraphics[width=0.65\linewidth]{figures/direction_morphology_poster.pdf}
+
+\vspace{0.2em}
+\begin{columns}[c,totalwidth=\linewidth]
+  \begin{column}{0.31\linewidth}\centering
+    {\Large\bfseries\color{byuRoyal}$\eta^2_{\rm dir}=\EtaSqDir$}\\
+    {\normalsize direction}
+  \end{column}
+  \begin{column}{0.31\linewidth}\centering
+    {\Large\bfseries\color{bodyGray}$\eta^2_{\rm morph}=\EtaSqMorph$}\\
+    {\normalsize morphology}
+  \end{column}
+  \begin{column}{0.31\linewidth}\centering
+    {\Large\bfseries\color{amanaGreen}$\eta^2_{\rm cell}=\EtaSqInteract$}\\
+    {\small combined direction$\times$morphology cells}
+  \end{column}
+\end{columns}
+
+\raggedright
+\begin{posteritems}
+  \item \textbf{Translation direction explains more than four times as much
+        variance as morphology} in the like-for-like main-effect comparison.
+  \item $\eta^2_{\rm cell}$ combines direction, morphology, and their cell
+        structure in one factor, so its larger value is expected.
+  \item English$\rightarrow$Chinese was scored after the benchmark analysis
+        and is not included in this figure (COMET $\rho=\EnZhCOMETRho$).
+  \item \textbf{Agglutinative} stacks distinct affixes, e.g., Turkish.
+        \textbf{Fusional} merges several features in one affix, e.g., German.
+        \textbf{Isolating} relies more on separate words, e.g., Chinese.
+\end{posteritems}
+\end{sectionbox}
+
+\boxsep
+
+\begin{sectionbox}{Why Do Resource-Tier Results Reverse?}
+\centering
+\includegraphics[width=0.76\linewidth]{figures/tier_bar_poster.pdf}
+
+\raggedright
+\begin{posteritems}
+  \item Medium-tier evaluation datasets show stronger correlations across all
+        ten metrics.
+  \item \textbf{Tiers describe benchmark coverage, not languages themselves.}
+        Annotation protocol and multi-year pooling are confounded with tier,
+        so treat the reversal as descriptive.
+\end{posteritems}
+\end{sectionbox}
+
+\end{column}
+
+\begin{column}{0.02\contentwidth}\end{column}
+
+% RIGHT COLUMN
+\begin{column}{0.49\contentwidth}
+
+\begin{sectionbox}{Does One Metric Work Everywhere?}
+\centering
+\includegraphics[width=0.84\linewidth]{figures/language_heatmap_poster.pdf}
+
+\raggedright
+\begin{posteritems}
+  \item \textbf{Neural metrics are more reliable than surface-overlap metrics}
+        such as BLEU and ChrF++, especially in morphologically complex profiles.
+  \item Columns progress from surface overlap to neural metrics. All
+        \NumLanguages{} languages are shown. Tier~2 labels are exploratory.
+        *For Japanese, BLEU uses language-appropriate tokenization.
+\end{posteritems}
+\end{sectionbox}
+
+\vspace{-0.60em}
+
+\begin{columns}[t,totalwidth=\linewidth]
+\begin{column}{0.49\linewidth}
+\begin{warningbox}[equal height group=failurecases]{Why Does Ukrainian Collapse?}
+\begin{posteritems}
+  \item COMET correlation: $\rho=\LangCOMETUK$.
+  \item Same-year Czech$\rightarrow$English data are mostly news and also near zero.
+  \item \textbf{This points to low-signal WMT22 crowd labels rather than domain.}
+\end{posteritems}
+\end{warningbox}
+\end{column}
+\begin{column}{0.02\linewidth}\end{column}
+\begin{column}{0.49\linewidth}
+\begin{warningbox}[equal height group=failurecases]{Why Does Russian Look Weak?}
+\begin{posteritems}
+  \item Within-year correlations are $\RuWmtOneRho$ (WMT21) and
+        $\RuWmtTwoRho$ (WMT22). Pooled correlation is $\LangCOMETRU$.
+  \item \textbf{Simpson's Paradox: combining years with different average
+        quality hides the stronger pattern inside each year.}
+\end{posteritems}
+\end{warningbox}
+\end{column}
+\end{columns}
+
+\boxsep
+
+\begin{sectionbox}{Do Metrics Need References?}
+\centering
+\vspace{0.3cm}
+\includegraphics[width=0.60\linewidth]{figures/kiwi23_vs_comet_poster.pdf}
+
+\raggedright
+\begin{posteritems}
+  \item \textbf{COMET-Kiwi-23 generally matches or exceeds COMET}
+        across \NumHumanAnnotatedLanguages{} human-annotated languages.
+  \item Reference-free metrics are practical candidates when trusted references
+        are unavailable.
+\end{posteritems}
+\end{sectionbox}
+
+\boxsep
+
+\begin{takeawaybox}{Which Neural Metrics Should You Try First?}
+\centering
+\setlength{\tabcolsep}{12pt}
+\renewcommand{\arraystretch}{1.18}
+{\normalsize
+\begin{tabular}{@{}>{\bfseries}l >{\bfseries\color{byuNavy}}l c@{}}
+\toprule
+\rowcolor{byuNavy!14}
+Profile & Vote leader & Languages led \\
+\midrule
+\rowcolor{byuLightBlue!55}
+\xtoen{}, agglutinative & COMET-Kiwi-23 & \WinXtoEnAgglutin/\WinTotalXtoEnAgglutin \\
+\rowcolor{byuLightBlue!55}
+\xtoen{}, fusional & COMET-Kiwi-23 & \WinXtoEnFusional/\WinTotalXtoEnFusional \\
+\rowcolor{byuLightBlue!55}
+\xtoen{}, isolating & MetricX-24 & \WinXtoEnIsolating/\WinTotalXtoEnIsolating \\
+\cmidrule(lr){1-3}
+\rowcolor{amanaGreen!16}
+\entox{}, agglutinative & MetricX-24 & \WinEntoXAgglutin/\WinTotalEntoXAgglutin \\
+\rowcolor{amanaGreen!16}
+\entox{}, fusional & COMET-Kiwi-23 & \WinEntoXFusional/\WinTotalEntoXFusional \\
+\cmidrule(lr){1-3}
+\rowcolor{warningOrange!10}
+X$\leftrightarrow$Y, fusional & MetricX-24 & \PivotMetricXWins/\PivotN \\
+\bottomrule
+\end{tabular}}
+
+\raggedright
+\begin{posteritems}
+  \item \textbf{Start with COMET-Kiwi-23 or MetricX-24, then validate on your
+        language.}
+  \item Vote leaders compare COMET, COMET-Kiwi-23, and MetricX-24. Profile
+        cells contain 2 to 9 languages, so these rankings are exploratory.
+\end{posteritems}
+\end{takeawaybox}
+
+\boxsep
+
+\begin{sectionbox}{What Should You Remember?}
+\begin{columns}[c,totalwidth=\linewidth]
+\begin{column}{0.61\linewidth}
+\begin{enumerate}
+  \item \textbf{Translation direction is the strongest predictor of metric
+        reliability across languages.}
+  \item \textbf{Metric reliability improves when evaluation years are analyzed
+        separately.}
+  \item \textbf{COMET-Kiwi-23 and MetricX-24 are strong starting points.}
+        Validate the choice on your language.
+\end{enumerate}
+\end{column}
+\begin{column}{0.38\linewidth}
+\centering
+\begin{minipage}[c]{0.47\linewidth}\centering
+  \textbf{Paper}\\[0.25em]
+  \qrcode[height=3.2cm]{https://aclanthology.org/2026.wmt-1.42}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.47\linewidth}\centering
+  \textbf{Code + data}\\[0.25em]
+  \qrcode[height=3.2cm]{https://github.com/byu-matrix-lab/amana-mt}
+\end{minipage}
+\end{column}
+\end{columns}
+\end{sectionbox}
+
+\end{column}
+\begin{column}{10mm}\end{column}
+\end{columns}
+
+\end{frame}
+\end{document}
