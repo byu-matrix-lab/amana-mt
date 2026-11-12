@@ -1855,3 +1855,8 @@ Not fixed (deferred, disclose): static direction labels in direction_analysis.cs
 - Regen job 15262250 (scripts/slurm/run_regen_wmt_weights.sh; snapshot results/backup_pre_wmtweights_2026-11-11/).
 - ~/projects/amanamt-followup/PLAN.md: new section "Attempted in v1, dropped or weakened in v2", covering the claims dropped, the methods removed or restricted, and the label-assembly bug list.
 - reportkit (reportkit.toml, tools/reportkit_claims.py): claims 28/28, lint 0. All claims fire on the published text (falsify check). The PDF half is skipped because the cluster has no pdftotext.
+- 2026-11-11 (later): AM_regen 15262250 COMPLETED (2h20m, all invariants pass).
+  - 51 macros changed, all from the he/es reweighting. The largest is LangBERTScoreHE .335 -> .329 (-.0057, accepted by Isaac); the rest are <= .004. TotalSegments = 725,566.
+  - Rebuilt main.pdf (17 pp) and diff.pdf (22 pp). Checks: invariants 66/66, reportkit claims 28/28, lint 0.
+  - Verified from WMT21 findings (Akhbardeh et al. 2021): into-English, including ha-en and is-en, used crowd reference-based monolingual DA (p. 11; Table 6, p. 14), so the Ukrainian paragraph and the Table 8 caption stand.
+  - Committed ccd34fe on publishability-upgrades (73 files; Eric's audit and triage left untracked; results_metricx_fix/ and the diff build gitignored). Fast-forwarded local main to it. NOT pushed.
