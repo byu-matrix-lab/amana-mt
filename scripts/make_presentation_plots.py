@@ -56,7 +56,7 @@ METRIC_LABELS = {
     "xcomet":      "xCOMET",
     "metricx":     "MetricX-24",
     "cometkiwi":   "COMET-Kiwi",
-    "cometkiwi23": "COMET-Kiwi-23",
+    "cometkiwi23": "CometKiwi-23",
     "gemba":       "GEMBA",
 }
 
@@ -239,7 +239,7 @@ def plot_direction_morphology_teaser():
     ax.set_ylabel("COMET Spearman $\\rho$", fontsize=12)
     ax.set_ylim(0, 1.15)
     ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    ax.set_title("Direction Matters More Than Morphology for Metric Reliability", fontsize=13)
+    ax.set_title("COMET reliability by direction and morphological type (WMT DA labels)", fontsize=13)
     ax.legend(frameon=False, fontsize=11, loc="upper left")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -586,7 +586,7 @@ def plot_kiwi23_vs_comet(df: pd.DataFrame):
     ax.set_xlim(lo, hi)
     ax.set_ylim(lo, hi)
     ax.set_xlabel("COMET (reference-based) Spearman $r$", fontsize=13)
-    ax.set_ylabel("COMET-Kiwi-23 (reference-free) Spearman $r$", fontsize=13)
+    ax.set_ylabel("CometKiwi-23 (reference-free) Spearman $r$", fontsize=13)
     ax.set_title("Reference-free QE vs. Reference-based COMET", fontsize=15)
     ax.legend(title="Resource tier", frameon=False, fontsize=11, title_fontsize=11)
     ax.tick_params(labelsize=11)

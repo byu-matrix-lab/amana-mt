@@ -27,11 +27,30 @@ SEVERITY_WEIGHTS: dict[str, float] = {
 }
 
 
+def wmt_mqm_weight(severity: str, category: str) -> float:
+    """Official WMT MQM weighting (Freitag et al. 2021), as used by mt-metrics-eval
+    for WMT23 he-en and WMT24 en-es: non-translation 25; critical and major 5;
+    minor punctuation 0.1; other minor 1; no error 0. Verified 2026-11-10 to
+    reproduce the official mtme segment scores exactly (independent recompute).
+    """
+    sev = str(severity).strip().lower()
+    cat = str(category).strip().lower()
+    if sev in ("no_error", "neutral", ""):
+        return 0.0
+    if "non-translation" in cat:
+        return 25.0
+    if sev in ("critical", "major"):
+        return 5.0
+    if sev == "minor":
+        return 0.1 if "punctuation" in cat else 1.0
+    raise ValueError(f"unknown severity {severity!r}")
+
+
 def _word_count(text: str) -> int:
     return max(len(str(text).split()), 1)
 
 
-def annotations_to_sentence_scores(df: pd.DataFrame) -> pd.DataFrame:
+def annotations_to_sentence_scores(df: pd.DataFrame, scheme: str = "simple") -> pd.DataFrame:
     """Aggregate span-level error rows into one score per segment.
 
     Args:
@@ -60,7 +79,14 @@ def annotations_to_sentence_scores(df: pd.DataFrame) -> pd.DataFrame:
         )
 
     df = df.copy()
-    df["penalty"] = df["severity"].map(SEVERITY_WEIGHTS)
+    if scheme == "wmt":
+        # Human WMT MQM span files (2026-11-10): official weights, which need the category.
+        df["penalty"] = [wmt_mqm_weight(s, c) for s, c in zip(df["severity"], df["error_type"])]
+    elif scheme == "simple":
+        # Tier 2 synthetic spans have no reliable category; severity-only weights.
+        df["penalty"] = df["severity"].map(SEVERITY_WEIGHTS)
+    else:
+        raise ValueError(f"unknown scheme {scheme!r}")
     df["is_critical"] = (df["severity"] == "critical").astype(int)
     df["is_major"] = (df["severity"] == "major").astype(int)
     df["is_minor"] = (df["severity"] == "minor").astype(int)

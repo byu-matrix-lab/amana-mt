@@ -16,6 +16,7 @@ Available pairs (confirmed): en-de (WMT20-23), zh-en (WMT20-23),
                               en-ru (WMT21/22), he-en (WMT23), en-es (WMT24).
 """
 
+import csv
 import logging
 from pathlib import Path
 
@@ -29,13 +30,23 @@ logger = logging.getLogger(__name__)
 
 
 def _normalize_per_lang(df: pd.DataFrame) -> pd.DataFrame:
-    """Min-max normalize MQM scores to [0, 1] within each language."""
-    def _minmax(s: pd.Series) -> pd.Series:
-        lo, hi = s.min(), s.max()
-        return pd.Series(0.5, index=s.index) if hi == lo else (s - lo) / (hi - lo)
+    """Normalize MQM scores to [0, 1] within each (language, WMT year).
 
+    Fixed 2026-11-09. The HF dataset does not use one scale across years:
+    en-ru 2021 is on a 100-point scale (100 = perfect, min -400) while en-ru
+    2022 and every en-de / zh-en year are negative penalties (0 = perfect).
+    The earlier version min-maxed all years of a language together, so for
+    Russian 96% of 2021 rows ranked above every 2022 row regardless of
+    quality, which produced the "Simpson's paradox" in the published paper.
+
+    Within one (language, year) any monotone transform leaves Spearman
+    unchanged; across years we use the percentile rank (ties averaged), which
+    puts every year on a common [0, 1] scale and is robust to the -400
+    outlier that would dominate a min-max.
+    """
     df = df.copy()
-    df["quality_score"] = df.groupby("lang")["mqm_score"].transform(_minmax)
+    keys = ["lang", "year"] if "year" in df.columns else ["lang"]
+    df["quality_score"] = df.groupby(keys)["mqm_score"].rank(method="average", pct=True)
     return df
 
 
@@ -119,10 +130,9 @@ def build_sacrebleu_ref_lookup(
         global_seg_id_offset: Value added to the 0-indexed line number to get the
             globalSegId. Determined empirically per (testset, lang_pair):
             - "wmt23"/"he-en": offset=0  (globalSegId is 0-indexed, min=0)
-            - "wmt24"/"en-es": offset=-1 (globalSegId is 1-indexed with
-              globalSegId=1 a canary row) when using ref_file_override below;
-              offset=2 was used against sacreBLEU's own news-only "wmt24"
-              cache, which is a DIFFERENT, narrower file (see ref_file_override).
+            - "wmt24"/"en-es": offset=+1 (globalSegId is 1-indexed with
+              globalSegId=1 a canary row; line = globalSegId - 1). See the
+              comment on _SACREBLEU_OFFSETS for how this was verified.
         ref_file_override: If given, read reference lines directly from this
             path instead of the sacreBLEU cache. Needed for "wmt24"/"en-es":
             sacreBLEU's own "wmt24" testset only ships the news-domain subset
@@ -177,22 +187,27 @@ def build_sacrebleu_ref_lookup(
 
 # Known offsets: (testset, lang_pair) → global_seg_id_offset for build_sacrebleu_ref_lookup
 _SACREBLEU_OFFSETS: dict[tuple[str, str], int] = {
+    # The lookup maps key = line_index + offset, so lookup[globalSegId] is
+    # line (globalSegId - offset). Verified 2026-11-09 against mt-metrics-eval
+    # by matching TSV source text to the aligned sources/<lp>.txt:
+    #   he-en: TSV source(g) == wmt23 sources line g     (820/820)  -> offset 0
+    #   en-es: TSV source(g) == wmt24 sources line g - 1 (622/623; the miss is
+    #          the globalSegId=1 canary)                            -> offset +1
+    # The earlier value -1 (commit 7a65176) returned line g + 1, i.e. every
+    # en-es reference two lines off. The published en-es scores predate that
+    # commit and used the correct lines.
     ("wmt23", "he-en"): 0,
-    # sacreBLEU's own "wmt24" cache is news-only; when using it directly the
-    # offset is +2 (globalSegId=1 is a canary). When _REF_FILE_OVERRIDES below
-    # is used instead (the correct, full multi-domain file), the offset is -1.
-    ("wmt24", "en-es"): -1,
+    ("wmt24", "en-es"): 1,
 }
 
 # (testset, lang_pair) -> path to a reference file that should be used INSTEAD
-# of the sacreBLEU cache. Needed for wmt24/en-es: sacreBLEU's "wmt24" testset
-# only ships the news-domain subset of the shared task's test set, but en-es
-# MQM data spans four domains (news/literary/social/speech) sharing one
-# globalSegId numbering scheme -- indexing into the news-only file with that
-# numbering silently returns the wrong reference for non-news rows (confirmed:
-# ~80% of en-es MQM rows are non-news). This is the official, full
-# multi-domain reference release from
-# https://github.com/wmt-conference/wmt24-news-systems (txt/references/en-es.refA.txt).
+# of the sacreBLEU cache. wmt24/en-es: the official multi-domain reference
+# release from https://github.com/wmt-conference/wmt24-news-systems
+# (txt/references/en-es.refA.txt). Verified 2026-11-09 identical, line for
+# line (999/999), to mt-metrics-eval wmt24 references/en-es.refA.txt.
+# (An older comment here said sacreBLEU's own "wmt24" cache is news-only; the
+# 2026-11-07 data audit found it has 997 lines covering all four domains, so
+# that was not the real reason. The override is kept because it is verified.)
 _REF_FILE_OVERRIDES: dict[tuple[str, str], Path] = {
     ("wmt24", "en-es"): Path(__file__).resolve().parents[3]
     / "results" / "external_refs" / "wmt24_en-es_multidomain_refA.txt",
@@ -232,7 +247,12 @@ def load_wmt_mqm_spans(
     frames = []
     for f in tsv_files:
         try:
-            raw = pd.read_csv(f, sep="\t", dtype=str, on_bad_lines="skip").fillna("")
+            # QUOTE_NONE (fixed 2026-11-09): the TSVs are not CSV-quoted, and
+            # pandas' default quoting treated '"' inside source/target text as
+            # field quotes, merging and dropping lines (he-en: 13,665 lines
+            # read as 12,560 rows, 9.7% of (system, segment) units lost).
+            raw = pd.read_csv(f, sep="\t", dtype=str, quoting=csv.QUOTE_NONE,
+                              keep_default_na=False, on_bad_lines="skip").fillna("")
         except Exception as exc:
             logger.warning(f"Could not read {f}: {exc}")
             continue
@@ -283,6 +303,31 @@ def load_wmt_mqm_spans(
         if raw.empty:
             continue
 
+        # hotw-test rows are rater attention checks ("hands on the wheel"),
+        # not annotations; they have no MQM weight. Drop them.
+        raw = raw[raw["severity"] != "hotw-test"].copy()
+
+        # The target column wraps each annotated error span in <v>...</v>, so
+        # the same translation appears with different markup on each error
+        # row. Strip it (fixed 2026-11-09): with the markup left in, (a) every
+        # metric was scored on text that marks where the human found errors,
+        # and (b) one translation with k errors became k "segments", each
+        # carrying only one error's penalty.
+        raw["hypothesis"] = raw["hypothesis"].str.replace(r"</?v>", "", regex=True)
+
+        # Drop canary rows (WMT24 en-es globalSegId=1, doc "canary";
+        # source == hypothesis == reference) and the human reference "system"
+        # refA, which would be scored against itself (refA is the reference).
+        if "doc" in raw.columns:
+            raw = raw[raw["doc"].str.lower() != "canary"]
+        if "source" in raw.columns:
+            raw = raw[~raw["source"].str.contains("CANARY", regex=False)]
+        if "system" in raw.columns:
+            raw = raw[raw["system"] != "refA"]
+        raw = raw.copy()
+        if raw.empty:
+            continue
+
         no_error_mask = raw["severity"].isin(["", "neutral", "no_error", "no-error"])
         raw.loc[no_error_mask, "severity"] = "no_error"
         raw.loc[no_error_mask, "error_type"] = "no_error"
@@ -330,3 +375,49 @@ def load_wmt_mqm_spans(
     if not frames:
         return pd.DataFrame()
     return pd.concat(frames, ignore_index=True)
+
+
+# WMT edition for each pair that goes through the span-TSV fallback.
+SPAN_FALLBACK_TESTSETS: dict[str, str] = {"he-en": "wmt23", "en-es": "wmt24"}
+
+
+def load_span_fallback_scores(span_dir: str | Path, lang_pairs: list[str]) -> pd.DataFrame:
+    """Sentence-level MQM rows for the pairs that come from Google's span TSVs.
+
+    Single shared implementation (2026-11-09) used by pipeline.py and
+    scripts/generate_paper_stats.py, which previously each built their own
+    reference lookups with their own copy of the offsets.
+
+    Returns one row per (system, globalSegId) with segment_id
+    "<lang>_<system>_<globalSegId>" (unique; raises if not).
+    """
+    from mqmbench.data.converter import annotations_to_sentence_scores
+
+    lang_pairs = [lp for lp in lang_pairs if lp in SPAN_FALLBACK_TESTSETS]
+    ref_lookups: dict[str, dict[int, str]] = {}
+    for lp in lang_pairs:
+        testset = SPAN_FALLBACK_TESTSETS[lp]
+        lookup = build_sacrebleu_ref_lookup(
+            lp, testset,
+            global_seg_id_offset=_SACREBLEU_OFFSETS.get((testset, lp), 0),
+            ref_file_override=_REF_FILE_OVERRIDES.get((testset, lp)),
+        )
+        if not lookup:
+            raise RuntimeError(f"No reference lookup for {lp}/{testset}")
+        ref_lookups[lang_from_pair(lp)] = lookup
+
+    spans = load_wmt_mqm_spans(span_dir, lang_pairs=lang_pairs, ref_lookups=ref_lookups)
+    if spans.empty:
+        return pd.DataFrame()
+    n_units = spans["segment_id"].nunique()
+    scores = annotations_to_sentence_scores(spans, scheme="wmt")  # official WMT weights (2026-11-10)
+    if len(scores) != n_units or scores["segment_id"].duplicated().any():
+        raise RuntimeError(
+            f"span conversion produced {len(scores)} rows for {n_units} (system, segment) "
+            "units; one unit must map to exactly one row"
+        )
+    empty_ref = (scores["reference"] == "").sum()
+    if empty_ref:
+        raise RuntimeError(f"{empty_ref} span rows have an empty reference")
+    scores["annotation_tier"] = AnnotationTier.HUMAN_MQM
+    return scores

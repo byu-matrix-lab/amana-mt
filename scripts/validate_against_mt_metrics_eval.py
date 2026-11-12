@@ -27,13 +27,15 @@ import pandas as pd
 from scipy import stats
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from mqmbench.data.wmt_mqm import _SACREBLEU_OFFSETS  # noqa: E402
 MTME = ROOT / "results" / "external_refs" / "mt-metrics-eval-v2"
 
 SPECS = [
-    dict(lang="he", testset="wmt23", lp="he-en", offset=0,
+    dict(lang="he", testset="wmt23", lp="he-en",
          metrics={"comet": "COMET-refA", "bleurt": "BLEURT-20-refA",
                    "xcomet": "XCOMET-Ensemble-refA", "metricx": "MetricX-23-refA"}),
-    dict(lang="es", testset="wmt24", lp="en-es", offset=-1,
+    dict(lang="es", testset="wmt24", lp="en-es",
          metrics={"comet": "COMET-22-refA", "bleurt": "BLEURT-20-refA",
                    "xcomet": "XCOMET-refA", "metricx": "MetricX-24-refA"}),
 ]
@@ -53,16 +55,20 @@ def main() -> None:
 
     rows = []
     for spec in SPECS:
-        lang, testset, lp, offset = spec["lang"], spec["testset"], spec["lp"], spec["offset"]
+        lang, testset, lp = spec["lang"], spec["testset"], spec["lp"]
+        # Shared convention (mqmbench.data.wmt_mqm._SACREBLEU_OFFSETS):
+        # mt-metrics-eval line = globalSegId - offset.
+        offset = _SACREBLEU_OFFSETS[(testset, lp)]
         for our_metric, official_name in spec["metrics"].items():
             ckpt = pd.read_csv(ROOT / "results" / f"scores_{our_metric}.csv")
             ckpt_lang = ckpt[ckpt.lang == lang].copy()
-            # segment_id format: "{lang}_{system}_{globalSegId}_{rater_idx}"
-            # (multiple MQM raters can score the same system/segment; the
-            # metric score itself doesn't depend on rater, so dedupe).
+            # segment_id format (2026-11-09 loader): "{lang}_{system}_{globalSegId}",
+            # one row per (system, segment); raise if not.
+            if ckpt_lang["segment_id"].duplicated().any():
+                sys.exit(f"{lang}: duplicate segment_ids in scores_{our_metric}.csv")
             parts = ckpt_lang["segment_id"].str.split("_")
-            ckpt_lang["system"] = parts.apply(lambda p: "_".join(p[1:-2]))
-            ckpt_lang["global_seg_id"] = parts.str[-2].astype(int)
+            ckpt_lang["system"] = parts.apply(lambda p: "_".join(p[1:-1]))
+            ckpt_lang["global_seg_id"] = parts.str[-1].astype(int)
             ours = ckpt_lang.drop_duplicates(subset=["system", "global_seg_id"])[
                 ["system", "global_seg_id", our_metric]
             ].rename(columns={our_metric: "our_score"})
@@ -70,7 +76,7 @@ def main() -> None:
             path = MTME / testset / "metric-scores" / lp / f"{official_name}.seg.score"
             official = pd.read_csv(path, sep="\t", header=None, names=["system", "score"])
             official["line_idx"] = official.groupby("system").cumcount()
-            official["global_seg_id"] = official["line_idx"] + (-offset)
+            official["global_seg_id"] = official["line_idx"] + offset
 
             merged = official.merge(ours, on=["system", "global_seg_id"], how="inner")
             merged = merged.dropna(subset=["score", "our_score"])

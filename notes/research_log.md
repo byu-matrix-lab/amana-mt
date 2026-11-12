@@ -1,5 +1,190 @@
 # Research Log — Multilingual MQM Benchmark
 
+## 2026-09-11 (Session — dash cleanup, page-1 teaser figure, build pipeline, SLURM speedup)
+
+### Dash style cleanup
+User dislikes em dashes and en dashes misused as em dashes. Found and fixed every " -- " (spaced double-hyphen rendering as an en-dash) used as a parenthetical/aside in `main.tex`, both the two I'd introduced today (EMET footnote, Hebrew paragraph) and four pre-existing ones (the agglutinative/fusional gap bullets, year-stratification paragraph, protocol-confound paragraph), rewritten using commas/parentheses instead. Left the legitimate uses alone: numeric ranges (`2017--2022`), compound terms (`metric--human`), and table "no data" placeholders (`--`).
+
+### New page-1 teaser figure
+User asked whether there's enough visual content and specifically wanted an attention-grabbing figure/table near the top. Added `plot_direction_morphology_teaser()` to `scripts/make_presentation_plots.py`: a compact grouped bar chart (en->X vs. X->en COMET rho, split by isolating/agglutinative/fusional) with the eta^2_dir vs. eta^2_morph annotation, placed as `\begin{figure}[t]` right at the top of the Introduction (page 1). Per the user's explicit instruction, it reads every value directly from `results/paper_stats.json` (the exact `DirMorphCOMET*`/`EtaSq*` keys `generate_paper_stats.py` already writes for Table 2) rather than recomputing anything independently, the same pattern already established in `plot_tier_bar()`.
+
+### Removed SSOT-noncompliant dead code
+While auditing "should plots draw from SSOT," found `plot_score_discrimination()` (already unused since the Hebrew retraction removed its LaTeX figure) was independently reconstructing a `he_<system>_<globalSegId>` segment-ID join against `surface_similarity.csv`, the exact same stale-join anti-pattern that caused this session's earlier Cohen's-d NaN bug, just never fixed because the function was dead code by that point. Deleted the function entirely rather than leave a landmine for a future session that might resurrect it.
+
+### Regenerated kiwi_scatter as a neutral figure
+Per earlier discussion, restored `presentation_kiwi23_vs_comet.pdf` (CK23 vs. COMET scatter, all languages) as a legitimate general figure now that the Hebrew-specific "sole outlier" annotation and bold styling are removed. Verified the new caption's claim ("reference-free QE holds a modest overall edge") against the data before writing it: mean(CK23-COMET) = +0.016, CK23 wins 19/26 languages, true. Re-added the LaTeX figure block in \S\ref{sec:per_lang}.
+
+### New build pipeline: `scripts/build_paper.sh`
+Ties the whole pipeline into one command: `generate_paper_stats.py`, then `render_macros.py`, `make_presentation_plots.py`, `assert_paper_invariants.py`, and `pdflatex` x2, failing loudly on the first error rather than silently compiling against stale macros or stale figure PDFs. This is now the only sanctioned way to compile; running `pdflatex` directly on a stale `results/` state was exactly the kind of drift the SSOT discipline exists to prevent.
+
+### SLURM speedup for generate_paper_stats.py
+Running the full build hung: `generate_paper_stats.py` (CPU-bound, bootstrap CIs) sat at 98% CPU for 12+ minutes on the login node without finishing, versus ~1-2 minutes in every earlier run today. Diagnosed with `nproc` (1 usable core) and `uptime` (load average 11+, 60 concurrent users): pure resource contention on an oversubscribed shared login node, not a bug in anything edited this session. Killed it and submitted `scripts/slurm/run_generate_paper_stats.sh` (new: CPU-only, 4 cores, 32G, 30 min limit) instead; completed in 93 seconds with identical output (eta_dir=0.309, 566 entries) to what the stalled login-node run would eventually have produced. Documented this in `build_paper.sh` itself so the next session doesn't have to rediscover it.
+
+### Major bug found: latex/figures/ was silently stale for over a month
+User reported "the funky Hebrew dot is still in the graph" and "the new graph didn't work." Investigated by actually rendering the compiled PDF pages as images (installed `pypdfium2` via pip, since no `pdftoppm`/`imagemagick`/`pdftotext` were available and this session's Read tool can view images directly, a new capability worth remembering). Findings:
+- The teaser figure's box was empty, showing the literal path string `figures/presentation_direction_morphology_teaser.pdf` as placeholder text: the classic LaTeX behavior when `\includegraphics` can't find the target file.
+- Checked `latex/figures/` vs. `results/plots/`: **every single figure differs** (sha256 mismatch on all of them). `latex/figures/` held PDFs dated 2026-08-07, over a month stale, while `make_presentation_plots.py` has only ever written to `results/plots/`. Nothing in this whole project's history copied one into the other.
+- This means every "verify the figure is fixed" check earlier in today's session was checking the wrong file: `results/plots/presentation_kiwi23_vs_comet.pdf` was correctly regenerated (Hebrew annotation removed, caption fixed), but the actual **compiled PDF was still embedding the August version with the retracted Hebrew-outlier annotation still visible**, because `pdflatex` reads from `latex/figures/`, not `results/plots/`.
+- `build_paper.sh`'s own header comment already *claimed* to prevent exactly this kind of stale-figure drift, but the script never actually copied the files across, an oversight caught only by testing the real compiled output, not by reading the script's own comments.
+
+Fixed: `cp results/plots/*.pdf latex/figures/` now runs as an explicit step in `build_paper.sh` between plot generation and `pdflatex`. Added invariant section L to `assert_paper_invariants.py`: hashes every `figures/*.pdf` main.tex references against its `results/plots/` source, so a manual `pdflatex` run that bypasses `build_paper.sh` still gets caught rather than silently compiling stale figures. (Note: `hashlib.md5` is unavailable in this environment's OpenSSL build, FIPS-restricted; used `sha256` instead.)
+
+Re-synced, recompiled, and re-verified all four embedded figures by actually rendering the compiled PDF pages to images and reading them: teaser figure now displays correctly on page 1 next to the abstract, and the kiwi_scatter figure now shows the correct neutral version with Hebrew/Spanish visibly below the diagonal and the caption accurately describing them as outliers (see next entry).
+
+### Table 2 fixes (fit + bold ambiguity)
+User: "table 2 looks like it could fit in one column" and "confused about what is bold in table 2." Rendered the compiled page and confirmed both: the table used `table*` (two-column span) but only filled about half that width, and two unrelated things were bold (the X-to-en agglutinative COMET cell, explained in the caption; and eta^2_cell, never explained). Converted `table*` to `table` (single column); this initially overflowed by 25pt with the full `[lo, hi]` CI brackets at `\small`, so switched to `\footnotesize` with tighter `\tabcolsep` and `\scriptsize` CI brackets set flush against the value (no space) rather than dropping the CI data or falsifying a "see Table 4" pointer (checked first: Table 4's CIs are on a different quantity, win-fraction, not the same as these per-cell mean-rho CIs, so that pointer would have been wrong). Removed the bold from eta^2_cell entirely (it had no comparative meaning) and rewrote the caption to state explicitly that only the X-to-en agglutinative cell is bold and why. Verified by rendering the compiled page: no overfull hbox, single bold value, caption unambiguous.
+
+### Kiwi-scatter caption accuracy fix
+Verifying the caption I wrote earlier this session ("no single language is a substantial outlier") against the actual data: false. He and es are the two largest deviations from the diagonal in the entire 26-language dataset (-0.173 and -0.142, both more than double the third-largest at 0.085), just in COMET's favor now instead of CK23's. Added a new SSOT macro `GapEsKiwiComet` (matching the existing `GapHeKiwiComet` pattern) and rewrote the caption to state this plainly without speculating a cause, consistent with having already withdrawn the OOD-coverage hypothesis in section 5.2.
+
+### Final state
+Full pipeline clean end to end: `assert_paper_invariants.py` all pass (12 sections, including two new ones added this session: undefined-macro scan and figure-staleness check), `find_hardcoded_values.py` 0 candidates, `pdflatex` x2 compiles clean (17 pages, zero undefined refs/citations/reruns-needed, zero overfull hboxes), 4 figures (page-1 teaser + heatmap + tier bar + kiwi_scatter) and 7 tables, all verified by actually rendering and reading the compiled pages, not just checking exit codes.
+
+## 2026-09-11 (Session — full external validation + first real compile)
+
+### External baseline validation, extended to all four fixed metrics x both languages
+User asked "any other baselines like that we should check?" after the single Hebrew/COMET-22 validation earlier. Extended it: pulled `wmt24/metric-scores/en-es/` (Spanish, the other language affected by the same bug) plus BLEURT-20, xCOMET, and MetricX segment-score files for both he-en (wmt23) and en-es (wmt24) from the official `mt-metrics-eval` archive, and compared system-level means against our corrected checkpoints:
+
+| lang | metric | n systems | Pearson r | Spearman r |
+|---|---|---|---|---|
+| he | COMET-22 | 12 | 0.977 | 0.972 |
+| he | BLEURT-20 | 12 | 0.954 | 0.923 |
+| he | xCOMET | 12 | 0.979 | 0.986 |
+| he | MetricX-23 | 12 | 0.894 | 0.888 |
+| es | COMET-22 | 14 | 0.981 | 0.868 |
+| es | BLEURT-20 | 14 | 0.937 | 0.807 |
+| es | xCOMET | 14 | 0.981 | 0.943 |
+| es | MetricX-24 | 14 | 0.987 | 0.934 |
+
+All eight checks (every metric that was actually buggy, for every language that was actually affected) show strong-to-decisive agreement with official WMT baselines. This is airtight external validation of the reference-omission fix, not just internal self-consistency. `/tmp/mtme` (the ~900MB extracted archive) deleted after use both times.
+
+### First real pdflatex compile of the whole session
+User pointed out `texlive/2024` is available as an environment module (`module load texlive/2024`) — no LaTeX compiler had been available before this, so all of today's earlier edits were only structurally verified (braces, macro-name checks), never actually compiled. Loaded the module, ran a full `pdflatex` x2 pass (`main.bbl` already existed and no citations changed, so no `bibtex` rerun needed). Compiled clean to a 16-page PDF on the second attempt.
+
+**Found and fixed a real, pre-existing bug the compile caught that predates this session's Hebrew work**: Table 1's caption referenced `\TierGEMBAMedRho`, a macro `generate_paper_stats.py` never generates (confirmed via grep — no such key anywhere in the SSOT script). The sentence was also internally self-contradictory: it said GEMBA is *excluded* from the Med tier, then cited a Med-tier rho for it in the same breath — clearly leftover text from an earlier paper draft that survived a restructuring. Removed the dangling parenthetical. This is exactly the class of bug `assert_paper_invariants.py` was blind to: it verifies macros that exist have correct values, but never checked that every macro *referenced in the prose* actually exists.
+
+**Added a permanent invariant (`scripts/assert_paper_invariants.py`, section K)**: regex-scans `main.tex` for CamelCase macro usages and checks each one is defined somewhere (`macros_generated.tex`, `language_table_generated.tex`, or inline in `main.tex` itself), filtering out a hardcoded allowlist of ordinary LaTeX control words. Confirmed it currently reports 0 undefined macros (the GEMBA one was the only offender) and would have caught this bug immediately without needing a LaTeX compiler at all.
+
+### Baseline-validation numbers wired through the SSOT, sentence added to the paper
+Per standing policy (every quantity in the paper traces to code + SSOT JSON, never hand-typed), the 8-check external-validation table above couldn't just be quoted in the research log and dropped into the paper as literals. Created `results/wmt_baseline_validation.csv` (the 8 rows: lang, testset, metric, official submission name, n_systems, pearson_r, spearman_r, source path) as the new SSOT input, added a section to `generate_paper_stats.py` that reads it and emits `BaselineValNChecks`/`BaselineValMinPearson`/`BaselineValMinSpearman` (worst-case across all 8 checks, so the claim is conservative), and added one sentence to §sec:qe_ref citing those macros: "we validated the fix externally... Pearson r≥0.894 and Spearman r≥0.807 across all 8 checks." Reran the full pipeline (`generate_paper_stats.py` → `render_macros.py` → `assert_paper_invariants.py`, all pass, 566 macros now) and recompiled — clean, 17 pages, zero warnings about undefined refs/citations/reruns needed.
+
+Final state: PDF compiles clean under `texlive/2024`, `find_hardcoded_values.py` reports 0 candidates, `assert_paper_invariants.py` passes all checks including the new macro-existence one. This closes out every item from both `advisor_email.md` and `wmt_review.md`, plus the Hebrew retraction and its downstream validation.
+
+## 2026-09-11 (Session — Advisor-flagged Hebrew/Ukrainian anomalies + WMT26 camera-ready)
+
+### Context
+WMT26 camera-ready deadline is today (2026-09-11, AoE). Two open threads: Dr. Ringger's advisor-review email (`notes/advisor_email.md`) flagging suspicious near-zero Ukrainian correlations and an unexplained Hebrew COMET/BLEURT anomaly, and the WMT26 reviewer packet (`notes/wmt_review.md`).
+
+### Follow-up closures (later same session)
+- **Validated corrected Hebrew COMET-22 against the official WMT23 baseline** (Eric's suggested "cheap check"). Downloaded `google-research/mt-metrics-eval`'s WMT23 archive (current URL is `https://data.statmt.org/wmt26/mt-metrics-eval-v2.tgz`; the URL in its own README is stale/403s) and extracted `wmt23/metric-scores/he-en/COMET-refA.seg.score`, the actual WMT23-submitted COMET-22 scores. System-level means (12 systems) correlate with our corrected `scores_comet.csv` he rows at Pearson r=0.977, Spearman r=0.972 — a small systematic offset (~0.05-0.06 lower across the board, likely a COMET checkpoint/config difference) but near-perfect rank agreement. This is decisive external validation that the reference-fix is correct, not just internally self-consistent.
+- **Added the Tier-2 segment-ID verification to the paper text** (`latex/main.tex` §results, the "Tier~2 near-zero" paragraph): explicitly states that the FLORES-based segment_id sharing across all 7 Tier-2 languages was checked and ruled out as a repeat of the he-en/en-es pipeline bug, via independent rebuild-and-rejoin-by-language. Kept the existing careful "we draw no typological conclusion from this" language intact — this addition only strengthens the "not a bug" claim, doesn't newly claim the LLM-judge-unreliability mechanism (which remains an unproven hypothesis).
+- Cleaned up the ~900MB mt-metrics-eval tarball from `/tmp` after use.
+
+### Bugs found and fixed
+1. **Hebrew (he-en, wmt23) and Spanish (en-es, wmt24) reference-omission + segment_id-scheme bug.** Both language pairs load via the span-fallback loader (`load_wmt_mqm_spans`), the only path affected. Root cause: reference text wasn't being attached correctly, and segment_id collisions/scheme mismatches broke the pipeline's `--analysis-only` positional-alignment merge. Fixed generically in `scripts/generate_paper_stats.py` (`_SPAN_LANG_SPECS` / `_build_span_lang_correct_rows()`), which bypasses the fragile merge and recomputes both languages directly from corrected span data + real sacreBLEU references. Verified: Spanish's 9 checkpoint CSVs regenerated via SLURM (job 13649745 — note job 13649555 was a red herring, it was *cancelled*, not completed; a wait-loop that only checks "job left the queue" cannot distinguish cancellation from completion, must use `sacct` for real status).
+2. **Second-order bug: `correlations.csv` on disk was never updated.** The fix above patched `corr_df`/`da_df` only in-memory. `build_corrected_lang_dir_rho()` — used by the paper's *central* direction×morphology 2×3 analysis, the mixed-effects model (reviewer-requested robustness check), DiD, and the decision-procedure table — re-reads `correlations.csv` fresh from disk, so all of that silently kept using the pre-fix broken he/es numbers even after the in-memory fix looked complete and all invariants passed. Fixed by writing the corrected he/es rows back into `correlations.csv` on disk too. This changed the headline numbers again: η²_dir 0.269→0.309, η²_morph 0.143→0.073, η²_interact 0.587→0.618, DiD 0.060→0.036. Lesson: when a "fix" touches an in-memory dataframe, grep for every other place that re-reads the same file from disk before declaring done.
+3. **Third-order bug: Hebrew discrimination/Cohen's-d analysis used a stale, mismatched segment_id join.** `surface_similarity.csv` (from standalone `analyze_surface_similarity.py`) builds its own `he_<system>_<globalSegId>` segment_id, which no longer matches `scores_comet.csv`'s post-fix segment_id scheme — the merge silently produced 0 rows, so Hebrew's Cohen's d rendered as `nan`. Fixed by rebuilding the Hebrew quality-bucketing directly from the same corrected span+ref-lookup path as the main fix, rather than trusting the mismatched CSV join.
+
+### Investigated, not bugs (verified, no fix needed)
+- **Ukrainian**: independently reconfirmed near-zero correlation is a genuine domain confound (uk-en 2022 is conversational "other" domain, not news), not a pipeline bug.
+- **is-en / ha-en**: advisor asked for the same segment-ID spot-check applied to Ukrainian. Checked — segment_id is fully unique for both (19,741/19,741 and 23,983/23,983), and correlations are weak-but-real (spearman 0.10–0.52, pairwise_acc 0.53–0.68, sensible metric ordering), not coin-flip. "Annotation noise" is the correct characterization, not a bug.
+- **Tier-2 synthetic-MQM languages (am, lo, my, sw, ht, th, ka)**: all show uniformly weak correlation across every metric including reference-based ones. Rebuilt each language's quality scores directly from the raw synthetic-MQM JSONL cache and re-joined by segment_id+lang — matched the pipeline's reported values to 6 decimal places. Despite the FLORES-based segment_id scheme being a latent landmine (identical `flores_devtest_XXXX` ids shared across all 7 Tier-2 languages, no `lang` in the join key), current results are correctly aligned. The near-zero pattern is a genuine finding: the local LLM judge (Llama-3.1-8B) can't produce reliable quality judgments for these low-resource/non-Latin-script languages.
+- **Alternate Hebrew reference**: advisor asked to check whether an alternate he-en reference exists, since Limitations claims none is available. Confirmed WMT23 does publish a second reference (`refB`, 1910 lines, genuinely distinct human translation, cached locally) — the paper's Limitations claim is currently **false** and needs correcting (not yet done — pending, see below).
+
+### WMT26 reviewer packet — already addressed in a prior session (confirmed, not re-done)
+Checked `notes/wmt_review.md` against current `latex/main.tex`: the Hausa fusional/agglutinative Table 6 vs. Table 7 inconsistency (Reviewer 2), the linear mixed-effects robustness model with language random intercept (Reviewer 2 Q1/Q2/Q6), the practical decision-procedure/recipe (Reviewer 1), the pivot→X↔Y terminology fix (Reviewer 1), and the year-stratification robustness check (Reviewer 3) are all already present and SSOT-compliant. Re-ran the full pipeline after today's fixes to confirm these still hold with corrected data — they do (all `assert_paper_invariants.py` checks pass).
+
+### Big open item — NOT resolved, needs a decision
+The corrected data **reverses** the paper's "reference-coverage hypothesis" (Hebrew as the sole case where OOD training coverage makes reference-free CK23 beat reference-based COMET). With the fix: COMET now beats CK23 for Hebrew (0.713 vs 0.540 spearman), and COMET's discrimination (Cohen's d = 1.98) is now *better* than CK23's (1.27) — the opposite of the original claim. This affects the abstract, a full results subsection, the Pashto control comparison, the Limitations sentence about missing multi-reference data, and the discrimination-collapse appendix figure. Discussed two options with the user (cut to a null result vs. reframe as a case study in pipeline fragility) — **decision deferred, revisit before submission.**
+
+### Hebrew reference-coverage hypothesis retracted (decision made, executed same session)
+Discussed the open item above with the user. Considered reframing as a "case study in pipeline fragility" but the user pushed back — correctly, on reflection: a bug-fix narrative isn't a generalizable finding for readers the way "always stratify by year" is, and it risked reading as process navel-gazing under deadline pressure. Went with the null-result cut instead. Edited `latex/main.tex`:
+- Abstract: removed the Hebrew/Pashto OOD-coverage sentence.
+- EMET footnote: re-justified the name around the paper's actual throughline (anomalies traced to verifiable causes, not language properties) instead of the Hebrew finding specifically.
+- Removed Contributions bullet 5 ("Reference coverage, not script type...").
+- Rewrote the §per_lang Hebrew paragraph: COMET is now Hebrew's *best* metric (beats xCOMET, MetricX, CK23, Kiwi-22, BERTScore); one sentence acknowledges the earlier version reported the reverse and traces it to the fixed pipeline bug.
+- Removed the `fig:kiwi_scatter` figure (Hebrew-outlier scatter plot) and its Results-section lead-in sentence.
+- Removed the Hebrew-vs-Spanish "reference-coverage mismatch" comparison clause.
+- Rewrote §sec:qe_ref (renamed "No Reference-Coverage Anomaly for Abjad Scripts") to state the retraction plainly, kept the `\label{sec:qe_ref}` so nothing else breaks.
+- Removed the OOD-coverage paragraph and decision-procedure item 5 ("Unknown reference coverage: default to reference-free QE") from §discussion.
+- Removed "confirm the abjad QE-advantage on Arabic and Urdu" from Future Work, and a leftover "Arabic... direct generalization test of the Hebrew QE-advantage finding" clause in Limitations.
+- Fixed the Limitations sentence: was falsely claiming no alternate he-en reference exists (refuted by today's refB discovery); now correctly discloses that only refA was used and refB exists but wasn't.
+- Removed the Appendix "Score Discrimination Collapse: Hebrew" figure and subsection entirely — its Cohen's d values reversed (COMET 1.98 now beats Kiwi's 1.27, the opposite of the original "collapse" story) and the figure no longer illustrates anything paper-relevant.
+- Added `\label{sec:limitations}` to the previously-unlabeled `\section*{Limitations}` (was about to be dangling-referenced), then switched to plain-text "(see Limitations)" instead since `\ref` on a starred/unnumbered section is unreliable across LaTeX classes — matches an existing convention already used elsewhere in the paper.
+- Verified via `scripts/find_hardcoded_values.py` (0 candidates) and a custom label/ref audit (only one pre-existing, unrelated dangling ref: `tab:languages`, which lives in a separately-`\input`-ed generated file and was never actually missing).
+- Also caught mid-edit: `results/abjad_score_distributions.csv` had been regenerated (by `analyze_abjad_mechanism.py`) with corrected data at some point this session outside of what's visible in this log/conversation, but `generate_paper_stats.py` hadn't been rerun since — `HeFullMeanComet` was stale at 0.423 (the literal number from Eric's original email) when the underlying CSV already said 0.790. Reran the full pipeline to pick it up; all these macros are now unused in the text anyway after the rewrite above, but the SSOT itself is correct.
+- Full pipeline (`generate_paper_stats.py` → `render_macros.py` → `assert_paper_invariants.py`) reruns clean after all of the above.
+- **Not done**: LaTeX compile check — no `pdflatex`/`xelatex` available on this machine; only structural checks (brace balance, label/ref audit, hardcoded-literal scan) were possible. Compile on Overleaf before final submission.
+
+### Pipeline state at end of session
+`results/correlations.csv`, `results/hebrew_discrimination.csv`, `results/paper_stats.json`, and `latex/macros_generated.tex` are all regenerated and consistent; `scripts/assert_paper_invariants.py` passes all checks (DiD baseline updated to 0.036 to match corrected data).
+
+## 2026-08-08 (Session — Post-deadline: Tier-2 contamination fix + SSOT + rewrite for next venue)
+
+### Summary
+Discovered critical data contamination: Tier-2 synthetic MQM languages (sw, ht, lo, th, my, am, ka) were included in Table 2 en→X cell means. This inverted the paper's headline claim: η²_dir was 0.039 (contaminated) → 0.387 (correct), η²_morph 0.088 → 0.027, η²_cell 0.872 → 0.586. The new spine: **direction dominates (η²=0.387); morphological type barely matters (η²=0.027)**. Missed WMT-2026 deadline; targeting EACL 2027 (2026-08-03 deadline, already past) → COLING/NAACL 2027 (2026-10-12).
+
+Also discovered: Ridge regression script (`build_metric_reliability_predictor.py`) was running on all 33 languages, not 26 Tier-1 as claimed in the paper. Fixed with TIER2_LANGS filter. Corrected Pearson r: CK23 0.56→0.47, CK 0.61→0.56.
+
+### Changes made
+- **SSOT**: `recompute_dir_morph_table.py` now writes `latex/macros_generated.tex` (all DirMorph, EtaSq, DirMetric macros). Run with `/fslhome/it238/.conda/envs/my_env/bin/python scripts/recompute_dir_morph_table.py` from project root.
+- **Tier-2 filter**: Added `TIER2_LANGS` constant and filter to both `recompute_dir_morph_table.py` and `build_metric_reliability_predictor.py`.
+- **Ridge rerun (n=26 Tier-1)**: CK23 LOLO Pearson r=0.469, CK r=0.558. Paper updated accordingly.
+- **Year-stratified verified**: de/ru/zh per-year values confirmed correct against tier_anomaly.csv and simpsons_summary.csv.
+- **Per-cell language lists (Tier-1 only)**:
+  - en→X agglutinative n=7: et, fi, ha, ja, kk, ta, tr
+  - en→X fusional n=9: de, es, lv, ru, cs, gu, is, lt, pl
+  - X→en agglutinative n=7: et, fi, ha, ja, kk, ta, tr (direction-separated)
+  - X→en fusional n=8: he, ps, uk, cs, gu, is, lt, pl (direction-separated)
+  - X→en isolating n=2: km, zh
+  - pivot fusional n=5: bn, fr, hi, xh, zu
+  - en→X isolating: **empty** (all isolating langs are Tier-2 or X→en only)
+
+### Key corrected values
+- η²_dir=0.387, η²_morph=0.027, η²_cell=0.586
+- en→X agglutin=0.628 [0.522,0.709] n=7, en→X fusional=0.587 [0.455,0.689] n=9
+- X→en agglutin=0.384 [0.230,0.518] n=7, X→en fusional=0.257 [0.148,0.358] n=8
+- DiD (fusional gap − agglutinative gap) = 0.330 − 0.244 = 0.086 (small; direction effect is largely constant across morphological types)
+
+### Rewrite summary (main.tex)
+- Abstract sentence 3: new spine (direction dominates)
+- Contribution bullet 1: retitled "Direction dominates; morphological type barely matters"
+- §3.3 framing: removed "failure of either factor alone" language
+- §4.4: hardcoded gaps updated (+0.073→+0.244, +0.28→+0.33, DiD 0.21→0.086)
+- §5.3: direction dominates framing
+- §6: fixed "neither factor alone" + "0.21" DiD
+- Limitations: added empty en→X isolating cell note
+- Ridge r-values corrected
+
+### What's still TODO for next submission
+- Title change: consider "Direction, Not Typology: What Actually Predicts Which MT Metric to Trust"
+- Ridge figure (Appendix) needs regenerating with Tier-1-only coefficients
+- Consider whether §4.5 opening (η²_cell framing) needs further adjustment
+- Year-stratified macros still marked "manual" — add a generating script reading tier_anomaly.csv
+
+## 2026-08-08 (Session cont'd — Infrastructure build: tier refactor, invariant checks, bib audit, recompile)
+
+### Summary
+Finished the infrastructure hardening plan from earlier in this session (Opus 5's "shape that actually works" prescription). Title changed to "Direction, Not Typology, Predicts Which MT Metric to Trust"; Ridge appendix figure cut entirely (was built from n=33, wrong). Built four pieces of tooling so future edits can't silently reintroduce Tier-2 contamination or drift from the SSOT:
+
+1. **Tier refactor**: `TIER2_LANGS` moved to `src/mqmbench/analysis/correlation.py` as the canonical definition; `recompute_dir_morph_table.py` and `build_metric_reliability_predictor.py` now import it instead of keeping local copies. `generate_macros.py` no longer writes DirMorph/EtaSq/DirMetric/year-stratified macros (removed ~90 lines of now-dead code, including the `morph_of`/`MORPHOLOGY` dict and `dm_df` load) — those are exclusively owned by `latex/macros_generated.tex` via the two scripts below, eliminating the SSOT conflict where re-running `generate_macros.py` would silently overwrite corrected values with stale ones.
+
+2. **`scripts/assert_paper_invariants.py`**: 53 checks — TIER2_LANGS excluded from every Tier-1 aggregate, no language double-counted across direction/morphology groups, cell n's match claimed values (en→X agglutin=7, fusional=9, X→en isolating=2/agglutin=7/fusional=8, pivot=5), every macro in macros_generated.tex matches a fresh recomputation from the CSVs, Table 1 filters synthetic_mqm, direction assignments are internally consistent, and the four main-claim invariants hold (η²_dir > η²_morph, en→X > X→en for both morph types, DiD≈0.086, Ridge n=26/r=0.469,0.558/accuracy=2/26). All pass.
+
+3. **`scripts/generate_yearstrat_macros.py`**: replaces the hardcoded "manual" RuWmtOneRho/DeWmtTwoZeroRho macros with values read live from `tier_anomaly.csv` (confirmed identical to the old hardcoded values). Also discovered and fixed three macros (`\DeEnKiwiRho`, `\DeEnCOMETRho`, `\DeEnMetricXRho`) that were referenced in main.tex but never defined anywhere — the held-out de-en validation numbers from session 26 (2026-07-08) were in the paper text/log but never made it into a macro file, so every prior compile after the SSOT split was silently broken (`pdflatex` errored with "Undefined control sequence" until this fix). Recomputed from `scores_de_en.csv` directly: COMET=0.383, CK23=0.414, MetricX=0.389 — exact match to the session-26 values, confirming no drift.
+
+4. **`scripts/check_bibliography.py`**: cross-checks all 29 `custom.bib` entries with DOIs or arXiv IDs against Crossref/arXiv APIs (login node has internet access). Found one real bug: `zouhar2024domain`'s DOI (`10.18653/v1/2024.acl-short.44`) pointed to an unrelated debate-evaluation paper — off-by-one in the ACL Anthology ID, correct is `.45`. Fixed. Also flagged (but left alone, verified correct) a Crossref metadata quirk where `papineni2002bleu`'s registered `published-print` date is 2001 despite the proceedings being ACL '02 — the paper's `year=2002` is right; Crossref's own container-title contradicts its own date field for that specific DOI.
+
+### Full pipeline order (now required — write this into the run sequence)
+```
+python scripts/generate_macros.py            # Table 1, per-lang, Williams tests, meta
+python scripts/recompute_dir_morph_table.py  # DirMorph/EtaSq/DirMetric macros (Tier-1 only)
+python scripts/generate_yearstrat_macros.py  # year-stratified + de-en held-out (appends, must run last)
+python scripts/assert_paper_invariants.py    # 53 checks, must pass before compiling
+python scripts/check_bibliography.py         # bib audit, run whenever citations change
+```
+Recompiled cleanly (pdflatex exit 0, only benign hyperref/float warnings) after all fixes. Cold-read abstract, §4.4/4.5, §5.3, §6 — all consistent with corrected macros, no stale hardcoded values remain (`grep` for old "0.21"/"+0.073"/"+0.28" DiD/gap values returns nothing).
+
 ## 2026-07-09 (Session 27 — Lookup table expansion: LOO + bootstrap + 15 languages)
 
 ### Summary
@@ -1432,3 +1617,241 @@ Notable findings:
 - hr/ro not in WMT DA — replaced with cs/tr
 - he-en not in MQM dataset — skipped gracefully
 
+
+## 2026-09-29 — Post-publication validity audit (independent recomputation, not pipeline outputs)
+
+Motivation: user has had 3 projects in a row where findings turned out false after major bugs; prior audits in this project only checked pipeline outputs against themselves.
+
+**Ruled out:**
+- *Positional-join misalignment in all DA data.* Every DA number joins scores_{metric}.csv to DA rows by position (segment_id is a non-unique domain key). Recomputed sentence chrF++ from each DA row's own hypothesis/reference at 3,000 random positions per language: Spearman vs. checkpoint = 1.0000 for all 21 DA languages, identical row counts; shuffled control ~0. (`scripts/audit/audit_da_alignment.py`, `results/audit_da_alignment.csv`)
+- *Year/system-pool confound for the direction gap.* Same-language, same-WMT-year cells with both directions (n=19): en->X > X->en for COMET in 19/19 (mean +0.287), MetricX 19/19, CK23 19/19, chrF 18/19, BLEU 16/19. (`scripts/audit/audit_direction_confounds.py`, `results/audit_direction_by_year.csv`)
+
+**Found — interpretive, threatens the headline claim:**
+- *The direction gap is in metric-HUMAN agreement, not metric behavior.* Same-year matched cells: COMET~MetricX agreement 0.834 (en->X) vs 0.817 (X->en), COMET~CK23 0.848 vs 0.814, COMET~chrF 0.584 vs 0.629 — flat. COMET~human 0.665 vs 0.378. Metrics agree with each other equally in both directions; only agreement with the X->en human labels drops.
+- *X->en human labels degrade monotonically by year, for every metric incl. BLEU:* COMET~human 2017 ~0.57-0.69, 2018 ~0.47-0.57, 2019 ~0.40-0.52, 2020 ~0.25-0.36, 2021 ~0 (cs -0.006, ja 0.029, is 0.067, ha 0.045), 2022 ~0.07-0.15 — while COMET~MetricX stays 0.63-0.89. WMT21 into-English DA was reference-based crowd-worker DA; out-of-English was translators/researchers (WMT21 findings, aclanthology 2021.wmt-1.1).
+- *Ukrainian "domain confound" not supported:* uk-en 2022 rho=0.001, but cs-en 2022 (mostly news) = 0.066 and ja-en 2022 = 0.146 — news-domain WMT22 into-English data is also near zero. Ukrainian looks like WMT22 into-English label quality, not domain. Same for is-en/ha-en ("annotation noise" is right but it's the whole WMT21 X->en release, incl. cs-en and ja-en). Table 5's "complete metric failure in 2021" for cs-en is the same artifact.
+- Better-supported reading of the headline: direction predicts metric agreement with WMT DA labels, and the drop traces to into-English human annotation, not metric reliability. Practitioner recommendations built on X->en metric rankings (CK23 vs COMET etc.) rest on correlations with degraded labels.
+
+**Found — unaddressed methodology:** COMET-22, CometKiwi, xCOMET, MetricX were trained on WMT DA labels overlapping the evaluation years; the paper never discusses train/test overlap. BLEU/chrF show the same year decline, so contamination isn't the driver of the direction trend, but it bears on neural-vs-surface magnitudes.
+
+**Found — reproducibility bug:** uncommitted change to build_segment_id appends `_N` suffixes; checkpoints hold old IDs, so rerunning analyze_direction_separated.py today inner-joins zero rows. Published Tables 2/8/LOO (from the Sep 5 run) are correct but not regenerable from current code.
+
+**Open:** can't yet distinguish "noisy crowd labels" from "misaligned labels inside the upstream HF dataset" for 2021/2022 X->en; a system-level check against WMT official rankings would discriminate. MQM tier (uniform professional protocol) shows no direction effect (he-en .713, zh-en .447 vs en-de .425, en-ru .157, en-es .586), n far too small to conclude.
+
+### 2026-09-29 (cont.) — Open question resolved: noisy vs. misaligned X->en labels
+
+- **HF dataset is faithful, not misaligned.** Joined RicardoRei/wmt-da-human-evaluation to WMT's official mt-metrics-eval-v2 segment scores by exact (source, output) text: every HF row matched; HF z vs official wmt-z rho = 0.86-0.92 (2021-22), 0.97 (2020 controls). (`scripts/audit/audit_da_vs_official.py`, `results/audit_da_vs_official.csv`; mt-metrics-eval-v2 from data.statmt.org/wmt26/, extracted at ~/nobackup/archive/mtme/)
+- **The official WMT21/22 into-English segment labels themselves carry ~no segment-level signal.** chrF vs official labels: 2021 cs -0.025, ja 0.036, is 0.036, ha 0.052; 2022 cs 0.10, ja 0.13, uk -0.007 (2020 controls 0.15-0.28). mt==ref outputs at the median under official labels (0.44-0.56; uk 0.49) vs 0.72-0.86 in 2020.
+- **But system-level signal is intact.** Corpus chrF vs official system-level human z: 2021 cs 0.58, ja 0.83, is 0.86, ha 0.93; 2022 cs 0.96, ja 0.99, uk 0.90 (2020 controls 0.54-0.98). So raters weren't random; per-segment variation is noise while document/system means are informative -- consistent with WMT21's into-English SR+DC (segment rating with document context) protocol. (`scripts/audit/audit_da_system_level.py`, `results/audit_da_system_level.csv`)
+- **Direction gap after excluding the dead-label years:** same-year cells 2017-2019 (labels pass mt==ref test): COMET-human gap +0.192, en->X wins 11/11; COMET~MetricX gap +0.014. 2020-2021 cells: +0.416. So a direction gap survives, roughly two-thirds of the headline size, but the metrics still agree with each other equally in both directions, so the residual remains confounded with the into-English crowd/reference-based vs out-of-English expert/source-based DA protocol.
+- **Consequences:** any segment-level result on WMT21/22 X->en DA measures label quality, not metrics -- uk-en (all of Ukrainian), is-en, ha-en, and the 2021/2022 portions of cs-en and ja-en. Ukrainian "domain confound" (abstract) is wrong; Table 5's "complete metric failure in 2021" for cs-en is the same artifact.
+
+## 2026-10-04 — Feedback from David Yarowsky (JHU) on the talk; vote vs. average check
+
+Yarowsky's points: (1) the metric order in the heatmap needs a stated rule (he suggested release year, which might also show newer metrics correlate better); (2) use ISO 639-3 codes; (3) WMT languages aren't really low-resource; (4) ensembles (the paper already has a min-max ensemble of the 5 neural metrics, Table 3; Isaac forgot this in the Q&A); (5) **vote vs. average**: the decision table picks winners by per-language vote, so check whether averaging correlations first gives the same winner; (6) cells with 2-7 languages are too small for generalizable recommendations, so add a roll-up by direction and morphology plus significance and transfer; (7) state the hypothesis first.
+
+Quick check of (5) from results/direction_separated_correlations.csv (pipeline output, all 9 non-GEMBA metrics; not re-derived):
+- en->X fusional (n=7): the vote says CK23 (4/7) but the average says MetricX (.712 vs .696). **The two methods disagree.**
+- en->X agglutinative (n=6): MetricX on both (4/6; .757 vs .753).
+- X->en agglutinative (n=6): CK23 on both (5/6 over all metrics; .485 vs BLEURT .470).
+- X->en fusional (n=7): CK23 on both (5/7; .311 vs MetricX .296).
+- The top-2 average margins are .004-.016 everywhere, so they are probably not separable. The recommendation table should hedge en->X toward "MetricX or CK23".
+TODO before the Budapest poster: compute properly via SSOT, with a bootstrap over languages on the top-2 margin.
+
+## 2026-10-06 — MQM control for the follow-up paper
+
+Script: scripts/audit/mqm_control.py (run_mqm_control.sh, m9; job 14000737). Reads official mt-metrics-eval-v2 files only. Outputs: results/mqm_control.csv and mqm_control_three_labels.csv.
+Design: WMT20-22 have both expert MQM and WMT DA on the SAME (system, segment) set for zh-en (X->en) and en-de / en-ru (en->X). Pooled segment-level Spearman.
+
+Results (mean over pairs; one X->en pair, zh-en, x3 years; five en->X pair-years):
+- COMET vs MQM: en->X .433, X->en .531. **Under expert labels the direction gap REVERSES** (X->en is better).
+- COMET vs DA: en->X .369, X->en .104. The AmanaMT-style gap appears only with DA labels.
+- MQM vs DA agreement on the same segments: zh-en .155 (2020), -.018 (2021), .026 (2022); en->X .11-.41.
+- WMT22 zh-en, three labels on the same 10,472 segments: COMET~MQM .533, COMET~source-based Appraise DA .458, COMET~crowd ref-based DA .023. **Same language and direction, different protocol: the protocol drives the effect.**
+- Metric-metric agreement is flat (COMET~BLEURT en->X .791, X->en .858).
+
+Lit check:
+- Freitag et al. 2022 (WMT22 Metrics findings, App. B): "The segment level Kendal-like correlations of all metrics with Ref. DA scores are all very close to zero, and these numbers are completely meaningless. We strongly recommend against using Ref. DA scores to evaluate MT metrics." Ref. DA was used for all into-English directions (crowd).
+- Freitag et al. 2021 (Experts, Errors, Context) covers WMT20 zh-en.
+- Kocmi et al. 2021 (To Ship or Not to Ship) avoids crowd labels and cites the concern.
+=> "Crowd into-English DA is bad at segment level" is ALREADY PUBLISHED. AmanaMT's direction headline rests partly on data WMT explicitly flagged.
+Still possibly novel: (1) the known-bad slices silently produce a convincing typology finding via the RicardoRei HF dataset, which carries no flag; (2) the direction reversal under MQM, which needs more X->en MQM pairs (WMT23 he-en/zh-en, WMT24). Queued extraction of wmt23/wmt24 (job 14000739).
+Caveats: the X->en MQM side is only zh-en, so direction is confounded with language; COMET-ref (2020) and COMET-22 were trained on WMT17-20 DA, and MetricX_MQM_2020 on MQM 2020.
+
+### 2026-10-06 (cont.) — WMT23 added to the MQM control (job 14000851)
+WMT23 used source-based DA+SQM in BOTH directions (no crowd), with MQM for en-de, zh-en and he-en (MQM only). WMT24 has no X->en pairs.
+- COMET vs MQM, same-year: 2020 en-de .467 vs zh-en .568; 2021 en-de .307 / en-ru .403 vs zh-en .489; 2022 en-de .484 / en-ru .507 vs zh-en .535; **2023 en-de .578 vs zh-en .456 / he-en .482**.
+  => The "reversal" claimed earlier today does NOT hold in 2023. Under expert labels there is no consistent direction effect (X->en ahead in 3 years, behind in 1). This is essentially en-de vs zh-en, so direction is confounded with language.
+- 2023 source-based DA: MQM~DA agreement recovers for zh-en (.287, vs ~0 under crowd ref-based DA in 2021-22). COMET~DA en-de .429 vs zh-en .266: a gap of .16 remains under non-crowd DA, about half the crowd-era gap.
+- Current best summary: most of the large DA direction gap comes from crowd reference-based DA in WMT21/22. With expert labels, direction has no consistent sign. Too few pairs (en-de, en-ru, zh-en, he-en) to claim a direction effect either way.
+
+## 2026-10-06 (cont.) — Follow-up analyses (jobs 14000962, 14001006, 14001047)
+Scripts in scripts/audit/: mtme_io.py (shared loader; the mqm_control refactor reproduces identical numbers), followup_analyses.py, da_retest_check.py, diagnostic_validation.py. Outputs: results/followup_*.csv.
+- **A. Ranking flips** (all submitted metrics, 26-43 per slice; human-ref systems dropped first). Kendall tau between metric rankings under MQM and under DA: crowd zh-en .359 (2020), .016 (2021), -.226 (2022); source-based en->X .77-.90 (2020-22); WMT23 DA+SQM en-de .463, zh-en .739. Under crowd DA, surface metrics jump up: best surface rank 24->4 (2021 zh-en) and 11->1 (2022 zh-en; f200spBLEU ranks #1 under crowd DA).
+- **B. Grouping**: item-grouped correlations reproduce the pattern (crowd zh-en COMET~DA item-grouped .007/.023 vs ~MQM .151/.298). System-level crowd DA is still informative (COMET .43-.67), with n_systems 8-15. WMT20 zh-en MQM system-level is negative (known oddity of that set).
+- **C. Bootstrap** (1000x, resampling source segments), same-year en->X minus X->en gap. Under MQM: 2020 -.102 [-.142,-.065]; 2021 -.134 [-.180,-.089]; 2022 -.039 [-.072,-.005]; 2023 +.109 [.064,.154]. Under DA: +.073, +.334, +.382, +.163, all CIs >0. So under DA the gap is always positive and largest in the crowd years; under MQM the sign flips across years, and every CI excludes 0.
+- **D. Ceiling**: DA "retest" pairs are copied scores in 2017 en->X, 2019 en->X and 2020 (84-96% exactly equal raw), so those are excluded. Independent years: crowd x->en single-rating reliability .127 (2021), .168 (2022) => ceiling .36/.41, yet COMET~DA = .008/.024, far below even that ceiling. MQM 3-rating reliability .74/.78 (WMT20), ceiling .86/.88. Caveat: duplicated outputs skew short and easy.
+- **E. Diagnostic validation** (the follow-up's main contribution): D2 = (COMET~BLEURT) - (COMET~DA) predicts rho(MQM,DA): Spearman -.782, p=.008, n=10 slices. D1 = mt==ref percentile: .829, p=.042, n=6 (WMT22 en->X has no mt==ref cases; WMT23 is not in the HF data). Slices are not independent (shared years and systems). D2 also orders the non-crowd slices correctly (2021 en-de has the highest D2 and the lowest MQM~DA).
+=> The follow-up looks viable as a separate paper: validated cheap diagnostic + ranking-flip consequence + bootstrapped sign-flipping direction gap.
+
+## 2026-10-07 — Follow-up deferred; plan written
+Isaac won't make the Oct 12 deadline with the follow-up. Plan and directions written to /home/it238/projects/amanamt-followup/PLAN.md. Since the follow-up won't exist when v2 posts, v2 summarizes the MQM control itself (one paragraph) instead of citing it.
+
+## 2026-10-07 — arXiv v1 package frozen
+archive/arxiv_v1/ holds arxiv_submission.zip, the published PDF, a fresh build from the zip, SHA256SUMS and README (made read-only). The build matches the proceedings PDF: 18 pages, identical text and digits apart from the publisher's header and page numbers. Upload it once the Anthology page is live.
+
+## 2026-10-07 — arXiv plan revised
+The uncorrected proceedings version will NOT be posted to arXiv (consistent with the Mapudungun decision). The first arXiv upload will be the corrected, retitled paper with a version note. archive/arxiv_v1/ is kept only as a frozen record of the published version (README now says DO NOT UPLOAD). Fixing the official record = ACL Anthology corrections process, if filed.
+
+## 2026-10-09 — Audit loader validated against published WMT22 numbers
+scripts/audit/reproduce_wmt22_tables.py (+ _variants.py), run on m9.
+- Table 11 (Kendall tau vs MQM, flattened): **zh-en reproduced exactly** to 3 decimals for COMET-22, chrF, BLEU and metricx_xxl_MQM_2020, both with and without human translations (8/8). (The extracted PDF header had the column order swapped; fixed in the script.)
+- en-de is about +.015 above published for every metric and system-set variant (a constant offset). Likely a data-version or system-set difference in the en-de MQM release; unresolved. It doesn't touch the zh-en evidence behind the corrections.
+- Table 13 (DARR Kendall-like vs crowd Ref. DA, zh-en): not reproduced exactly. With metric ties ignored: chrF +.015 vs .025, BLEU +.022 vs .024, COMET-22 -.013 vs .002. WMT probably computes DARR from individual ratings rather than per-segment averages. Same conclusion either way (≈0); the published numbers themselves confirm crowd Ref. DA is ≈0 at segment level.
+=> The audit's loading and correlation code is validated against an external source on the pair that carries the direction correction.
+
+## 2026-10-17 — Data inventory: what AmanaMT omitted (Eric: "close the en->X isolating gap")
+Script: scripts/audit/data_inventory.py -> results/audit_data_inventory_da.csv.
+Cause: settings.toml excludes de/ru/zh from the DA tier ("already loaded as Tier 1a MQM"), and lang_from_pair collapses pairs to one language, so EVERY DA pair touching de/ru/zh was dropped.
+- **en->zh (the "empty" en->X isolating cell) was available**: HF DA 2017-21 (109,681 rows); WMT19 DA (mtme); WMT22 source-based Appraise DA; WMT23 DA+SQM; WMT24 ESA; WMT25 ESA. **There is no en->zh MQM** anywhere in mt-metrics-eval v2 (wmt19-wmt25 checked). The other agent's "WMT22 en->zh MQM" claim is wrong: WMT22 en-zh is Appraise DA.
+- DA omitted in total: 735,603 HF rows (en-de, en-ru, en-zh, de-en, ru-en, zh-en, plus fr-de).
+- MQM omitted: the pipeline used HF RicardoRei MQM for 2020-22 only (en-de, en-ru, zh-en). Missing: WMT23 en-de and zh-en (the settings.toml comment "WMT20-23" is wrong); wmt21.tedtalks MQM (en-de, en-ru, zh-en; TED domain); wmt23.sent en-de; WMT24 en-de and ja-zh; WMT25 en-ko and ja-zh.
+- Other protocols never used: WMT22 Appraise (9 pairs), WMT23 DA+SQM (7), WMT24 ESA (9), WMT25 ESA (16 pairs, 2 annotators each).
+- Pooling: per-language (non-direction-separated) numbers pool opposite directions and X<->Y into one "lang" (e.g. cs = en-cs + cs-en + de-cs).
+- WMT26 cESA (claimed by the other agent): not in the mtme tarball, unverified.
+
+## 2026-10-17 — en->zh scoring queued (closing the en->X isolating gap)
+scripts/score_en_zh.py + scripts/slurm/run_score_en_zh.sh (job 14271495, dwmatrix GPU; template: score_de_en.py). HF WMT DA en-zh 2017-21: COMET-22, CK23, MetricX-24, chrF++, BLEU-13a (pipeline-consistent) and BLEU-zh. Outputs: results/scores_en_zh.csv, en_zh_correlations.csv (pooled and per year). Protocol: source-based en->X DA, the same as the other en->X cells. Not yet in paper_stats.json.
+**New issue found:** the pipeline's BLEU wrapper (src/mqmbench/metrics/bleu.py) uses sacrebleu's default 13a tokenizer for every target. That doesn't segment ja/zh/th/lo/my, so sentence-BLEU for **en-ja** (DA tier) and the th/lo/my Tier-2 targets is computed over unsegmented text. BLEU for those targets is near-meaningless, and the neural-vs-BLEU gap there is likely inflated. chrF (character-based) is unaffected. TODO: quantify for en-ja (rerun BLEU with tokenize="ja-mecab").
+Terminology: call the 735,603 figure "rows" (rated HF items), not unique segments.
+
+## 2026-10-17 — en-ja BLEU tokenization audit
+scripts/audit/audit_bleu_tokenization_ja.py -> results/audit_bleu_tokenization_ja.csv (m9).
+- The 13a recompute equals the checkpoint BLEU for 100% of the 24,434 en-ja rows, confirming the paper used untokenized BLEU for ja. Japanese hypotheses average 1.36 whitespace tokens.
+- en-ja BLEU vs human: published **-0.000**; with FLORES-200 SPM tokenization (spBLEU) **0.238** (2020 .323, 2021 .233). chrF .273, COMET .543, MetricX .636, CK23 .611.
+- Effect: the en->X agglutinative cell's gain of best neural metric over BLEU drops by ~.04 (my recompute .437 -> .397; paper macro TableFourEntoXAgglutin = .432). "Neural >> BLEU" is unchanged. Minor correction: one cell's BLEU baseline and the ja BLEU entries in the per-language tables.
+- Also affected but exploratory: Tier-2 th/lo/my targets.
+- Implementation note: sacrebleu.sentence_bleu(tokenize="flores200") reloads the SPM model on every call (OOM at 64G). Build sacrebleu.BLEU(..., effective_order=True) once; fixed in this script and in score_en_zh.py.
+
+## 2026-10-17 — en->zh scored: the en->X isolating cell (job 14271495, 2h21m)
+results/scores_en_zh.csv (109,681 rows), results/en_zh_correlations.csv. Source-based en->X WMT DA, 2017-21. MetricX wrapper returns 25-raw (higher = better).
+- Pooled Spearman vs DA: COMET .510, CK23 .564, MetricX .534, chrF .293, BLEU-zh .307, BLEU-13a -.020 (untokenized; same flaw as en-ja).
+- Per year, COMET: .606 (2017), .508, .563, .570, .404 (2021). CK23 is best every year except 2021, where MetricX is best.
+- Table 2 context: en->X agglutinative .675, fusional .563; X->en isolating .462 (zh-en MQM + km-en DA, mixed protocols). The new en->X isolating cell (one language) = .510, so the isolating direction contrast is +.048. That's much smaller than the agglutinative (+.235) and fusional (+.271) gaps, but it is n = 1 language per side with protocols differing across the contrast. Report descriptively; no CI possible.
+- Not yet in paper_stats.json. Adding the cell changes the eta^2 ANOVA inputs. If it goes into the corrected version, recompute through generate_paper_stats.py, not by hand.
+
+## 2026-10-31 — Handoff written
+Full state, decisions, paper edit list and open items: /home/it238/projects/amanamt-followup/HANDOFF.md. Corrected PLAN.md: WMT24 MQM+ESA overlap is en-es only, not en-de.
+
+## 2026-11-05 — MetricX-24 EOS/padding bug (reported from the RL project; confirmed in code)
+src/mqmbench/metrics/metricx.py:99-104 pads the batch (padding=True), THEN drops the last column ([:, :-1]). Official MetricX removes EOS per example BEFORE padding. Only the longest item per batch is correct (batch_size 32), so the rest keep </s> and lose a pad. Two-item test from the other project: 2.14 vs 0.85 raw. Scores depend on batch composition.
+Affected: every AmanaMT MetricX-24 number (results/scores_metricx.csv, scores_de_en.csv and scores_en_zh.csv metricx columns, MetricX rankings/wins, decision procedure, Table 4/8, the en->zh .534).
+NOT affected: the audit/MQM control (it used official WMT-submitted metric scores from mt-metrics-eval), and every COMET-based headline number.
+Fix: tokenize unpadded, strip EOS per example, then pad (reference: ~/projects/reinforcement-learning/src/metricx_qe.py; keep the reference-based input format). Add a regression test (item alone == item batched with a long item). Also check the fast-tokenizer byte-fallback <unk> warning and the 1024-token truncation. Rescore needs a GPU.
+
+## 2026-11-05 — Metric-wrapper audit (after the MetricX EOS bug)
+- **GEMBA degenerate:** of 174,077 scored rows, 86.2% get the top quality value 1.0 (penalty 0). gemba.py returns penalty 0 for empty or unparseable output (failure = "perfect"). max_new_tokens=32 caps listed errors at about 1-2 per segment. The prompt is a custom format with major=5, minor=1 and no critical. This explains GEMBA ρ≈.035. Any GEMBA number (High tier, heatmap column) is a measurement of this wrapper, not of GEMBA-MQM.
+- **BLEURT is English-only:** the settings use Elron/bleurt-large-512 (the 2020 BLEURT port, English uncased BERT vocab), not BLEURT-20. Japanese → partial [UNK], Cyrillic split into single characters, Turkish diacritics stripped. The paper (l.99) just says "BLEURT," with no caveat. BLEURT values for non-English targets (en->X) are out of scope for the model.
+- COMET/xCOMET/Kiwi: wrapper fills missing scores with 0.0 silently, but no exact zeros are present, so there's no actual impact. BERTScore: mdeberta-v3-base, layer 10 known to bert_score; fine. chrF fine. BLEU: 13a tokenization issue (logged 10-17). MetricX: EOS bug (above); 267 rows at raw 25 (clamped worst) are plausible.
+
+## 2026-11-05 — MetricX fix + full rescore submitted (job 15065631, dwmatrix A100)
+- Fixed src/mqmbench/metrics/metricx.py: per-example EOS strip before padding (matches official MetricX). Added tests/test_metricx_batch_invariance.py (score alone == score batched with a longer item). The buggy version is saved at logs/metricx_buggy_reference.py for the before/after check in the job log.
+- Backups (sha256'd): results/backup_pre_metricx_fix_2026-11-05/ (scores_metricx.csv, scores_de_en.csv, scores_en_zh.csv, en_zh_correlations.csv).
+- Main rescore writes to results_metricx_fix/ via settings_metricx_fix.toml (only results_dir differs), recomputing chrF too. **Do not replace results/scores_metricx.csv until the new chrF matches results/scores_chrf.csv row by row** (positional alignment; checkpoint segment_ids are old-style and non-unique). Then rerun --analysis-only, generate_paper_stats.py, render_macros.py and assert_paper_invariants.py.
+- de-en / en-zh: the metricx column is dropped and rescored in place by score_de_en.py / score_en_zh.py.
+
+## 2026-11-07 — MetricX rescore resubmitted; parallel code checks launched
+- Job 15065631 FAILED in 7s: pytest not installed in .venv, so nothing was rescored. Installed pytest; run_metricx_fix.sh now aborts if the regression test is skipped (fixture skips when the checkpoint is missing). Resubmitted as job 15131809.
+- Four read-only code checks running in parallel; reports land in ~/projects/amanamt-followup/code_check/{wrappers,data,stats,ssot}/REPORT.md: (1) wrapper scores vs official mt-metrics-eval scores (COMET first); (2) data loading/filter/join/alignment; (3) independent recompute of headline stats + sign conventions; (4) SSOT/hardcoded-number/table-row provenance + citations + MetricX-dependent macro list.
+- ssot check done (~/projects/amanamt-followup/code_check/ssot/REPORT.md). Pipeline/macros sound, but: eta^2_cell .618 is 1-dir-morph residual (generate_paper_stats.py:194); true between-cell eta^2 = .405 over 5 cells (verified independently). 13 hand-typed claims wrong/untraceable (domain/year composition L213/215/257, de-cs included L414, "5-15 MQM pairs", "22 additional pairs", kk pooled used as X->en max L357, best-metric candidate set 3 vs 7 vs 9 undisclosed, Kocmi quote misapplied). Repo scanner has major blind spots (skips \citet lines).
+- stats check done (code_check/stats/REPORT.md). Arithmetic reproduces everywhere; row alignment correct. CONFIRMED by me: B1 en-ru WMT21 MQM is 100=perfect scale, WMT22 penalty scale, pooled + min-max => Russian "Simpson's paradox" is a label-scale artifact (pooled .157 -> .462 per-year z), and Medium>High reverses after B1+B2. B3 en-es ref offset in wmt_mqm.py maps seg g -> line g+1 (should be g-1): running job 15131809's es MetricX will be wrong (stored es scores used correct refs). Agent-reported, not yet re-verified by me: B2 he/es span rows split by <v> markers (es metrics inflated ~.1).
+- data check done (code_check/data/REPORT.md). CONFIRMED by me: he/es span TSV target has <v>...</v> error markup and load_wmt_mqm_spans never strips it -> metrics scored text that marks where the human found errors (label leak). Agent: he COMET~human .713 published vs .518 with official COMET; es .586 -> .455; plus row splitting (one row per error) and QUOTE parsing drops 9.7% of he units. With all fixes he .482, es COMET .329. The Hebrew "COMET >> CK23" claim and High-tier means are now in doubt. Stats vs data agents DISAGREE on Medium vs High after fixes; resolve by recompute. Also: TED already in HF MQM 2021 (HANDOFF wrong); static direction labels mislabel 50% of DA rows in direction_analysis.csv/Ridge (Table 2/3 + eta unaffected).
+
+## 2026-11-09 — MetricX rescore done; wrapper check (partial) clean for COMET family
+- Job 15131809 COMPLETED (3h27m). Regression test passed; old vs new: alone 24.875 vs batched 23.375 (old) / 24.875 (new). results_metricx_fix/scores_chrf.csv matches results/scores_chrf.csv row by row on 98.5% of rows; the only mismatches are all 11,289 es rows (the en-es ref-offset bug: current code uses line g+1). Segment IDs differ only by new _N suffixes (content-aligned). MetricX changed on 93.5% of non-es rows (mean -0.41 on the 25-pt higher=better scale; still 257 distinct values = bf16). de-en/en-zh metricx rescored in place (old/new corr .976/.980). NOT yet swapped into results/scores_metricx.csv; es block must not be used (rebuild es anyway for the <v>-markup/row-split bugs).
+- mt5 fast vs slow tokenizer: 4/2500 inputs differ, 3 contain <unk>; negligible; official MetricX uses the same fast tokenizer.
+- Wrapper check agent died on a rate limit; its outputs are in code_check/wrappers/. Verified myself from sample_rerun_comet.parquet (2,100 non-es rows): stored COMET/Kiwi22/Kiwi23-XL/xCOMET vs pristine unbabel-comet fp32: Spearman >= .9997, mean abs diff <= .0014; human rho identical to 3 dp (COMET .397 vs .398). Core COMET results are safe. vs official mt-metrics-eval: WMT23 COMET/Kiwi rho .9997-.9999 (same single models); WMT22 COMET-22/COMETKiwi only ~.83-.87, most likely because the WMT22 official submissions were ensembles, not the released single checkpoints (not verified). BLEU exact for WMT22/23; chrF rho .99. BERTScore vs official .58-.63: different model (ours mdeberta), expected; the official-model rerun was never finished. en-zh BLEU vs official wmt20 rho .03: zh tokenization (known).
+
+## 2026-11-09 — Label fixes implemented; he/es rescore + full regeneration queued
+Code (backups of edited files in results/backup_pre_label_fix_2026-11-09/):
+- wmt_mqm._normalize_per_lang: MQM quality_score = percentile rank within (lang, year) (was min-max within lang; en-ru 2021 100-pt scale vs 2022 penalty).
+- load_wmt_mqm_spans: csv.QUOTE_NONE; strip </?v>; drop hotw-test, canary, refA. _SACREBLEU_OFFSETS en-es -1 -> +1 (verified vs mt-metrics-eval source alignment: he line g 820/820, es line g-1 622/623; external es ref file == mtme refA 999/999).
+- New shared load_span_fallback_scores() used by pipeline.py and generate_paper_stats.py (both previously had their own ref-lookup code + offsets); asserts one row per (system, segment) and no empty refs. Result: he 9,840 rows (was 12,441), es 8,708 (was 11,289). vs official mtme MQM seg scores: Spearman he .9923 / es .9976, 100% matched (residual = official minor-punctuation weight 0.1; ours 1). 725 rows (he 496, es 229) have hyp == ref from real MT systems (ONLINE-B he 191): kept.
+- pipeline --analysis-only: positional checkpoint fill now requires lang/tier row-by-row equality, and a length mismatch raises (was a silent partial fill).
+- generate_paper_stats: EtaSqInteract (1 - dir - morph residual) replaced by EtaSqCell (between-cell one-way ANOVA) + EtaSqNCells/EtaSqNUnits; arxiv_submission/main.tex macro renamed (no prose change). assert_paper_invariants had replicated the residual formula; fixed.
+- analyze_direction_separated: join key strips the loader's new _N suffix (restores the published join; 0-row join before); asserts a complete join.
+- analyze_surface_similarity: same TSV fixes + refA dropped + n_raters was the number of error ROWS (penalty divided by own error count); now distinct raters. Paper uses only ChrFErrorFree he/de (refA chrF~1 was inflating it).
+- validate_against_mt_metrics_eval: new ID format, shared offsets.
+- compute_he_scores / compute_span_scores / compute_span_gemba: guarded (exit) as superseded.
+- render_macros / generate_language_table / assert_paper_invariants: PAPER_DIR env (default latex). Regeneration targets arxiv_submission/; latex/ (published) untouched.
+- tests/test_label_fixes.py (8 tests: within-year normalization, one row per unit, no markup/canary/refA, ref alignment vs mtme, official-MQM agreement > .98): pass.
+Jobs: 15187848 (GPU) rescore he/es block with all metrics except GEMBA -> results/span_block_2026-11-09/. Then (afterok) regen job: snapshot -> splice_span_block.py (prefix kept, MetricX prefix from results_metricx_fix, he/es suffix replaced, GEMBA NaN) -> pipeline --analysis-only -> direction-separated -> surface/validation -> stats pass 1 -> abjad + Ridge -> stats pass 2 -> PAPER_DIR=arxiv_submission macros/table/plots -> invariants.
+Not fixed (deferred, disclose): static direction labels in direction_analysis.csv/Ridge; human-ref systems in HF MQM/DA; Williams formula; degenerate win-fraction CIs; GEMBA wrapper.
+- Follow-up fixes (before regen job 15187975 starts, so they land in the same run):
+  - Win-fraction CIs: bootstrap_winner_fraction_ci now exact Clopper-Pearson (6/6 -> [.54, 1], 7/7 -> [.59, 1]; bootstrap gave degenerate [1, 1]). Paper text may still say "bootstrap".
+  - Williams test (correlation.williams_test): full denominator 2K(n-1)/(n-3) + (r1h+r2h)^2/4 (1-r12)^3, on Spearman correlations (was sqrt(2K), Pearson).
+  - Direction labels: correlation.MIXED_DIRECTION_LANGS (12 langs; single source, imported by generate_paper_stats and assert_paper_invariants) labelled "mixed" in per-language outputs (direction_analysis.csv etc.) instead of a fake static direction. DA composition (data audit): cs 70.9k en->X / 51.1k X->en / 13.8k pivot; tr 5.2k/30.2k; fi, et, ja, ... mixed. Ridge predictor now uses language-direction units (single-direction langs + mixed split from direction_separated_correlations.csv), LOLO folds by language; summary.json gains n_units; new macro RidgeNUnits. Dry run on pre-fix data: 9/38 units (published 5/26); still negative.
+  - Human-reference systems in HF MQM: checked; none is scored against itself (Human-A/B/P, ref-A..D, refB are other human translations; en-de 2021 ref-B equals the reference on 32% of rows). Kept as published; disclose.
+  - GEMBA: not rescored; recommend drop/relabel in the corrected text.
+
+## 2026-11-09 (later): regen after label fixes — DONE
+- Jobs: span rescore 15187848 OK (20 min). Regen 15187975 died at step 5 (generate_paper_stats read predictor `n_units` before the predictor was rebuilt; now guarded). Resumed from step 5 as 15190223 (scripts/slurm/run_regen_after_label_fix_resume5.sh): OK.
+- 265 of 643 macros changed. Pre-fix outputs: results/backup_pre_label_fix_2026-11-09/analysis_outputs.tgz. Diff list: /tmp/macro_diff.txt (regenerate by diffing that tgz's paper_stats.json).
+- Per-language COMET MQM rho, old→new: ru .157→.455, he .713→.484, es .586→.326, de .425→.427, zh .447→.489. The he/es inflation is most likely the <v> markup leak (tags only on error spans, so metrics "see" the labels).
+- Claims that flip:
+  - "Spanish strongest MQM" → now weakest.
+  - Medium>High: High > Medium for every neural metric (COMET .464 vs .396, MetricX .556 vs .457); only BLEU/chrF/BERTScore still marginally Med>High.
+  - Russian "suppression" (year-stratification) is gone: RuDelta .285 → −.013. The finding was the scale-mix bug; the Czech masking example still holds.
+  - "MetricX wins all but two (ru, he)": MetricX now beats COMET everywhere.
+  - CK23 X→en: agglutinative 6/6 → 5/6, fusional 6/9 → 4/9, so "CK23 wins consistently" is weaker.
+  - LOO 19/26 → 17/26 (73→65%). Pivot MetricX wins 4/5 → 5/5.
+- Hebrew abjad: Cohen's d (COMET) 1.98 → 1.10, z .058 → .351. Weaker but still a large effect.
+- η² (COMET, 33 units / 5 cells): dir .309→.381, morph .073→.094, cell .517 (new between-cell definition). Direction > morphology survives. DiD .036→.065.
+- Ridge: CK .558→.545, CK23 .469→.502, rec acc 5/26 → 6/38 (38 units = mixed langs split by direction).
+- Invariants: 5 failures, all hand-typed literals in assert_paper_invariants.py / main.tex (DiD .036, Ridge .558/.469, 5/26, the Table direction_full bold set + caption "all but two (ru, he)").
+
+## 2026-11-10: Eric's audit triage, v2 code fixes, v2 text composed
+- Eric Ringger's code audit (notes/amana-mt-audit.md) was of the lab mirror at 3239cec (May 8). Triage against the current tree: notes/amana-mt-audit-triage.md.
+- Code fixes:
+  - New src/mqmbench/analysis/metric_scope.py: GEMBA excluded (99.6% of segments score 1.0); BLEURT English-target only. Applied in pipeline.py, analyze_direction_separated.py and generate_paper_stats.py.
+  - correlation.py: the bootstrap resamples source sentences (`groups=`); correlate_metric_vs_human drops NaN pairs jointly; reference_quality_effect no longer uses fillna(0).
+  - tests/test_v2_stats.py: Williams vs a verbatim copy of mt-metrics-eval WilliamsTest (commit 68a481a); size under the null; grouped bootstrap; scope. 24 tests pass (2 MetricX GPU tests deselected on the login node).
+- Regen job 15224383 (scripts/slurm/run_regen_v2_fixes.sh): only BLEURT and NumMetrics (10 -> 9) changed among point estimates. CIs widened: median 1.19x, max 2.7x (MQM languages). Pre-fix snapshot: results/backup_pre_v2fixes_2026-11-10/.
+- MQM control: reran scripts/audit/followup_analyses.py (job 15224394) so followup_bootstrap_ci.csv has the gap rows. generate_paper_stats.py now emits MqmCtrl* macros and checks that the points match mqm_control.csv. The control reads official mtme files only, so it is unaffected by the label bugs.
+  - MQM gaps (en->X minus X->en, COMET): -.102, -.134, -.039, +.109.
+  - DA gaps: +.073, +.334, +.382, +.163. All CIs exclude 0.
+- New findings during the rewrite:
+  - The mixed-model morphology term is now significant (p=.037); it was published as non-significant.
+  - Year-strat en->X fusional: .567 -> .565 (no longer "a small increase").
+  - MetricX-24 has the highest mean in every tier and every direction (among single metrics).
+- assert_paper_invariants.py:
+  - DiD, Ridge and RecAcc are now compared to the macros.
+  - Table direction_full bolds are now parsed from main.tex.
+  - Section M checks the metric scope.
+  - Result: 66 checks, all pass.
+- arxiv_submission/main.tex rewritten as v2: new title, version note, abstract, MQM-control subsection (sec:mqm_control), label-quality discussion (sec:label_quality), and revised Limitations. Pre-rewrite copy: results/backup_pre_v2fixes_2026-11-10/main.tex.pre_v2text.
+- Bib: freitag2022results and graham2014testing were fetched from the ACL Anthology.
+- Fig 1 in-image title reworded (make_presentation_plots.py:242).
+- Compiles to 17 pages, with no errors and no undefined citations or references.
+- Strict number scan reviewed; exceptions in notes/v2_scan_exceptions.md.
+- Open:
+  - Isaac's review of the text.
+  - Verify that WMT21 is-en/ha-en DA is crowd reference-based (claimed in the Ukrainian paragraph and the Table 8 caption).
+  - Acknowledgments: maybe thank Eric for the audit.
+  - Independent recompute.
+  - reportkit claims/lint.
+  - Merge to main before linking the repo.
+
+## 2026-11-11: recompute findings fixed; v2 text approved
+- Isaac approved the v2 text as diffed, with two changes: never write "CK23" (now "CometKiwi-23" everywhere, figures included; reportkit bans it), and Eric Ringger as second author (acks sentence thanking him removed). v2 goes to the ACL Anthology as a revision, not arXiv.
+- Approved text backed up: results/backup_pre_v2fixes_2026-11-10/main.tex.approved_2026-11-11.
+- Independent recompute (fresh agent; scripts in ~/projects/amanamt-followup/code_check/recompute_v2/): 74/75 checks within .005 and no headline flips. Its findings and what was done about each:
+  1. TotalSegments was typed (730,748, counting the old span block). Now computed from correlations.csv = 725,566, and asserted equal to the scores_comet.csv row count.
+  2. The he/es span labels used critical=25 and punctuation=1. converter.wmt_mqm_weight now applies the official weights (non-translation 25, critical/major 5, minor punctuation 0.1, minor 1), via scheme="wmt" for the span files only; Tier 2 is unchanged. test_agrees_with_official_mqm now requires exact segment-score agreement (>99.9%): it passes for he and es.
+  3. The version note wrongly said the published en-es references were offset. The offset came from commit 7a65176, after publication. Removed from the abstract, version note and Hebrew paragraph.
+  4. "Identical segment sets": the WMT23 MQM gap includes he-en (no DA). Reworded.
+  5. Human-reference systems in the WMT20-22 control sets: dropping them moves the WMT20 MQM gap -.102 -> -.058, signs unchanged (recompute). Disclosed qualitatively in sec:mqm_control.
+  6. High > Medium is thin under per-language averaging (about .005). Hedged in the text.
+- Regen job 15262250 (scripts/slurm/run_regen_wmt_weights.sh; snapshot results/backup_pre_wmtweights_2026-11-11/).
+- ~/projects/amanamt-followup/PLAN.md: new section "Attempted in v1, dropped or weakened in v2", covering the claims dropped, the methods removed or restricted, and the label-assembly bug list.
+- reportkit (reportkit.toml, tools/reportkit_claims.py): claims 28/28, lint 0. All claims fire on the published text (falsify check). The PDF half is skipped because the cluster has no pdftotext.

@@ -1,0 +1,147 @@
+[languages]
+# Resource tier classification drives the main analysis plots.
+# high   = professional WMT MQM annotations
+# medium = WMT Direct Assessment (sentence-level human ratings)
+# low    = WMT DA but genuinely low-resource languages, or synthetic-only
+[languages.resource_tiers]
+high   = ["de", "zh", "ru", "he"]
+medium = ["es", "cs", "tr", "uk", "fr", "pl", "fi", "et", "is", "lt", "lv",
+          "bn", "hi", "gu", "ta", "ja", "kk", "xh", "zu"]
+low    = ["ha", "km", "ps", "sw", "ht", "lo", "th", "my", "am", "ka"]
+
+# Language family groupings (for secondary analysis per Dr. Fulda's suggestion)
+[languages.families]
+indo_european = ["de", "ru", "es", "cs", "uk", "ps",          # Germanic/Slavic/Romance/Iranian
+                 "fr", "pl", "is", "lt", "lv",                # Romance + Baltic + Nordic
+                 "bn", "hi", "gu"]                             # Indo-Aryan
+afro_asiatic  = ["he", "ha", "am"]                             # Semitic (he, am) + Chadic (ha)
+sino_tibetan  = ["zh", "my"]                                   # Sinitic + Tibeto-Burman (Burmese)
+turkic        = ["tr", "kk"]                                   # Turkish + Kazakh
+austroasiatic = ["km"]
+tai_kadai     = ["lo", "th"]                                   # Lao + Thai
+niger_congo   = ["sw", "xh", "zu"]                             # Bantu family
+creole        = ["ht"]
+dravidian     = ["ta"]                                         # Tamil (gu/bn/hi are Indo-Aryan, above)
+japonic       = ["ja"]
+uralic        = ["fi", "et"]                                   # Finnish + Estonian
+kartvelian    = ["ka"]                                         # Georgian
+
+# Script type (logographic vs phonographic — per Dr. Fulda)
+[languages.script_type]
+logographic  = ["zh", "ja"]                                    # character = morpheme/word (incl. kanji)
+alphabetic   = ["de", "ru", "es", "cs", "uk", "tr", "sw", "ha", "ht",
+                "fr", "pl", "is", "lt", "lv", "kk",           # Latin/Cyrillic alphabets
+                "xh", "zu", "fi", "et",                        # Bantu + Uralic Latin
+                "ka"]                                          # Georgian (unique alphabet)
+abjad        = ["he", "ps"]                                    # consonant-primary (Hebrew, Arabic)
+abugida      = ["km", "lo",                                    # Brahmic-derived (Khmer, Lao)
+                "bn", "hi", "gu", "ta",                        # Devanagari/Bengali/Gujarati/Tamil
+                "th", "my", "am"]                              # Thai, Myanmar, Ge'ez scripts
+
+[data]
+# HuggingFace dataset IDs
+wmt_mqm_dataset    = "RicardoRei/wmt-mqm-human-evaluation"
+wmt_da_dataset     = "RicardoRei/wmt-da-human-evaluation"
+flores_dataset     = "openlanguagedata/flores_plus"
+flores_split       = "devtest"
+nllb_model         = "facebook/nllb-200-distilled-600M"
+
+# Tier 1a: WMT MQM language pairs to load.
+# Confirmed: en-de (WMT20-23), zh-en (WMT20-23), en-ru (WMT21/22), he-en (WMT23).
+# en-es (WMT24) is checked at runtime and silently dropped if absent.
+wmt_mqm_pairs = ["en-de", "zh-en", "en-ru", "he-en", "en-es"]
+
+# Tier 1b: WMT DA target languages.
+# Confirmed available in RicardoRei/wmt-da-human-evaluation:
+#   bn cs de et fi fr gu ha hi is ja kk km lt lv pl ps ru ta tr uk xh zh zu
+# (de, ru, zh already loaded as Tier 1a MQM — do not duplicate here)
+# Original 6: cs tr uk ha km ps
+# Expanded (Apr 2026): added fr pl fi et is lt lv bn hi gu ta ja kk xh zu
+wmt_da_target_langs = [
+  "cs", "tr", "uk",                             # original medium
+  "ha", "km", "ps",                             # original low
+  "fr", "pl", "fi", "et", "is", "lt", "lv",    # European expansion
+  "bn", "hi", "gu", "ta", "ja", "kk",           # South/East Asian expansion
+  "xh", "zu",                                    # African expansion
+]
+
+# Tier 2: languages with no human annotations — FLORES+/NLLB/synthetic only.
+# Distinct from resource_tiers.low, which also includes ha/km/ps (covered by Tier 1b).
+tier2_langs = ["sw", "ht", "lo", "th", "my", "am", "ka"]
+
+cache_dir  = "data/cache"
+results_dir = "results_metricx_fix"  # MetricX EOS-fix rescore (2026-11-05); compare before replacing results/
+
+# Optional: path to google/wmt-mqm-human-evaluation TSV files for span-level
+# accuracy vs. fluency category analysis. Download from:
+#   https://github.com/google/wmt-mqm-human-evaluation
+# Leave empty to skip category correlation.
+wmt_mqm_span_dir = "../wmt-mqm-human-evaluation"
+
+[metrics]
+# Metrics to run. Comment out any you want to skip.
+# xcomet and cometkiwi are pre-cached (run download_model() on login node before submitting).
+# XCOMET-XL requires gated HuggingFace access: https://huggingface.co/Unbabel/XCOMET-XL
+# xcometxxl (42.9 GB checkpoint) exceeds 128 GB RAM headroom when loaded with other models.
+# xcomet (13.9 GB) is the main xCOMET contribution; XXL adds marginal benefit.
+run = ["bleu", "chrf", "bleurt", "bertscore", "comet", "xcomet", "cometkiwi", "cometkiwi23", "metricx"]
+
+# GEMBA as an evaluated metric (same local model, HF pipeline).
+# Also used as the LLM for Tier 2 synthetic MQM annotation generation.
+# Pre-download on a login node before submitting SLURM jobs:
+#   python -c "from transformers import AutoTokenizer, AutoModelForCausalLM; AutoTokenizer.from_pretrained('meta-llama/Llama-3.1-8B-Instruct'); AutoModelForCausalLM.from_pretrained('meta-llama/Llama-3.1-8B-Instruct')"
+# Alternatives: "meta-llama/Llama-3.1-70B-Instruct" (better quality, needs 2+ GPUs)
+#               "Qwen/Qwen2.5-14B-Instruct" (strong multilingual, especially CJK)
+run_gemba   = true
+gemba_model = "meta-llama/Llama-3.1-8B-Instruct"
+
+[metrics.bleurt]
+model      = "Elron/bleurt-large-512"
+batch_size = 32
+
+[metrics.bertscore]
+model      = "microsoft/mdeberta-v3-base"
+batch_size = 32
+
+[metrics.comet]
+model      = "Unbabel/wmt22-comet-da"
+batch_size = 16
+gpus       = 1
+
+[metrics.xcomet]
+model      = "Unbabel/XCOMET-XL"
+batch_size = 32
+gpus       = 1
+
+[metrics.cometkiwi]
+model      = "Unbabel/wmt22-cometkiwi-da"
+batch_size = 32
+gpus       = 1
+
+[metrics.cometkiwi23]
+model      = "Unbabel/wmt23-cometkiwi-da-xl"
+batch_size = 32
+gpus       = 1
+
+[metrics.metricx]
+model      = "google/metricx-24-hybrid-large-v2p6-bfloat16"
+batch_size = 32
+
+[metrics.xcometxxl]
+model      = "Unbabel/XCOMET-XXL"
+batch_size = 4
+gpus       = 1
+
+[metrics.gemba]
+batch_size = 32
+
+[slurm_job]
+use_slurm   = false
+job_name    = "mqmbench"
+time        = "04:00:00"
+ntasks      = 1
+nodes       = 1
+mem_per_cpu = "32G"
+gpus        = 1
+conda_env   = "mqmbench"
+qos         = ""

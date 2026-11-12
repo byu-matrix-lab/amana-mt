@@ -1,0 +1,57 @@
+# reportkit (../../reportkit) gates for the corrected AmanaMT paper (arxiv_submission/).
+# The repo's own scripts stay the generator: generate_paper_stats.py -> results/paper_stats.json
+# -> render_macros.py -> arxiv_submission/macros_generated.tex. reportkit only checks.
+#   RK="env PYTHONPATH=../../reportkit/src python3 -m reportkit"; $RK lint; $RK claims
+mode = "paper"
+files = ["arxiv_submission/main.tex"]
+exclude = ["arxiv_submission/macros_generated.tex", "arxiv_submission/language_table_generated.tex"]
+
+[ssot.lint]
+profile = "distinctive"
+macros = ["arxiv_submission/macros_generated.tex"]
+json = ["results/paper_stats.json"]
+
+[ssot.claims]
+registry = "tools/reportkit_claims.py"
+sources = { stats = "results/paper_stats.json" }
+macros = ["arxiv_submission/macros_generated.tex"]
+
+[[ssot.claims.documents]]
+name = "paper"
+tex = "arxiv_submission/main.tex"
+pdf = "arxiv_submission/main.pdf"
+
+# Reviewed 2026-11-10: counts fixed by the design or naming objects listed in the same sentence.
+[[ssot.lint.adjudicate]]
+file = "arxiv_submission/main.tex"
+snippet = "All five are en"
+why = "the five languages are named earlier in the same sentence"
+
+[[ssot.lint.adjudicate]]
+file = "arxiv_submission/main.tex"
+snippet = "among these five metrics"
+why = "the table's five columns, fixed by the table design"
+
+[[ssot.lint.adjudicate]]
+file = "arxiv_submission/main.tex"
+snippet = "leads across all three directions"
+why = "the design has three directions (en->X, X->en, X<->Y)"
+
+[[ssot.lint.adjudicate]]
+file = "arxiv_submission/main.tex"
+snippet = "choosing between all three neural metrics"
+why = "the comparison is defined over COMET, CK23 and MetricX-24"
+
+[[ssot.lint.adjudicate]]
+file = "arxiv_submission/main.tex"
+snippet = "but all four look"
+why = "the four anomalies are listed in the preceding sentence"
+
+[[ssot.lint.adjudicate]]
+file = "arxiv_submission/main.tex"
+snippet = "highest correlation of all three"
+why = "COMET, CK23 and MetricX-24, named in the caption"
+
+[[ssot.lint.spares]]
+pattern = '^(ChrFErrorFree|CometXcomet|Lang|Sep|Tier|Williams|DirMetric|DirMorph|Cell|LOO|Win|BeatsComet|Gap|Mqm|Ru|De|Zh|CsEn|He|Num|Ridge|EtaSq|Baseline|Mixed|Ps|Uk|Zulu|YearStrat|TableFour|Kk|Ja|Pivot|DeEn|Tier)'
+reason = "generate_paper_stats.py emits whole macro families (every language x metric); the paper cites a subset"

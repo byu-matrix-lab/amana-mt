@@ -95,6 +95,25 @@ TRANSLATION_DIRECTIONS = {
                 "sw", "ht", "lo", "th", "my", "am", "ka"],
 }
 
+# Languages whose data mixes translation directions (WMT DA has both en->X and
+# X->en, cs also de-cs). A single per-language direction is undefined for
+# them (e.g. tr is 85% X->en, cs/fi/ja/... roughly balanced), so per-language
+# outputs label them "mixed" (2026-11-09; previously the static table above
+# called most of them en_to_x, mislabelling 275k DA rows). Direction analyses
+# must split them by lp instead (build_corrected_lang_dir_rho,
+# analyze_direction_separated.py). Single source: imported by
+# generate_paper_stats.py and assert_paper_invariants.py.
+MIXED_DIRECTION_LANGS: frozenset[str] = frozenset(
+    {"fi", "tr", "et", "lt", "cs", "ja", "kk", "ta", "ha", "pl", "is", "gu"})
+
+
+def lang_to_direction() -> dict[str, str]:
+    """Per-language direction label; "mixed" for MIXED_DIRECTION_LANGS."""
+    m = {lang: d for d, langs in TRANSLATION_DIRECTIONS.items() for lang in langs}
+    m.update({lang: "mixed" for lang in MIXED_DIRECTION_LANGS})
+    return m
+
+
 # Tier-2: synthetic MQM only, no human annotations.
 # Excluded from all Tier-1 aggregates (Table 2 cell means, Ridge predictor).
 TIER2_LANGS: frozenset[str] = frozenset({"sw", "ht", "lo", "th", "my", "am", "ka"})
@@ -122,15 +141,33 @@ def _bootstrap_ci(
     n_boot: int = 1000,
     ci: float = 0.95,
     seed: int = 42,
+    groups=None,
 ) -> tuple[float, float]:
-    """Return (lower, upper) bootstrap confidence interval for stat_fn(x, y)."""
+    """Return (lower, upper) bootstrap confidence interval for stat_fn(x, y).
+
+    If ``groups`` is given (e.g. the source sentence of each row), whole groups
+    are resampled with replacement and all of their rows kept together
+    (2026-11-10). Many systems translate the same source, so rows are not
+    independent and the segment-level bootstrap gives intervals that are too
+    narrow.
+    """
     rng = np.random.default_rng(seed)
     arr_x = np.array(x)
     arr_y = np.array(y)
     n = len(arr_x)
+    group_rows = None
+    if groups is not None:
+        codes = pd.factorize(pd.Series(list(groups)))[0]
+        order = np.argsort(codes, kind="stable")
+        bounds = np.flatnonzero(np.diff(codes[order])) + 1
+        group_rows = np.split(order, bounds)
     boot_stats = []
     for _ in range(n_boot):
-        idx = rng.integers(0, n, size=n)
+        if group_rows is None:
+            idx = rng.integers(0, n, size=n)
+        else:
+            pick = rng.integers(0, len(group_rows), size=len(group_rows))
+            idx = np.concatenate([group_rows[g] for g in pick])
         try:
             boot_stats.append(stat_fn(arr_x[idx], arr_y[idx]))
         except Exception:
@@ -254,14 +291,20 @@ def williams_test(
     if n < 6:
         return float("nan"), float("nan")
 
-    r1h = float(stats.pearsonr(m1, h).statistic)
-    r2h = float(stats.pearsonr(m2, h).statistic)
-    r12 = float(stats.pearsonr(m1, m2).statistic)
+    # Fixed 2026-11-09. Spearman (rank-transformed) correlations, matching the
+    # rho the paper reports; previously Pearson. Full Williams denominator:
+    #   t = (r1h - r2h) sqrt((n-1)(1+r12))
+    #       / sqrt(2K (n-1)/(n-3) + (r1h+r2h)^2/4 (1-r12)^3),   df = n - 3
+    # (Williams 1959; as used for MT metrics by Graham & Baldwin 2014). The
+    # earlier code used sqrt(2K) alone, omitting the (n-1)/(n-3) factor and the
+    # second term.
+    r1h = float(stats.spearmanr(m1, h).statistic)
+    r2h = float(stats.spearmanr(m2, h).statistic)
+    r12 = float(stats.spearmanr(m1, m2).statistic)
 
-    # Determinant of the 3x3 correlation matrix
     K = 1 - r1h**2 - r2h**2 - r12**2 + 2 * r1h * r2h * r12
-    denom_sq = 2 * K  # denominator is sqrt(2K), not sqrt(2K/(n-1))
-    if denom_sq <= 0:
+    denom_sq = 2 * K * (n - 1) / (n - 3) + ((r1h + r2h) ** 2 / 4) * (1 - r12) ** 3
+    if not np.isfinite(denom_sq) or denom_sq <= 0:
         return float("nan"), float("nan")
 
     t = (r1h - r2h) * np.sqrt((n - 1) * (1 + r12)) / np.sqrt(denom_sq)
@@ -398,9 +441,22 @@ def correlate_metric_vs_human(
     metric_name: str,
     lang: str,
     n_boot: int = 1000,
+    groups=None,
 ) -> dict:
-    """Compute Pearson, Spearman, Kendall, pairwise accuracy, and SPA for one
-    metric against human scores, with 95% bootstrap CIs for Spearman r."""
+    """Compute Pearson, Spearman, Kendall, pairwise accuracy, and tie-credited
+    pairwise accuracy ("spa") for one metric against human scores, with 95%
+    bootstrap CIs for Spearman r (resampling ``groups`` if given).
+
+    Rows where either score is NaN are dropped together (2026-11-10): BLEURT is
+    out of scope on non-English-target rows, so a language can be partly NaN.
+    """
+    _h = np.asarray(human_scores, dtype=float)
+    _m = np.asarray(metric_scores, dtype=float)
+    _ok = np.isfinite(_h) & np.isfinite(_m)
+    if not _ok.all():
+        human_scores, metric_scores = _h[_ok].tolist(), _m[_ok].tolist()
+        if groups is not None:
+            groups = np.asarray(list(groups), dtype=object)[_ok]
     if len(human_scores) < 3:
         return {
             "lang": lang, "metric": metric_name, "n": len(human_scores),
@@ -419,6 +475,7 @@ def correlate_metric_vs_human(
             human_scores, metric_scores,
             stat_fn=lambda x, y: stats.spearmanr(x, y).statistic,
             n_boot=n_boot,
+            groups=groups,
         )
     else:
         ci_lo, ci_hi = float("nan"), float("nan")
@@ -457,7 +514,10 @@ def run_correlation_analysis(
         for metric in metric_columns:
             if metric not in group.columns or group[metric].isna().all():
                 continue
-            result = correlate_metric_vs_human(human, group[metric].tolist(), metric, str(lang))
+            result = correlate_metric_vs_human(
+                human, group[metric].tolist(), metric, str(lang),
+                groups=group["source"].tolist() if "source" in group.columns else None,
+            )
             result["resource_tier"] = lang_to_tier.get(str(lang), "unknown")
             result["annotation_tier"] = tier_name
             result["language_family"] = lang_to_family.get(str(lang), "unknown")
@@ -677,7 +737,7 @@ def run_domain_controlled_comparison(
         resource_tiers = RESOURCE_TIERS
 
     lang_to_tier = {lang: tier for tier, langs in resource_tiers.items() for lang in langs}
-    lang_to_dir = {lang: d for d, langs in TRANSLATION_DIRECTIONS.items() for lang in langs}
+    lang_to_dir = lang_to_direction()
 
     rows = []
     for lang, group in scores_df.groupby("lang"):
@@ -905,16 +965,16 @@ def reference_quality_effect(
     lang_to_tier = {lang: tier for tier, langs in resource_tiers.items() for lang in langs}
     rows = []
     for (lang, ann_tier), group in scores_df.groupby(["lang", "annotation_tier"]):
-        human = group[human_column].dropna().tolist()
+        # 2026-11-10: drop rows with any missing value jointly. Previously human
+        # was dropna'd while metrics were fillna(0)'d, which could misalign the
+        # lists or inject zeros.
+        group = group.dropna(subset=[human_column, "comet", *kiwi_cols])
+        human = group[human_column].tolist()
         if len(human) < 10:
             continue
-        comet_r = None
-        if "comet" in group.columns and not group["comet"].isna().all():
-            comet_r, _ = _spearman(human, group["comet"].dropna().reindex(group.index).fillna(0).tolist())
+        comet_r, _ = _spearman(human, group["comet"].tolist())
         for kiwi in kiwi_cols:
-            if group[kiwi].isna().all():
-                continue
-            kiwi_r, _ = _spearman(human, group[kiwi].dropna().reindex(group.index).fillna(0).tolist())
+            kiwi_r, _ = _spearman(human, group[kiwi].tolist())
             rows.append({
                 "lang": str(lang),
                 "annotation_tier": str(ann_tier),
@@ -959,7 +1019,7 @@ def run_direction_analysis(
     lang_to_tier = {lang: tier for tier, langs in resource_tiers.items() for lang in langs}
     lang_to_family = {lang: fam for fam, langs in LANGUAGE_FAMILIES.items() for lang in langs}
     lang_to_script = {lang: stype for stype, langs in SCRIPT_TYPES.items() for lang in langs}
-    lang_to_dir = {lang: d for d, langs in TRANSLATION_DIRECTIONS.items() for lang in langs}
+    lang_to_dir = lang_to_direction()
 
     rows = []
     for lang, group in scores_df.groupby("lang"):
@@ -1179,7 +1239,7 @@ def run_direction_morphology_interaction(
 
     lang_to_tier = {lang: tier for tier, langs in resource_tiers.items() for lang in langs}
     lang_to_morph = {lang: mtype for mtype, langs in MORPHOLOGY_TYPES.items() for lang in langs}
-    lang_to_dir = {lang: d for d, langs in TRANSLATION_DIRECTIONS.items() for lang in langs}
+    lang_to_dir = lang_to_direction()
 
     rows = []
     for lang, group in scores_df.groupby("lang"):

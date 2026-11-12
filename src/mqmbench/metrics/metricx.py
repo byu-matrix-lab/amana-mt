@@ -92,16 +92,21 @@ def score(
     scores_out = []
     for i in range(0, len(inputs_text), batch_size):
         batch = inputs_text[i : i + batch_size]
-        enc = tokenizer(
-            batch,
-            max_length=max_length,
-            truncation=True,
-            padding=True,
-            return_tensors="pt",
+        # Official MetricX inference strips the EOS token from each example
+        # BEFORE padding. (Padding first and then dropping the last column, as
+        # an earlier version of this function did, only removes EOS from the
+        # longest item in the batch; every shorter item kept its EOS and lost a
+        # pad token, so its score depended on what it was batched with.)
+        ids = [tokenizer(t, max_length=max_length, truncation=True)["input_ids"] for t in batch]
+        ids = [x[:-1] if x and x[-1] == tokenizer.eos_token_id else x for x in ids]
+        width = max(len(x) for x in ids)
+        pad = tokenizer.pad_token_id
+        input_ids = torch.tensor(
+            [x + [pad] * (width - len(x)) for x in ids], dtype=torch.long, device=device
         )
-        # Remove EOS token (as per official MetricX inference)
-        input_ids = enc["input_ids"][:, :-1].to(device)
-        attention_mask = enc["attention_mask"][:, :-1].to(device)
+        attention_mask = torch.tensor(
+            [[1] * len(x) + [0] * (width - len(x)) for x in ids], dtype=torch.long, device=device
+        )
 
         # Decoder needs a single dummy input token (pad=0); MT5 then generates
         # logits over the vocabulary at that one position. We read token 250089

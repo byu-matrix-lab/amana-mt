@@ -61,8 +61,7 @@ from mqmbench.data.nllb import generate_hypotheses
 from mqmbench.data.synthetic_mqm import generate_synthetic_mqm
 from mqmbench.data.wmt_da import load_wmt_da
 from mqmbench.data.wmt_mqm import (
-    build_sacrebleu_ref_lookup, load_wmt_mqm, load_wmt_mqm_spans, _SACREBLEU_OFFSETS,
-    _REF_FILE_OVERRIDES,
+    load_span_fallback_scores, load_wmt_mqm, load_wmt_mqm_spans,
 )
 
 logger = logging.getLogger(__name__)
@@ -163,34 +162,11 @@ def run_pipeline(
                          if lang_from_pair(lp) in missing_langs]
         logger.info(f"  Loading span TSVs for HF-missing pairs: {sorted(missing_langs)}")
 
-        # Build sacreBLEU reference lookups so that reference-based metrics work.
-        # Lookups are keyed by lang code (e.g. "he", "es"); offsets are hardcoded
-        # in _SACREBLEU_OFFSETS per (testset, lang_pair). Silently skip on failure
-        # (compute nodes may lack internet, but the file should be cached already).
-        _WMT_YEAR = {"he-en": "wmt23", "en-es": "wmt24"}
-        ref_lookups: dict[str, dict[int, str]] = {}
-        for lp in missing_pairs:
-            testset = _WMT_YEAR.get(lp)
-            if testset is None:
-                continue
-            offset = _SACREBLEU_OFFSETS.get((testset, lp), 0)
-            ref_override = _REF_FILE_OVERRIDES.get((testset, lp))
-            lookup = build_sacrebleu_ref_lookup(
-                lp, testset, global_seg_id_offset=offset, ref_file_override=ref_override
-            )
-            if lookup:
-                lang_code = lang_from_pair(lp)
-                ref_lookups[lang_code] = lookup
-                logger.info(f"    Built ref lookup for {lp}: {len(lookup)} entries")
-
-        fallback_spans = load_wmt_mqm_spans(
-            span_dir,
-            lang_pairs=missing_pairs,
-            ref_lookups=ref_lookups or None,
-        )
-        if not fallback_spans.empty:
-            fallback_scores = annotations_to_sentence_scores(fallback_spans)
-            fallback_scores["annotation_tier"] = AnnotationTier.HUMAN_MQM
+        # Shared builder (2026-11-09): reference lookups, span parsing and
+        # sentence-level conversion live in one place, also used by
+        # scripts/generate_paper_stats.py.
+        fallback_scores = load_span_fallback_scores(span_dir, missing_pairs)
+        if not fallback_scores.empty:
             all_scores.append(fallback_scores)
             logger.info(f"  Span fallback: {len(fallback_scores)} segments, "
                         f"languages: {sorted(fallback_scores['lang'].unique())}")
@@ -233,21 +209,22 @@ def run_pipeline(
                 elif len(ckpt) == len(full_scores_df):
                     # Non-unique segment_ids (e.g. WMT DA domain keys shared across
                     # many rows): fall back to positional alignment. Row counts must
-                    # match exactly — if they differ, those rows get NaN.
+                    # match exactly, and (2026-11-09) lang/tier must agree row by row.
+                    for _c in ("lang", "annotation_tier"):
+                        if _c in ckpt.columns and not (
+                            ckpt[_c].astype(str).values == full_scores_df[_c].astype(str).values
+                        ).all():
+                            raise RuntimeError(
+                                f"{metric_path.name}: positional alignment failed on '{_c}'"
+                            )
                     full_scores_df[metric] = ckpt[metric].values
                 else:
-                    # Row count mismatch with non-unique segment_ids (e.g. checkpoint
-                    # was written before he/tier2 rows were added). Accept NaN for
-                    # newly added rows; fill existing rows positionally.
-                    n = min(len(ckpt), len(full_scores_df))
-                    full_scores_df[metric] = float("nan")
-                    full_scores_df.iloc[:n, full_scores_df.columns.get_loc(metric)] = (
-                        ckpt[metric].values[:n]
-                    )
-                    logger.warning(
-                        f"  {metric_path.name}: positional partial fill "
-                        f"({len(ckpt)} ckpt rows vs {len(full_scores_df)} current) — "
-                        f"new rows will have NaN for {metric}"
+                    # 2026-11-09: a length mismatch means the checkpoint was built
+                    # from a different dataset; partial positional fill silently
+                    # misaligns rows. Refuse.
+                    raise RuntimeError(
+                        f"{metric_path.name}: {len(ckpt)} checkpoint rows vs "
+                        f"{len(full_scores_df)} loaded rows, and segment_ids are not unique"
                     )
                 metric_columns.append(metric)
                 logger.info(f"  Loaded {metric} ({full_scores_df[metric].notna().sum()} non-null)")
@@ -278,6 +255,14 @@ def run_pipeline(
         if only_metrics:
             logger.info(f"Single-metric job complete ({only_metrics}). Skipping analysis.")
             return None
+
+    # Metric scope for the corrected paper (2026-11-10; see
+    # mqmbench/analysis/metric_scope.py): GEMBA excluded, BLEURT English-target only.
+    from mqmbench.analysis.metric_scope import EXCLUDED_METRICS, apply_metric_scope
+    metric_columns = [m for m in metric_columns if m not in EXCLUDED_METRICS]
+    for _m in metric_columns:
+        full_scores_df = apply_metric_scope(full_scores_df, _m)
+    logger.info(f"Metric scope applied; analysing {metric_columns}")
 
     logger.info("=== Correlation Analysis ===")
     resource_tiers = {k: list(v) for k, v in settings.languages.resource_tiers.items()}

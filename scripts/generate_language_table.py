@@ -9,6 +9,7 @@ Run from the project root:
 
 Writes latex/language_table_generated.tex, \input{}'d from the appendix.
 """
+import os
 import sys
 from pathlib import Path
 
@@ -21,7 +22,7 @@ from mqmbench.analysis.correlation import (
 
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
-LATEX = ROOT / "latex"
+LATEX = ROOT / os.environ.get("PAPER_DIR", "latex")  # 2026-11-09: see render_macros.py
 
 # Language names are a fixed structural fact (not a computed statistic), so a
 # curated mapping is appropriate here -- same status as e.g. AGGLUTIN_LANGS.

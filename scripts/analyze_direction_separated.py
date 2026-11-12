@@ -35,6 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from mqmbench.data.wmt_da import load_wmt_da
 from mqmbench.analysis.correlation import MORPHOLOGY_TYPES
+from mqmbench.analysis.metric_scope import ENGLISH_TARGET_ONLY
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 
@@ -95,15 +96,18 @@ def load_metric_scores(lang: str) -> pd.DataFrame | None:
 
 def bootstrap_winner_fraction_ci(winner_flags: list[bool], n_boot: int = N_BOOTSTRAP,
                                   ci: float = 0.95) -> tuple[float, float]:
-    """Bootstrap 95% CI on the fraction of True values by resampling the list."""
+    """Exact (Clopper-Pearson) CI on the fraction of True values.
+
+    Name kept for callers. Fixed 2026-11-09: resampling a list of k/k wins can
+    only produce 1.0, so the bootstrap reported a degenerate [1.00, 1.00] for
+    6/6 and 7/7. n_boot is unused.
+    """
+    from scipy.stats import binomtest
     if not winner_flags:
         return (float("nan"), float("nan"))
-    arr = np.array(winner_flags, dtype=float)
-    n = len(arr)
-    boot_fracs = [RNG.choice(arr, size=n, replace=True).mean() for _ in range(n_boot)]
-    alpha = (1 - ci) / 2
-    return (float(np.quantile(boot_fracs, alpha)),
-            float(np.quantile(boot_fracs, 1 - alpha)))
+    k, n = int(sum(bool(w) for w in winner_flags)), len(winner_flags)
+    lo, hi = binomtest(k, n).proportion_ci(confidence_level=ci, method="exact")
+    return (float(lo), float(hi))
 
 
 def loo_predict(winner_rows: list[dict], target_lang: str,
@@ -150,6 +154,13 @@ def main():
                 else ("en_to_x" if lp.startswith("en-") else "pivot")
             ))
         )
+        # Join key (fixed 2026-11-09). build_segment_id now appends a per-base
+        # occurrence suffix "_<n>", but the score CSVs were written with the
+        # bare base IDs. (base, occurrence) on the loader side equals
+        # (segment_id, cumcount) on the checkpoint side, which is the join the
+        # published numbers used. Without this the inner join matched 0 rows.
+        _base = lang_da["segment_id"].str.replace(r"_\d+$", "", regex=True)
+        lang_da["segment_id"] = _base
         lang_da["_row_idx"] = lang_da.groupby("segment_id").cumcount()
 
         metric_scores = load_metric_scores(lang)
@@ -161,6 +172,9 @@ def main():
             metric_scores, on=["segment_id", "_row_idx"], how="inner"
         )
 
+        if len(merged) != len(lang_da):
+            raise SystemExit(f"{lang}: joined {len(merged)} of {len(lang_da)} DA rows to metric "
+                             "scores; the join must be complete")
         directions = merged["direction"].value_counts()
         print(f"  {lang}: {len(merged):,} rows | {dict(directions)}")
 
@@ -173,6 +187,9 @@ def main():
 
             for metric in METRICS:
                 if metric not in grp.columns:
+                    continue
+                # 2026-11-10 metric scope: BLEURT is English-target only.
+                if metric in ENGLISH_TARGET_ONLY and direction != "x_to_en":
                     continue
                 m_vals = grp[metric].values
                 valid = ~(np.isnan(human) | np.isnan(m_vals))

@@ -28,7 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from mqmbench.analysis.correlation import (
-    MORPHOLOGY_TYPES, TRANSLATION_DIRECTIONS, TIER2_LANGS,
+    MIXED_DIRECTION_LANGS, MORPHOLOGY_TYPES, TRANSLATION_DIRECTIONS, TIER2_LANGS,
 )
 
 LANG_TO_MORPH = {lang: mt for mt, langs in MORPHOLOGY_TYPES.items() for lang in langs}
@@ -51,35 +51,51 @@ def load_data(project_dir):
             "affix_direc":       int(r["affix_direc"]) if r["affix_direc"] else None,
         }
 
-    # First pass: collect BLEU Spearman r per language (baseline)
-    bleu_r = {}
+    # Units (2026-11-09). Languages with a single direction contribute one
+    # unit from direction_analysis.csv. MIXED_DIRECTION_LANGS (both en->X and
+    # X->en in WMT DA) contribute one unit per direction from
+    # direction_separated_correlations.csv -- the same units as the eta^2
+    # analysis. Previously every language was one pooled unit with a static
+    # direction label (e.g. tr labelled en_to_x though 85% of its rows are
+    # X->en). Row key "lang" is the unit id; "group" (the language) is the
+    # leave-one-language-out fold, so both directions are held out together.
+    meta = {}
+    pooled = defaultdict(dict)
     for r in csv.DictReader(open(dir_path)):
-        if r["metric"] == "bleu" and r["spearman_r"]:
-            bleu_r[r["lang"]] = float(r["spearman_r"])
+        meta.setdefault(r["lang"], r)
+        if r["spearman_r"]:
+            pooled[r["lang"]][r["metric"]] = float(r["spearman_r"])
+    units = {}  # unit id -> (language, direction, {metric: rho})
+    for lang, rhos in pooled.items():
+        if lang not in MIXED_DIRECTION_LANGS:
+            units[lang] = (lang, LANG_TO_DIR.get(lang, "en_to_x"), rhos)
+    sep_path = os.path.join(project_dir, "results", "direction_separated_correlations.csv")
+    for r in csv.DictReader(open(sep_path)):
+        if r["lang"] in MIXED_DIRECTION_LANGS and r["direction"] in ("x_to_en", "en_to_x") and r["spearman_r"]:
+            uid = f"{r['lang']}_{r['direction']}"
+            units.setdefault(uid, (r["lang"], r["direction"], {}))[2][r["metric"]] = float(r["spearman_r"])
 
-    # Second pass: build rows with BLEU-relative target
     rows = []
-    for r in csv.DictReader(open(dir_path)):
-        if not r["spearman_r"] or r["metric"] in EXCLUDE_METRICS:
+    for uid, (lang, direction, rhos) in sorted(units.items()):
+        if lang in TIER2_LANGS or lang not in typo or "bleu" not in rhos or lang not in meta:
             continue
-        lang = r["lang"]
-        if lang in TIER2_LANGS:
-            continue  # Tier-2 synthetic annotations excluded from main analysis
-        if lang not in typo or lang not in bleu_r:
-            continue
-        row = {
-            "lang":            lang,
-            "metric":          r["metric"],
-            "spearman_r":      float(r["spearman_r"]),
-            "bleu_r":          bleu_r[lang],
-            "advantage":       float(r["spearman_r"]) - bleu_r[lang],  # target
-            "resource_tier":   r["resource_tier"],
-            "script_type":     r["script_type"],
-            "morphology_type": LANG_TO_MORPH.get(lang, "fusional"),
-            "direction":       LANG_TO_DIR.get(lang, "en_to_x"),
-        }
-        row.update(typo[lang])
-        rows.append(row)
+        for metric, rho in rhos.items():
+            if metric in EXCLUDE_METRICS:
+                continue
+            row = {
+                "lang":            uid,
+                "group":           lang,
+                "metric":          metric,
+                "spearman_r":      rho,
+                "bleu_r":          rhos["bleu"],
+                "advantage":       rho - rhos["bleu"],  # target
+                "resource_tier":   meta[lang]["resource_tier"],
+                "script_type":     meta[lang]["script_type"],
+                "morphology_type": LANG_TO_MORPH.get(lang, "fusional"),
+                "direction":       direction,
+            }
+            row.update(typo[lang])
+            rows.append(row)
     return rows
 
 
@@ -149,8 +165,8 @@ def ridge_fit_predict(X, y, alpha):
 
 def lolo_cv(rows, X, y, alpha):
     """Leave-one-language-out cross-validation."""
-    langs = sorted(set(r["lang"] for r in rows))
-    lang_idx = {lang: [i for i, r in enumerate(rows) if r["lang"] == lang] for lang in langs}
+    langs = sorted(set(r.get("group", r["lang"]) for r in rows))
+    lang_idx = {lang: [i for i, r in enumerate(rows) if r.get("group", r["lang"]) == lang] for lang in langs}
 
     preds = np.zeros(len(y))
     for lang in langs:
@@ -284,7 +300,10 @@ def main():
           f"({100*n_correct/len(rec_rows):.0f}%)")
 
     summary = {
-        "n_langs": len(langs_seen), "n_metrics": len(metrics),
+        # langs_seen are units (language, or language_direction for mixed
+        # languages); n_langs counts languages (2026-11-09).
+        "n_units": len(langs_seen),
+        "n_langs": len({r.get("group", r["lang"]) for r in all_rows}), "n_metrics": len(metrics),
         "recommendation_accuracy": f"{n_correct}/{len(rec_rows)}",
         "per_metric": per_metric_summary,
     }

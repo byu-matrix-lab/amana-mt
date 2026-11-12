@@ -43,10 +43,9 @@ from mqmbench.analysis.correlation import (
     MORPHOLOGY_TYPES, TRANSLATION_DIRECTIONS, TIER2_LANGS,
     LANGUAGE_FAMILIES, SCRIPT_TYPES, correlate_metric_vs_human,
 )
+from mqmbench.analysis.metric_scope import apply_metric_scope
 from mqmbench.data.wmt_mqm import (
-    _REF_FILE_OVERRIDES,
-    build_sacrebleu_ref_lookup,
-    load_wmt_mqm_spans,
+    load_span_fallback_scores,
 )
 from mqmbench.data.converter import annotations_to_sentence_scores
 from mqmbench.config import init_settings, settings as mqm_settings
@@ -54,7 +53,7 @@ from mqmbench.config import init_settings, settings as mqm_settings
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
 
-MIXED_LANGS = {"fi", "tr", "et", "lt", "cs", "ja", "kk", "ta", "ha", "pl", "is", "gu"}
+from mqmbench.analysis.correlation import MIXED_DIRECTION_LANGS as MIXED_LANGS  # single source (2026-11-09)
 
 # Table 4/6/7's per-cell language cohorts are DERIVED from the single canonical
 # MORPHOLOGY_TYPES dict (correlation.py), not hand-typed per cell. A previous
@@ -183,17 +182,23 @@ def cell_stats(rho_vals: list) -> dict:
 def compute_eta_sq(df: pd.DataFrame) -> dict:
     y = df["spearman_r"].dropna().values
     if len(y) < 4:
-        return {"dir": float("nan"), "morph": float("nan"), "interact": float("nan")}
+        return {"dir": float("nan"), "morph": float("nan"), "cell": float("nan"), "n_cells": 0, "n_units": len(y)}
     grand = y.mean()
     ss_total = ((y - grand) ** 2).sum()
     if ss_total == 0:
-        return {"dir": 0.0, "morph": 0.0, "interact": 0.0}
+        return {"dir": 0.0, "morph": 0.0, "cell": 0.0, "n_cells": 0, "n_units": len(y)}
     dir_means = df.groupby("direction")["spearman_r"].mean()
     morph_means = df.groupby("morphology")["spearman_r"].mean()
     ss_dir = sum((df["direction"] == d).sum() * (m - grand) ** 2 for d, m in dir_means.items())
     ss_morph = sum((df["morphology"] == mt).sum() * (m - grand) ** 2 for mt, m in morph_means.items())
-    ss_interact = max(0.0, ss_total - ss_dir - ss_morph)
-    return {"dir": float(ss_dir / ss_total), "morph": float(ss_morph / ss_total), "interact": float(ss_interact / ss_total)}
+    # Between-cell eta^2 (one-way ANOVA over the direction x morphology cells),
+    # as the paper defines eta^2_cell. Fixed 2026-11-09: this previously
+    # returned 1 - eta_dir - eta_morph, a residual that also contains the
+    # within-cell variance (.618 published vs .405 between-cell).
+    cell_means = df.groupby(["direction", "morphology"])["spearman_r"].agg(["mean", "size"])
+    ss_cell = float((cell_means["size"] * (cell_means["mean"] - grand) ** 2).sum())
+    return {"dir": float(ss_dir / ss_total), "morph": float(ss_morph / ss_total),
+            "cell": ss_cell / ss_total, "n_cells": int(len(cell_means)), "n_units": int(len(df))}
 
 
 def main():
@@ -238,17 +243,12 @@ def main():
     # (es) has the identical symptom (spearman_r near zero for every metric,
     # including reference-free cometkiwi23) via the same root cause chain.
     _SPAN_LANG_SPECS = {
-        "he": dict(lp="he-en", testset="wmt23", offset=0,
+        "he": dict(lp="he-en", testset="wmt23",
                    resource_tier="high", annotation_tier="human_mqm",
                    language_family="afro_asiatic", script_type="abjad",
                    domain="unknown", direction="x_to_en"),
-        # offset=-1 pairs with _REF_FILE_OVERRIDES below: the official
-        # multi-domain reference file is 0-indexed while globalSegId is
-        # 1-indexed with globalSegId=1 a canary row. sacreBLEU's own "wmt24"
-        # cache (offset=2) is news-domain-only and silently mismatches the
-        # ~80% of en-es MQM rows from the other three domains -- see
-        # results/external_refs/README.md.
-        "es": dict(lp="en-es", testset="wmt24", offset=-1,
+        # Offsets/references now come from mqmbench.data.wmt_mqm (shared).
+        "es": dict(lp="en-es", testset="wmt24",
                    resource_tier="medium", annotation_tier="human_mqm",
                    language_family="indo_european", script_type="alphabetic",
                    domain="unknown", direction="en_to_x"),
@@ -258,31 +258,25 @@ def main():
         spec = _SPAN_LANG_SPECS[lang]
         init_settings(str(ROOT / "settings.toml"))
         span_dir = mqm_settings.data.wmt_mqm_span_dir
-        ref_override = _REF_FILE_OVERRIDES.get((spec["testset"], spec["lp"]))
-        lookup = build_sacrebleu_ref_lookup(
-            spec["lp"], spec["testset"], global_seg_id_offset=spec["offset"],
-            ref_file_override=ref_override,
-        )
-        spans = load_wmt_mqm_spans(span_dir, lang_pairs=[spec["lp"]], ref_lookups={lang: lookup})
-        lang_df = annotations_to_sentence_scores(spans)
-        if lang_df["segment_id"].duplicated().any():
-            raise SystemExit(f"{lang} segment_id still not unique -- converter.py fix regressed")
+        # Shared builder (2026-11-09): same references/offsets/parsing as pipeline.py.
+        lang_df = load_span_fallback_scores(span_dir, [spec["lp"]])
 
         rows = []
         for metric in ("bleu", "chrf", "bertscore", "bleurt", "comet", "xcomet",
-                        "cometkiwi", "cometkiwi23", "metricx", "gemba"):
+                        "cometkiwi", "cometkiwi23", "metricx"):  # GEMBA excluded (metric_scope)
             ckpt_path = RESULTS / f"scores_{metric}.csv"
             if not ckpt_path.exists():
                 continue
             ckpt = pd.read_csv(ckpt_path)
-            ckpt_lang = ckpt[ckpt.lang == lang]
-            if ckpt_lang.empty:
+            ckpt_lang = apply_metric_scope(ckpt[ckpt.lang == lang], metric)
+            if ckpt_lang.empty or ckpt_lang[metric].isna().all():
                 continue
-            merged = lang_df[["segment_id", "quality_score"]].merge(
+            merged = lang_df[["segment_id", "quality_score", "source"]].merge(
                 ckpt_lang[["segment_id", metric]], on="segment_id", how="inner"
             )
             result = correlate_metric_vs_human(
-                merged["quality_score"].tolist(), merged[metric].tolist(), metric, lang, n_boot=1000
+                merged["quality_score"].tolist(), merged[metric].tolist(), metric, lang, n_boot=1000,
+                groups=merged["source"].tolist(),
             )
             rows.append(result)
 
@@ -295,7 +289,7 @@ def main():
         # checkpoints, replicating the exact global-min-max scope so the
         # result is consistent with every other language's ensemble value.
         _neural = ["comet", "xcomet", "cometkiwi", "cometkiwi23", "metricx"]
-        _ens_merged = lang_df[["segment_id", "quality_score"]]
+        _ens_merged = lang_df[["segment_id", "quality_score", "source"]]
         for _nm in _neural:
             _nckpt = pd.read_csv(RESULTS / f"scores_{_nm}.csv")
             _col_min, _col_max = _nckpt[_nm].min(), _nckpt[_nm].max()
@@ -305,7 +299,8 @@ def main():
             _ens_merged = _ens_merged.merge(_nlang, on="segment_id", how="inner")
         _ens_merged["ensemble"] = _ens_merged[_neural].mean(axis=1)
         rows.append(correlate_metric_vs_human(
-            _ens_merged["quality_score"].tolist(), _ens_merged["ensemble"].tolist(), "ensemble", lang, n_boot=1000
+            _ens_merged["quality_score"].tolist(), _ens_merged["ensemble"].tolist(), "ensemble", lang, n_boot=1000,
+            groups=_ens_merged["source"].tolist(),
         ))
 
         out = pd.DataFrame(rows)
@@ -323,13 +318,13 @@ def main():
         from mqmbench.analysis.correlation import run_williams_tests
         _wide = lang_df[["segment_id", "quality_score"]].copy()
         for metric in ("bleu", "chrf", "bertscore", "bleurt", "comet", "xcomet",
-                        "cometkiwi", "cometkiwi23", "metricx", "gemba"):
+                        "cometkiwi", "cometkiwi23", "metricx"):  # GEMBA excluded (metric_scope)
             ckpt_path = RESULTS / f"scores_{metric}.csv"
             if not ckpt_path.exists():
                 continue
             ckpt = pd.read_csv(ckpt_path)
-            ckpt_lang = ckpt[ckpt.lang == lang][["segment_id", metric]]
-            if ckpt_lang.empty:
+            ckpt_lang = apply_metric_scope(ckpt[ckpt.lang == lang], metric)[["segment_id", metric]]
+            if ckpt_lang.empty or ckpt_lang[metric].isna().all():
                 continue
             _wide = _wide.merge(ckpt_lang, on="segment_id", how="left")
         _wide = _wide.merge(_ens_merged[["segment_id", "ensemble"]], on="segment_id", how="left")
@@ -436,8 +431,15 @@ def main():
     print(f"Wrote corrected he/es-driven tier averages into {RESULTS / 'tier_summary.csv'}")
 
     n_langs_actual = int(corr_df.lang.nunique())
-    add("TotalSegments", 730748, fmt_n(730748), "manual/pipeline_run",
-        "Total segments across all tiers: MQM_HF(150347) + DA(549587) + Tier2(7084) + span_fallback(23730)")
+    # 2026-11-10: computed, not typed. The typed 730,748 counted the pre-fix
+    # he/es span block (23,730 rows; the corrected block has 18,548).
+    _total_segments = int(corr_df[corr_df.metric == "comet"].n.sum())
+    _n_scored = sum(1 for _ in open(RESULTS / "scores_comet.csv")) - 1
+    if _total_segments != _n_scored:
+        raise SystemExit(f"TotalSegments: correlations.csv sums to {_total_segments}, "
+                         f"scores_comet.csv has {_n_scored} rows")
+    add("TotalSegments", _total_segments, fmt_n(_total_segments), "correlations.csv",
+        "Total scored segments across all tiers (sum of COMET n in correlations.csv; equals scores_comet.csv rows)")
 
     _tier1_total_segments = int(
         corr_df[(~corr_df.lang.isin(TIER2_LANGS)) & (corr_df.metric == "comet")].n.sum()
@@ -448,8 +450,9 @@ def main():
         "aggregation tried")
     add("NumLanguages", n_langs_actual, str(n_langs_actual), "correlations.csv",
         "Unique languages with valid entries in correlations.csv (includes Tier-2 synthetic)")
-    add("NumMetrics", 10, "10", "manual",
-        "bleu chrf bertscore bleurt comet xcomet metricx cometkiwi cometkiwi23 gemba")
+    _num_metrics = int(corr_df[corr_df.metric != "ensemble"].metric.nunique())
+    add("NumMetrics", _num_metrics, str(_num_metrics), "correlations.csv",
+        "Distinct metrics in correlations.csv, excluding the ensemble (GEMBA removed 2026-11-10)")
 
     n_human_annotated = int(corr_df[~corr_df.lang.isin(TIER2_LANGS)].lang.nunique())
     add("NumHumanAnnotatedLanguages", n_human_annotated, str(n_human_annotated), "correlations.csv",
@@ -637,7 +640,7 @@ def main():
                 print(f"  {direction} x {morph}: n={cell_data[(direction, morph)]['n']} langs={cell['lang'].tolist()}")
 
     eta = compute_eta_sq(table_df[table_df["direction"].isin(["x_to_en", "en_to_x"])])
-    print(f"\n  eta_dir={eta['dir']:.3f}  eta_morph={eta['morph']:.3f}  eta_interact={eta['interact']:.3f}\n")
+    print(f"\n  eta_dir={eta['dir']:.3f}  eta_morph={eta['morph']:.3f}  eta_cell={eta['cell']:.3f} ({eta['n_cells']} cells, {eta['n_units']} units)\n")
 
     _dm_names = {
         ("x_to_en", "isolating"): "DirMorphCOMETXtoEnIsolating",
@@ -657,7 +660,12 @@ def main():
 
     add("EtaSqDir", eta["dir"], fmt3(eta["dir"]), "recompute:direction_morphology", "eta^2 direction main effect")
     add("EtaSqMorph", eta["morph"], fmt3(eta["morph"]), "recompute:direction_morphology", "eta^2 morphology main effect")
-    add("EtaSqInteract", eta["interact"], fmt3(eta["interact"]), "recompute:direction_morphology", "eta^2 interaction term")
+    add("EtaSqCell", eta["cell"], fmt3(eta["cell"]), "recompute:direction_morphology",
+        "eta^2 between direction x morphology cells (one-way ANOVA over cells)")
+    add("EtaSqNCells", eta["n_cells"], str(eta["n_cells"]), "recompute:direction_morphology",
+        "number of non-empty direction x morphology cells in the eta^2 analysis")
+    add("EtaSqNUnits", eta["n_units"], str(eta["n_units"]), "recompute:direction_morphology",
+        "number of language(-direction) units in the eta^2 analysis")
 
     # Direction x metric means (Table 3)
     metric_map = {"bleu": "BLEU", "chrf": "ChrF", "comet": "COMET", "xcomet": "xCOMET", "metricx": "MetricX"}
@@ -982,6 +990,12 @@ def main():
             "predictor/summary.json", "Ridge recommendation accuracy (best-metric prediction)")
         add("RidgeNLangs", predictor_summary["n_langs"], str(predictor_summary["n_langs"]),
             "predictor/summary.json", "Ridge predictor Tier-1 language count")
+        # n_units is absent from summaries written before 2026-11-09; pass 1 of
+        # the regen runs before the predictor is rebuilt, so tolerate it there.
+        if "n_units" in predictor_summary:
+            add("RidgeNUnits", predictor_summary["n_units"], str(predictor_summary["n_units"]),
+                "predictor/summary.json",
+                "Ridge units: single-direction languages + one unit per direction for mixed languages")
 
     # Max |MetricX - CKXXIII| margin among kk/tr (Table 4 caption's "advantage
     # often <X" claim) -- the two smallest agglutinative en_to_x margins.
@@ -1087,10 +1101,7 @@ def main():
     # from the same corrected span+ref-lookup path as _build_span_lang_correct_rows
     # above, which is guaranteed to produce a segment_id consistent with the
     # checkpoint CSVs.
-    _he_spec = _SPAN_LANG_SPECS["he"]
-    _he_lookup = build_sacrebleu_ref_lookup(_he_spec["lp"], _he_spec["testset"], global_seg_id_offset=_he_spec["offset"])
-    _he_spans = load_wmt_mqm_spans(Path(mqm_settings.data.wmt_mqm_span_dir), lang_pairs=[_he_spec["lp"]], ref_lookups={"he": _he_lookup})
-    he_df = annotations_to_sentence_scores(_he_spans)
+    he_df = load_span_fallback_scores(Path(mqm_settings.data.wmt_mqm_span_dir), [_SPAN_LANG_SPECS["he"]["lp"]])
     he_df["mqm_score"] = -he_df["error_penalty"]
     _he_comet_df = pd.read_csv(RESULTS / "scores_comet.csv")[["segment_id", "comet"]]
     _he_kiwi_df = pd.read_csv(RESULTS / "scores_cometkiwi.csv")[["segment_id", "cometkiwi"]]
@@ -1275,6 +1286,66 @@ def main():
         "Tier 1b (DA-only) medium-resource mean rho across all metrics, uk excluded")
     add("TierOneBLowExHaMean", _low_ex_ha_mean, fmt3(_low_ex_ha_mean), "recompute:tier1b_check",
         "Tier 1b (DA-only) low-resource mean rho, ha additionally excluded (documented annotation-noise outlier)")
+
+    # ─────────────────────────────────────────────────────────────────────
+    # MQM CONTROL (corrected paper v2, 2026-11-10). Same-year en->X minus
+    # X->en COMET gap under expert MQM vs WMT DA, on identical segment sets.
+    # Source: scripts/audit/mqm_control.py and followup_analyses.py, which read
+    # official mt-metrics-eval-v2 files only (no mqmbench loader code), so the
+    # 2026-11-09 label fixes cannot affect them. The point gaps are recomputed
+    # here from mqm_control.csv and must match the bootstrap file's points.
+    # ─────────────────────────────────────────────────────────────────────
+    _ctrl = pd.read_csv(RESULTS / "mqm_control.csv")
+    _ci = pd.read_csv(RESULTS / "followup_bootstrap_ci.csv")
+    _ci_gap = _ci[_ci.direction == "gap"]
+    if _ci_gap.empty:
+        raise SystemExit("followup_bootstrap_ci.csv has no gap rows; rerun scripts/audit/followup_analyses.py")
+    _YEAR_WORD = {"wmt20": "Twenty", "wmt21.news": "TwentyOne", "wmt22": "TwentyTwo", "wmt23": "TwentyThree"}
+    _LABEL_WORD = {"COMET~MQM": "MQM", "COMET~DA": "DA"}
+    _n_gap_ci_excl_zero = {"MQM": 0, "DA": 0}
+    _n_gap = {"MQM": 0, "DA": 0}
+    _mqm_gap_signs = []
+    for _ts, _yw in _YEAR_WORD.items():
+        _y = _ctrl[_ctrl.testset == _ts]
+        for _stat, _lw in _LABEL_WORD.items():
+            _e = _y[_y.direction == "en_to_x"][_stat].dropna()
+            _x = _y[_y.direction == "x_to_en"][_stat].dropna()
+            if _e.empty or _x.empty:
+                continue
+            _pt = float(_e.mean() - _x.mean())
+            _row = _ci_gap[(_ci_gap.testset == _ts) & (_ci_gap.stat == _stat)]
+            if len(_row) != 1 or abs(float(_row.point.iloc[0]) - _pt) > 1e-9:
+                raise SystemExit(f"MQM control gap {_ts} {_stat}: point {_pt} does not match bootstrap file")
+            _lo, _hi = float(_row.lo.iloc[0]), float(_row.hi.iloc[0])
+            add(f"MqmCtrlGap{_lw}{_yw}", _pt, fmt_signed3(_pt), "mqm_control.csv",
+                f"{_ts}: mean en->X minus mean X->en COMET Spearman under {_lw}")
+            add(f"MqmCtrlGap{_lw}{_yw}CIlo", _lo, fmt_signed3(_lo), "followup_bootstrap_ci.csv",
+                f"{_ts} {_lw} gap, 95% CI low (1000 resamples of source segments)")
+            add(f"MqmCtrlGap{_lw}{_yw}CIhi", _hi, fmt_signed3(_hi), "followup_bootstrap_ci.csv",
+                f"{_ts} {_lw} gap, 95% CI high")
+            _n_gap[_lw] += 1
+            _n_gap_ci_excl_zero[_lw] += int(_lo > 0 or _hi < 0)
+            if _lw == "MQM":
+                _mqm_gap_signs.append(_pt > 0)
+    for _lw in ("MQM", "DA"):
+        add(f"MqmCtrlNYears{_lw}", _n_gap[_lw], str(_n_gap[_lw]), "mqm_control.csv",
+            f"Number of WMT years with a same-year {_lw} direction gap")
+        add(f"MqmCtrlNCIExclZero{_lw}", _n_gap_ci_excl_zero[_lw], str(_n_gap_ci_excl_zero[_lw]),
+            "followup_bootstrap_ci.csv", f"Years whose {_lw} gap CI excludes zero")
+    _n_neg = int(sum(not s for s in _mqm_gap_signs))
+    add("MqmCtrlNNegMQM", _n_neg, str(_n_neg), "mqm_control.csv",
+        "Years in which the MQM gap is negative (X->en better evaluated than en->X)")
+    _n_pairs = int(_ctrl.lp.nunique())
+    add("MqmCtrlNPairs", _n_pairs, str(_n_pairs), "mqm_control.csv",
+        "Language pairs with expert MQM in the control (en-de, en-ru, zh-en, he-en)")
+    _tri = pd.read_csv(RESULTS / "mqm_control_three_labels.csv").set_index("label")
+    for _lab, _w in (("MQM", "MQM"), ("DA", "CrowdDA"), ("DA-appraise", "SrcDA")):
+        _v = float(_tri.loc[_lab, "COMET"])
+        add(f"MqmCtrlZhTwentyTwoCOMET{_w}", _v, fmt_rho(_v), "mqm_control_three_labels.csv",
+            f"WMT22 zh-en COMET Spearman vs {_lab} labels, identical segment set")
+    _ntri = int(_tri["n"].iloc[0])
+    add("MqmCtrlZhTwentyTwoN", _ntri, fmt_n(_ntri), "mqm_control_three_labels.csv",
+        "WMT22 zh-en segments with all three label types")
 
     # ─────────────────────────────────────────────────────────────────────
     # WRITE paper_stats.json

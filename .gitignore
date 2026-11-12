@@ -54,3 +54,8 @@ latex/
 # SLURM job outputs
 logs/
 *.err
+
+# Corrected-paper work (2026-11-11)
+/results_metricx_fix/
+arxiv_submission/diff_vs_published/
+*.blg

@@ -15,6 +15,7 @@ Covers:
   H. Table 6 (per-language direction appendix): each lang's direction tag matches CSV
 """
 
+import os
 import re
 import sys
 from pathlib import Path
@@ -32,9 +33,9 @@ from mqmbench.analysis.correlation import (
 from generate_paper_stats import build_corrected_lang_dir_rho
 
 RESULTS = ROOT / "results"
-LATEX   = ROOT / "latex"
+LATEX   = ROOT / os.environ.get("PAPER_DIR", "latex")  # 2026-11-09: see render_macros.py
 
-MIXED_LANGS = {"fi", "tr", "et", "lt", "cs", "ja", "kk", "ta", "ha", "pl", "is", "gu"}
+from mqmbench.analysis.correlation import MIXED_DIRECTION_LANGS as MIXED_LANGS  # single source (2026-11-09)
 
 PASS = "\033[92mPASS\033[0m"
 FAIL = "\033[91mFAIL\033[0m"
@@ -198,7 +199,10 @@ ss_dir  = sum((df_for_eta["direction"] == d).sum() * (m - gm) ** 2 for d, m in d
 ss_morph = sum((df_for_eta["morphology"] == mt).sum() * (m - gm) ** 2 for mt, m in morph_means.items())
 eta_dir   = ss_dir / ss_tot
 eta_morph = ss_morph / ss_tot
-eta_inter = max(0.0, 1.0 - eta_dir - eta_morph)
+# Between-cell eta^2 (fixed 2026-11-09; previously replicated the residual
+# 1 - eta_dir - eta_morph, so this check could never catch that bug).
+_cells = df_for_eta.groupby(["direction", "morphology"])["spearman_r"].agg(["mean", "size"])
+eta_cell = float((_cells["size"] * (_cells["mean"] - gm) ** 2).sum() / ss_tot)
 
 check(f"EtaSqDir macro ≈ {eta_dir:.3f}",
       approx_eq(macros.get("EtaSqDir", -1), eta_dir),
@@ -206,9 +210,9 @@ check(f"EtaSqDir macro ≈ {eta_dir:.3f}",
 check(f"EtaSqMorph macro ≈ {eta_morph:.3f}",
       approx_eq(macros.get("EtaSqMorph", -1), eta_morph),
       f"macro={macros.get('EtaSqMorph','?')} vs computed={eta_morph:.3f}")
-check(f"EtaSqInteract macro ≈ {eta_inter:.3f}",
-      approx_eq(macros.get("EtaSqInteract", -1), eta_inter),
-      f"macro={macros.get('EtaSqInteract','?')} vs computed={eta_inter:.3f}")
+check(f"EtaSqCell macro ≈ {eta_cell:.3f}",
+      approx_eq(macros.get("EtaSqCell", -1), eta_cell),
+      f"macro={macros.get('EtaSqCell','?')} vs computed={eta_cell:.3f}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -289,8 +293,9 @@ check(f"en→X fusional ({entox_fus:.3f}) > X→en fusional ({xtoen_fus:.3f})",
 
 # DiD = (fusional dir gap) − (agglutin dir gap)
 did = (entox_fus - xtoen_fus) - (entox_agg - xtoen_agg)
-check(f"DiD = {did:.3f} (paper claims 0.036, tolerance 0.005)",
-      approx_eq(did, 0.036, tol=0.005),
+_did_m = macros.get("DiDValue", float("nan"))
+check(f"DiD recomputed from cell macros ({did:.3f}) = DiDValue macro ({_did_m:.3f})",
+      approx_eq(did, _did_m, tol=0.0015),
       f"computed DiD={did:.3f}")
 
 # Ridge predictor: CK Pearson r plausible
@@ -301,21 +306,24 @@ if predictor_summary.exists():
     ck_r = summary["per_metric"].get("cometkiwi", {}).get("lolo_pearson_r", None)
     ck23_r = summary["per_metric"].get("cometkiwi23", {}).get("lolo_pearson_r", None)
     n_langs = summary.get("n_langs", 0)
-    check(f"Ridge n_langs=26", n_langs == 26, f"got {n_langs}")
+    # 2026-11-10: compare against the SSOT macros instead of hand-typed values.
+    _macro_txt = (LATEX / "macros_generated.tex").read_text()
+    def _macro_str(name):
+        m = re.search(r"\\newcommand\{\\" + name + r"\}\{([^}]*)\}", _macro_txt)
+        return m.group(1) if m else None
+    check(f"Ridge n_langs ({n_langs}) = RidgeNLangs macro", str(n_langs) == _macro_str("RidgeNLangs"),
+          f"macro {_macro_str('RidgeNLangs')}")
     if ck_r is not None:
-        check(f"Ridge CK Pearson r = {ck_r:.3f} (expect ~0.558)",
-              approx_eq(ck_r, 0.558, tol=0.01))
+        check(f"Ridge CK Pearson r ({ck_r:.3f}) = RidgeCKPearson macro",
+              f"{ck_r:.2f}" == _macro_str("RidgeCKPearson") or f"{ck_r:.3f}".lstrip("0") == _macro_str("RidgeCKPearson"),
+              f"macro {_macro_str('RidgeCKPearson')}")
     if ck23_r is not None:
-        check(f"Ridge CK23 Pearson r = {ck23_r:.3f} (expect ~0.469)",
-              approx_eq(ck23_r, 0.469, tol=0.01))
+        check(f"Ridge CK23 Pearson r ({ck23_r:.3f}) = RidgeCKXXIIIPearson macro",
+              f"{ck23_r:.2f}" == _macro_str("RidgeCKXXIIIPearson") or f"{ck23_r:.3f}".lstrip("0") == _macro_str("RidgeCKXXIIIPearson"),
+              f"macro {_macro_str('RidgeCKXXIIIPearson')}")
     rec = summary.get("recommendation_accuracy", "")
-    # Was '2/26' until 2026-09-12: the Ridge predictor's training data came
-    # from direction_analysis.csv, which (like correlations.csv before its
-    # own fix) still had the pre-fix garbage he/es rows on disk even though
-    # generate_paper_stats.py's in-memory da_df was already corrected --
-    # rerunning build_metric_reliability_predictor.py after fixing that
-    # write-back changed the true accuracy to 5/26.
-    check(f"Recommendation accuracy = '5/26'", rec == "5/26", f"got '{rec}'")
+    check(f"Recommendation accuracy ({rec}) = RidgeRecAcc macro", rec == _macro_str("RidgeRecAcc"),
+          f"macro {_macro_str('RidgeRecAcc')}")
 else:
     print(f"  SKIP  predictor/summary.json not found")
 
@@ -539,26 +547,25 @@ check(f"All {len(_fig_refs)} embedded figures match their results/plots/ source 
       "; ".join(_stale_figs))
 
 # ─────────────────────────────────────────────────────────────────────────────
-print("\n=== M. GEMBA he/es exclusion matches what the paper discloses ===")
-# scores_gemba.csv predates the segment-ID fix applied to every other metric
-# and could not be safely realigned (a positional remapping was tried and
-# rejected: it produced a near-zero he-vs-COMET correlation, versus ~0.78 for
-# two independently-correct metrics on the same language). The paper
-# discloses this and states GEMBA's High-tier average covers only de/ru/zh.
-# This check makes sure a future data refresh can't silently change that
-# without the disclosure being updated to match.
+print("\n=== M. Metric scope (2026-11-10): GEMBA excluded, BLEURT English-target only ===")
+# See src/mqmbench/analysis/metric_scope.py. GEMBA is degenerate (99.6% of
+# segments score "no errors") and is excluded from every analysis. BLEURT
+# (English BLEURT-large port) is reported only where the target is English.
 # ─────────────────────────────────────────────────────────────────────────────
 _corr_full = pd.read_csv(RESULTS / "correlations.csv")
-_gemba = _corr_full[_corr_full.metric == "gemba"]
-_gemba_broken = _gemba[(_gemba.lang.isin(["he", "es"])) & ((_gemba.n == 0) | _gemba.spearman_r.isna())]
-_gemba_high_langs = sorted(_gemba[(_gemba.resource_tier == "high") & (_gemba.n > 0) & _gemba.spearman_r.notna()].lang.unique())
-check("GEMBA he and es are still the excluded (n=0/NaN) cells the paper discloses",
-      set(_gemba_broken.lang) == {"he", "es"},
-      f"found broken GEMBA cells for: {sorted(_gemba_broken.lang.unique())} (expected exactly he, es -- "
-      f"if this changed, main.tex's GEMBA disclosure needs updating too)")
-check(f"GEMBA High-tier average covers exactly de/ru/zh (found {_gemba_high_langs})",
-      _gemba_high_langs == ["de", "ru", "zh"],
-      f"got {_gemba_high_langs}")
+check("GEMBA absent from correlations.csv", not (_corr_full.metric == "gemba").any(),
+      f"found {int((_corr_full.metric == 'gemba').sum())} GEMBA rows")
+_tex_no_vnote = re.sub(r"\\noindent\\textbf\{Version note\.\}.*?\n\n", "", main_tex_text, flags=re.S)
+check("GEMBA not mentioned in main.tex outside the version note", "GEMBA" not in _tex_no_vnote,
+      "main.tex still mentions GEMBA")
+_ds = pd.read_csv(RESULTS / "direction_separated_correlations.csv")
+_bad_bleurt = _ds[(_ds.metric == "bleurt") & (_ds.direction != "x_to_en")]
+check("BLEURT appears only for X->en in direction_separated_correlations.csv", _bad_bleurt.empty,
+      f"found {len(_bad_bleurt)} non-X->en BLEURT rows")
+_bleurt_langs = set(_corr_full[(_corr_full.metric == "bleurt") & _corr_full.spearman_r.notna()].lang)
+_no_en_target = {"es", "ru", "de", "lv", "fr", "bn", "hi", "xh", "zu"} | set(TIER2_LANGS)
+check("No BLEURT correlation for languages with no English-target rows",
+      not (_bleurt_langs & _no_en_target), f"found {sorted(_bleurt_langs & _no_en_target)}")
 
 print("\n=== N. Table direction_full's hand-placed COMET/MetricX bold markers match the data ===")
 # main.tex's per-language COMET-vs-MetricX table (\label{tab:direction_full})
@@ -588,11 +595,18 @@ for _l, _d in _mixed_lang_display_direction.items():
             _target[_l] = _row.spearman_r.iloc[0]
 _direction_full_langs = ["lv", "lt", "et", "fi", "es", "cs", "tr", "ta", "pl", "de", "is", "ja", "ha", "ru",
                           "kk", "gu", "km", "zh", "he", "ps", "uk", "xh", "fr", "zu", "bn", "hi"]
-_comet_wins = [l for l in _direction_full_langs if _comet_s[l] > _metricx_s[l]]
-check(f"Table direction_full: COMET beats MetricX for exactly ru, he (found {_comet_wins})",
-      set(_comet_wins) == {"ru", "he"},
-      f"got {_comet_wins} -- main.tex's hand-placed \\textbf markers and its "
-      f"'MetricX-24 wins all but two languages (ru, he)' caption claim need updating")
+_comet_wins = sorted(l for l in _direction_full_langs if _comet_s[l] > _metricx_s[l])
+# 2026-11-10: read the bold markers from main.tex itself instead of a hand-typed set.
+_tbl = main_tex_text[:main_tex_text.index("\\label{tab:direction_full}")]
+_tbl = _tbl[_tbl.rindex("\\begin{tabular}"):]
+_bold_comet = sorted(m.group(1) for m in re.finditer(
+    r"^([a-z]{2}) & [a-z.]+\s*& \\textbf\{", _tbl, flags=re.M))
+_rows_shown = sorted(m.group(1) for m in re.finditer(r"^([a-z]{2}) & [a-z.]+\s*&", _tbl, flags=re.M))
+check(f"Table direction_full rows = expected language set ({len(_rows_shown)} rows)",
+      _rows_shown == sorted(_direction_full_langs), f"got {_rows_shown}")
+check(f"Table direction_full: COMET-bold rows {_bold_comet} = rows where COMET beats MetricX {_comet_wins}",
+      _bold_comet == _comet_wins,
+      "main.tex's hand-placed \\textbf markers (and the caption's win claim) need updating")
 
 print("\n=== O. Table 8 (dir_sep)'s hand-placed COMET/CK23 bold markers match the data ===")
 # Same class of bug as Section N, found by inspection 2026-09-12: six rows

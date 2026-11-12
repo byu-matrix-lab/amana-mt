@@ -13,6 +13,15 @@ For each metric and language:
 Run after deleting stale rows manually if needed, or let --force re-score.
 """
 
+# SUPERSEDED 2026-11-09: this script used the pre-fix span loader conventions
+# (default TSV quoting, <v> markup left in, one row per error, refA kept).
+# Running it would overwrite the he/es block in results/scores_*.csv with
+# wrong rows. Use scripts/rescore_span_block.py + scripts/splice_span_block.py.
+import sys as _sys
+if "--i-know-this-is-superseded" not in _sys.argv:
+    _sys.exit(f"{__file__} is superseded; see the comment at the top of the file.")
+
+
 import argparse
 import gc
 import logging

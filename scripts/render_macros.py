@@ -21,11 +21,13 @@ Run from project root:
 """
 
 import json
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
-OUT_PATH = ROOT / "latex" / "macros_generated.tex"
+# PAPER_DIR (2026-11-09): "latex" = published camera-ready (default), "arxiv_submission" = corrected version.
+OUT_PATH = ROOT / os.environ.get("PAPER_DIR", "latex") / "macros_generated.tex"
 
 
 def main():

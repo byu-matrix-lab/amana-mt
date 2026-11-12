@@ -1,27 +1,27 @@
 {
   "BaselineValCoreMinPearson": {
-    "fmt": "0.867",
+    "fmt": "0.932",
     "note": "Weakest segment-level Pearson r for COMET/xCOMET only (checkpoint-matched to the official baseline)",
     "source": "wmt_baseline_validation_segment_level.csv",
-    "value": 0.8667
+    "value": 0.9324
   },
   "BaselineValCoreMinSpearman": {
-    "fmt": "0.837",
+    "fmt": "0.943",
     "note": "Weakest segment-level Spearman r for COMET/xCOMET only (checkpoint-matched to the official baseline)",
     "source": "wmt_baseline_validation_segment_level.csv",
-    "value": 0.8367
+    "value": 0.9427
   },
   "BaselineValMinPearson": {
-    "fmt": "0.572",
+    "fmt": "0.621",
     "note": "Weakest segment-level Pearson r across all external-baseline validation checks (lang=es, metric=bleurt)",
     "source": "wmt_baseline_validation_segment_level.csv",
-    "value": 0.572
+    "value": 0.6214
   },
   "BaselineValMinSpearman": {
-    "fmt": "0.623",
+    "fmt": "0.650",
     "note": "Weakest segment-level Spearman r across all external-baseline validation checks (lang=es, metric=bleurt)",
     "source": "wmt_baseline_validation_segment_level.csv",
-    "value": 0.6233
+    "value": 0.6501
   },
   "BaselineValNChecks": {
     "fmt": "8",
@@ -72,10 +72,10 @@
     "value": 1.0
   },
   "CellCIEntoXAgglutinLo": {
-    "fmt": "1.00",
+    "fmt": "0.54",
     "note": "EntoXAgglutin bootstrap CI lower, CKXXIII>COMET win fraction",
     "source": "direction_separated_cell_cis.csv",
-    "value": 1.0
+    "value": 0.5407418735600995
   },
   "CellCIEntoXFusionalHi": {
     "fmt": "1.00",
@@ -84,10 +84,10 @@
     "value": 1.0
   },
   "CellCIEntoXFusionalLo": {
-    "fmt": "1.00",
+    "fmt": "0.59",
     "note": "EntoXFusional bootstrap CI lower, CKXXIII>COMET win fraction",
     "source": "direction_separated_cell_cis.csv",
-    "value": 1.0
+    "value": 0.5903836027749514
   },
   "CellCIXtoEnAgglutinHi": {
     "fmt": "1.00",
@@ -96,40 +96,40 @@
     "value": 1.0
   },
   "CellCIXtoEnAgglutinLo": {
-    "fmt": "1.00",
+    "fmt": "0.54",
     "note": "XtoEnAgglutin bootstrap CI lower, CKXXIII>COMET win fraction",
     "source": "direction_separated_cell_cis.csv",
-    "value": 1.0
+    "value": 0.5407418735600995
   },
   "CellCIXtoEnFusionalHi": {
-    "fmt": "1.00",
+    "fmt": "0.96",
     "note": "XtoEnFusional bootstrap CI upper, CKXXIII>COMET win fraction",
     "source": "direction_separated_cell_cis.csv",
-    "value": 1.0
+    "value": 0.9633074338239144
   },
   "CellCIXtoEnFusionalLo": {
-    "fmt": "0.43",
+    "fmt": "0.29",
     "note": "XtoEnFusional bootstrap CI lower, CKXXIII>COMET win fraction",
     "source": "direction_separated_cell_cis.csv",
-    "value": 0.4285714285714285
+    "value": 0.2904208637373425
   },
   "ChrFErrorFreeDE": {
-    "fmt": "0.77",
+    "fmt": "0.74",
     "note": "de mean chrF for error-free (MQM=0) segments",
     "source": "surface_similarity.csv",
-    "value": 0.767484007539315
+    "value": 0.7355015406012132
   },
   "ChrFErrorFreeHE": {
-    "fmt": "0.77",
+    "fmt": "0.76",
     "note": "he mean chrF for error-free (MQM=0) segments",
     "source": "surface_similarity.csv",
-    "value": 0.7702169170386733
+    "value": 0.7561482305190188
   },
   "CometXcometHeEsMinRho": {
     "fmt": "0.77",
     "note": "Min segment-level COMET-xCOMET Spearman r across he/es, reference point for rejecting the GEMBA remap",
     "source": "recompute:gemba_remap_check",
-    "value": 0.7749819988782225
+    "value": 0.7744528514902619
   },
   "CsEnDelta": {
     "fmt": "+0.012",
@@ -156,10 +156,10 @@
     "value": -0.0060765207793083
   },
   "DeDelta": {
-    "fmt": "+0.000",
+    "fmt": "-0.001",
     "note": "de stratified mean - pooled",
     "source": "tier_anomaly.csv",
-    "value": 0.00023848865208692116
+    "value": -0.0010586734261616715
   },
   "DeEnCOMETRho": {
     "fmt": ".383",
@@ -186,10 +186,10 @@
     "value": 0.4141810376486739
   },
   "DeEnMetricXRho": {
-    "fmt": ".389",
+    "fmt": ".401",
     "note": "de-en held-out, n=134792",
     "source": "scores_de_en.csv",
-    "value": 0.38872433522244676
+    "value": 0.4008522772238266
   },
   "DeEnN": {
     "fmt": "134{,}792",
@@ -219,7 +219,7 @@
     "fmt": ".456",
     "note": "de WMT2022 COMET rho, n=19725",
     "source": "tier_anomaly.csv",
-    "value": 0.4559943131972246
+    "value": 0.4559935054745583
   },
   "DeWmtTwoZeroRho": {
     "fmt": ".497",
@@ -228,16 +228,16 @@
     "value": 0.497187023492243
   },
   "DiDValue": {
-    "fmt": "0.036",
+    "fmt": "0.065",
     "note": "fusional dir gap - agglutinative dir gap",
     "source": "recompute:gaps",
-    "value": 0.03564096801043587
+    "value": 0.06548426086841103
   },
   "DirMetricBLEUEntoX": {
-    "fmt": "0.303",
+    "fmt": "0.304",
     "note": "Mean rho: bleu x en_to_x, n=16",
     "source": "recompute:direction_metric",
-    "value": 0.3029652243513426
+    "value": 0.30376613858926516
   },
   "DirMetricBLEUPivot": {
     "fmt": "0.202",
@@ -246,16 +246,16 @@
     "value": 0.20211744424308584
   },
   "DirMetricBLEUXtoEn": {
-    "fmt": "0.230",
+    "fmt": "0.223",
     "note": "Mean rho: bleu x x_to_en, n=17",
     "source": "recompute:direction_metric",
-    "value": 0.22979313678968485
+    "value": 0.2234450850455898
   },
   "DirMetricCKXXIIIEntoX": {
-    "fmt": "0.650",
+    "fmt": "0.657",
     "note": "Mean rho: cometkiwi23 x en_to_x, n=16",
     "source": "recompute:direction_metric",
-    "value": 0.6499892892161422
+    "value": 0.6573794855902437
   },
   "DirMetricCKXXIIIPivot": {
     "fmt": "0.332",
@@ -264,16 +264,16 @@
     "value": 0.3324212132531276
   },
   "DirMetricCKXXIIIXtoEn": {
-    "fmt": "0.387",
+    "fmt": "0.384",
     "note": "Mean rho: cometkiwi23 x x_to_en, n=17",
     "source": "recompute:direction_metric",
-    "value": 0.3866618845189814
+    "value": 0.3839691287499095
   },
   "DirMetricCOMETEntoX": {
-    "fmt": "0.605",
+    "fmt": "0.608",
     "note": "Mean rho: comet x en_to_x, n=16",
     "source": "recompute:direction_metric",
-    "value": 0.6049255438229477
+    "value": 0.6075346789313147
   },
   "DirMetricCOMETPivot": {
     "fmt": "0.354",
@@ -282,16 +282,16 @@
     "value": 0.3539049344882403
   },
   "DirMetricCOMETXtoEn": {
-    "fmt": "0.364",
+    "fmt": "0.353",
     "note": "Mean rho: comet x x_to_en, n=17",
     "source": "recompute:direction_metric",
-    "value": 0.364140681618521
+    "value": 0.35300383188208273
   },
   "DirMetricChrFEntoX": {
-    "fmt": "0.380",
+    "fmt": "0.383",
     "note": "Mean rho: chrf x en_to_x, n=16",
     "source": "recompute:direction_metric",
-    "value": 0.38029064852778033
+    "value": 0.38332426536223685
   },
   "DirMetricChrFPivot": {
     "fmt": "0.247",
@@ -300,34 +300,34 @@
     "value": 0.2467342990128639
   },
   "DirMetricChrFXtoEn": {
-    "fmt": "0.253",
+    "fmt": "0.252",
     "note": "Mean rho: chrf x x_to_en, n=17",
     "source": "recompute:direction_metric",
-    "value": 0.25260059020813824
+    "value": 0.2518362058743939
   },
   "DirMetricMetricXEntoX": {
-    "fmt": "0.671",
+    "fmt": "0.698",
     "note": "Mean rho: metricx x en_to_x, n=16",
     "source": "recompute:direction_metric",
-    "value": 0.6708006371660922
+    "value": 0.6983956963288535
   },
   "DirMetricMetricXPivot": {
-    "fmt": "0.530",
+    "fmt": "0.548",
     "note": "Mean rho: metricx x pivot, n=5",
     "source": "recompute:direction_metric",
-    "value": 0.5296038903361333
+    "value": 0.547647462908915
   },
   "DirMetricMetricXXtoEn": {
-    "fmt": "0.392",
+    "fmt": "0.391",
     "note": "Mean rho: metricx x x_to_en, n=17",
     "source": "recompute:direction_metric",
-    "value": 0.3924625968403165
+    "value": 0.39084000226574883
   },
   "DirMetricxCOMETEntoX": {
-    "fmt": "0.602",
+    "fmt": "0.609",
     "note": "Mean rho: xcomet x en_to_x, n=16",
     "source": "recompute:direction_metric",
-    "value": 0.6023968482742408
+    "value": 0.6085865161729935
   },
   "DirMetricxCOMETPivot": {
     "fmt": "0.340",
@@ -336,10 +336,10 @@
     "value": 0.3396143314236879
   },
   "DirMetricxCOMETXtoEn": {
-    "fmt": "0.350",
+    "fmt": "0.343",
     "note": "Mean rho: xcomet x x_to_en, n=17",
     "source": "recompute:direction_metric",
-    "value": 0.3503504474844516
+    "value": 0.3434407514906244
   },
   "DirMorphCOMETEntoXAgglutin": {
     "fmt": "0.675",
@@ -360,22 +360,22 @@
     "value": 0.6193420905221371
   },
   "DirMorphCOMETEntoXFusional": {
-    "fmt": "0.563",
+    "fmt": "0.567",
     "note": "COMET mean rho: en_to_x x fusional, n=10",
     "source": "recompute:direction_morphology",
-    "value": 0.5626190512583741
+    "value": 0.5667936674317614
   },
   "DirMorphCOMETEntoXFusionalCIhi": {
-    "fmt": "0.657",
+    "fmt": "0.655",
     "note": "bootstrap CI upper",
     "source": "recompute:direction_morphology",
-    "value": 0.657378207716718
+    "value": 0.6548687141172289
   },
   "DirMorphCOMETEntoXFusionalCIlo": {
-    "fmt": "0.446",
+    "fmt": "0.470",
     "note": "bootstrap CI lower",
     "source": "recompute:direction_morphology",
-    "value": 0.44581569538454857
+    "value": 0.46971156504273043
   },
   "DirMorphCOMETPivotFusional": {
     "fmt": "0.354",
@@ -414,28 +414,28 @@
     "value": 0.3126964404211121
   },
   "DirMorphCOMETXtoEnFusional": {
-    "fmt": "0.292",
+    "fmt": "0.266",
     "note": "COMET mean rho: x_to_en x fusional, n=9",
     "source": "recompute:direction_morphology",
-    "value": 0.29173822546388795
+    "value": 0.2660695487793001
   },
   "DirMorphCOMETXtoEnFusionalCIhi": {
-    "fmt": "0.438",
+    "fmt": "0.378",
     "note": "bootstrap CI upper",
     "source": "recompute:direction_morphology",
-    "value": 0.4380815414581945
+    "value": 0.3781613040196039
   },
   "DirMorphCOMETXtoEnFusionalCIlo": {
-    "fmt": "0.156",
+    "fmt": "0.145",
     "note": "bootstrap CI lower",
     "source": "recompute:direction_morphology",
-    "value": 0.15606130530768525
+    "value": 0.14520415842562615
   },
   "DirMorphCOMETXtoEnIsolating": {
-    "fmt": "0.462",
+    "fmt": "0.483",
     "note": "COMET mean rho: x_to_en x isolating, n=2",
     "source": "recompute:direction_morphology",
-    "value": 0.4617842582303716
+    "value": 0.48263008055129186
   },
   "EntoXTotalPairs": {
     "fmt": "13",
@@ -443,23 +443,35 @@
     "source": "recompute:table4",
     "value": 13
   },
+  "EtaSqCell": {
+    "fmt": "0.518",
+    "note": "eta^2 between direction x morphology cells (one-way ANOVA over cells)",
+    "source": "recompute:direction_morphology",
+    "value": 0.5182576686432231
+  },
   "EtaSqDir": {
-    "fmt": "0.309",
+    "fmt": "0.381",
     "note": "eta^2 direction main effect",
     "source": "recompute:direction_morphology",
-    "value": 0.3088035094643096
-  },
-  "EtaSqInteract": {
-    "fmt": "0.618",
-    "note": "eta^2 interaction term",
-    "source": "recompute:direction_morphology",
-    "value": 0.6181939313584938
+    "value": 0.3814584177776044
   },
   "EtaSqMorph": {
-    "fmt": "0.073",
+    "fmt": "0.094",
     "note": "eta^2 morphology main effect",
     "source": "recompute:direction_morphology",
-    "value": 0.07300255917719659
+    "value": 0.09365507362993472
+  },
+  "EtaSqNCells": {
+    "fmt": "5",
+    "note": "number of non-empty direction x morphology cells in the eta^2 analysis",
+    "source": "recompute:direction_morphology",
+    "value": 5
+  },
+  "EtaSqNUnits": {
+    "fmt": "33",
+    "note": "number of language(-direction) units in the eta^2 analysis",
+    "source": "recompute:direction_morphology",
+    "value": 33
   },
   "GapCometBleuAgglutinEntoX": {
     "fmt": "0.351",
@@ -474,10 +486,10 @@
     "value": 0.1509501464858775
   },
   "GapCometBleuFusionalXtoEn": {
-    "fmt": "0.119",
+    "fmt": "0.110",
     "note": "COMET-BLEU gap, fusional X->en, uk excluded (disclosed in prose)",
     "source": "recompute:gaps",
-    "value": 0.11856415732579512
+    "value": 0.10964157865867763
   },
   "GapDirAgglutin": {
     "fmt": "0.235",
@@ -486,70 +498,70 @@
     "value": 0.23523985778405027
   },
   "GapDirFusional": {
-    "fmt": "0.271",
+    "fmt": "0.301",
     "note": "en_to_x - x_to_en, fusional",
     "source": "recompute:gaps",
-    "value": 0.27088082579448614
+    "value": 0.3007241186524613
   },
   "GapEsKiwiComet": {
-    "fmt": "-0.142",
+    "fmt": "-0.050",
     "note": "CKXXIII - COMET, Spanish",
     "source": "recompute:hebrew",
-    "value": -0.1420527332481113
+    "value": -0.04998545662577003
   },
   "GapHeKiwiComet": {
-    "fmt": "-0.173",
+    "fmt": "-0.040",
     "note": "CKXXIII - COMET, Hebrew",
     "source": "recompute:hebrew",
-    "value": -0.17343306728935826
+    "value": -0.03960831084996003
   },
   "GapKMMetricXBleu": {
-    "fmt": "0.174",
+    "fmt": "0.183",
     "note": "km MetricX-BLEU gap",
     "source": "recompute:table4",
-    "value": 0.17422684418705697
+    "value": 0.18328999517971695
   },
   "GapZHMetricXBleu": {
-    "fmt": "0.478",
+    "fmt": "0.420",
     "note": "zh MetricX-BLEU gap",
     "source": "recompute:table4",
-    "value": 0.47763290538489966
+    "value": 0.4199394137654418
   },
   "HeCohensDComet": {
-    "fmt": "1.98",
+    "fmt": "1.10",
     "note": "Cohen's d, Hebrew comet, perfect vs poor MQM bucket",
     "source": "hebrew_discrimination",
-    "value": 1.9767317669269246
+    "value": 1.0970826057706538
   },
   "HeCohensDKiwi": {
-    "fmt": "1.27",
+    "fmt": "0.99",
     "note": "Cohen's d, Hebrew cometkiwi, perfect vs poor MQM bucket",
     "source": "hebrew_discrimination",
-    "value": 1.274951906698586
+    "value": 0.9919877283477829
   },
   "HeFullMeanComet": {
-    "fmt": "0.790",
+    "fmt": "0.845",
     "note": "Hebrew full-dataset COMET-22 mean score",
     "source": "abjad_score_distributions.csv",
-    "value": 0.7902851458885941
+    "value": 0.8454389370553862
   },
   "HeFullMeanKiwi": {
-    "fmt": "0.778",
+    "fmt": "0.802",
     "note": "Hebrew full-dataset COMET-Kiwi-22 mean score",
     "source": "scores_cometkiwi.csv",
-    "value": 0.7781191285366932
+    "value": 0.8019652327870935
   },
   "HeFullStdComet": {
-    "fmt": "0.122",
+    "fmt": "0.098",
     "note": "Hebrew full-dataset COMET-22 std",
     "source": "abjad_score_distributions.csv",
-    "value": 0.1216650209577335
+    "value": 0.0975284996049269
   },
   "HeZScore": {
-    "fmt": "0.06",
+    "fmt": "0.35",
     "note": "Hebrew COMET z-score vs cross-language per-segment mean",
     "source": "abjad_score_distributions.csv",
-    "value": 0.0575608211511134
+    "value": 0.3508349655010805
   },
   "JaXtoEnRho": {
     "fmt": ".144",
@@ -558,16 +570,16 @@
     "value": 0.1437504702682406
   },
   "KkTrMaxMargin": {
-    "fmt": "0.004",
+    "fmt": "0.020",
     "note": "Max |MetricX-CKXXIII| margin among kk/tr, agglutinative en_to_x",
     "source": "direction_separated_correlations.csv",
-    "value": 0.004193971346810765
+    "value": 0.019783940017295
   },
   "LOOEntoXAgglutin": {
-    "fmt": "4",
+    "fmt": "5",
     "note": "EntoXAgglutin LOO correct",
     "source": "recompute:loo",
-    "value": 4
+    "value": 5
   },
   "LOOEntoXFusional": {
     "fmt": "4",
@@ -576,16 +588,16 @@
     "value": 4
   },
   "LOOOverallCorrect": {
-    "fmt": "19",
+    "fmt": "17",
     "note": "Sum of LOO-correct across the 4 cells large enough to validate",
     "source": "recompute:loo",
-    "value": 19
+    "value": 17
   },
   "LOOOverallPct": {
-    "fmt": "73",
+    "fmt": "65",
     "note": "Overall LOO accuracy percentage",
     "source": "recompute:loo",
-    "value": 73
+    "value": 65
   },
   "LOOOverallTotal": {
     "fmt": "26",
@@ -618,16 +630,16 @@
     "value": 7
   },
   "LOOXtoEnAgglutin": {
-    "fmt": "6",
+    "fmt": "5",
     "note": "XtoEnAgglutin LOO correct",
     "source": "recompute:loo",
-    "value": 6
+    "value": 5
   },
   "LOOXtoEnFusional": {
-    "fmt": "5",
+    "fmt": "3",
     "note": "XtoEnFusional LOO correct",
     "source": "recompute:loo",
-    "value": 5
+    "value": 3
   },
   "LangBERTScoreAM": {
     "fmt": ".082",
@@ -643,31 +655,31 @@
   },
   "LangBERTScoreCS": {
     "fmt": ".378",
-    "note": "cs bertscore rho (direction=en_to_x, tier=medium)",
+    "note": "cs bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.3780808695540555
   },
   "LangBERTScoreDE": {
-    "fmt": ".229",
+    "fmt": ".223",
     "note": "de bertscore rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.229032466294257
+    "value": 0.2229771778183381
   },
   "LangBERTScoreES": {
-    "fmt": ".450",
+    "fmt": ".235",
     "note": "es bertscore rho (direction=en_to_x, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.4500445265604532
+    "value": 0.2351319842787902
   },
   "LangBERTScoreET": {
     "fmt": ".492",
-    "note": "et bertscore rho (direction=en_to_x, tier=medium)",
+    "note": "et bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4919868888841798
   },
   "LangBERTScoreFI": {
     "fmt": ".487",
-    "note": "fi bertscore rho (direction=en_to_x, tier=medium)",
+    "note": "fi bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4873553327716037
   },
@@ -679,21 +691,21 @@
   },
   "LangBERTScoreGU": {
     "fmt": ".420",
-    "note": "gu bertscore rho (direction=x_to_en, tier=medium)",
+    "note": "gu bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4199396308990578
   },
   "LangBERTScoreHA": {
     "fmt": ".131",
-    "note": "ha bertscore rho (direction=en_to_x, tier=low)",
+    "note": "ha bertscore rho (direction=mixed, tier=low)",
     "source": "direction_analysis.csv",
     "value": 0.1308847113903779
   },
   "LangBERTScoreHE": {
-    "fmt": ".552",
+    "fmt": ".329",
     "note": "he bertscore rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.5521152271878028
+    "value": 0.32938742176164426
   },
   "LangBERTScoreHI": {
     "fmt": ".124",
@@ -709,13 +721,13 @@
   },
   "LangBERTScoreIS": {
     "fmt": ".267",
-    "note": "is bertscore rho (direction=en_to_x, tier=medium)",
+    "note": "is bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.2668268758817674
   },
   "LangBERTScoreJA": {
     "fmt": ".214",
-    "note": "ja bertscore rho (direction=en_to_x, tier=medium)",
+    "note": "ja bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.2137582883374746
   },
@@ -727,7 +739,7 @@
   },
   "LangBERTScoreKK": {
     "fmt": ".511",
-    "note": "kk bertscore rho (direction=x_to_en, tier=medium)",
+    "note": "kk bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5114921206921926
   },
@@ -745,7 +757,7 @@
   },
   "LangBERTScoreLT": {
     "fmt": ".442",
-    "note": "lt bertscore rho (direction=en_to_x, tier=medium)",
+    "note": "lt bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4416474374534964
   },
@@ -763,7 +775,7 @@
   },
   "LangBERTScorePL": {
     "fmt": ".305",
-    "note": "pl bertscore rho (direction=en_to_x, tier=medium)",
+    "note": "pl bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.3045277452858293
   },
@@ -774,10 +786,10 @@
     "value": 0.2935838855357721
   },
   "LangBERTScoreRU": {
-    "fmt": ".061",
+    "fmt": ".273",
     "note": "ru bertscore rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.0611106580963744
+    "value": 0.2725632869375221
   },
   "LangBERTScoreSW": {
     "fmt": ".072",
@@ -787,7 +799,7 @@
   },
   "LangBERTScoreTA": {
     "fmt": ".417",
-    "note": "ta bertscore rho (direction=en_to_x, tier=medium)",
+    "note": "ta bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4167663708806475
   },
@@ -799,7 +811,7 @@
   },
   "LangBERTScoreTR": {
     "fmt": ".469",
-    "note": "tr bertscore rho (direction=en_to_x, tier=medium)",
+    "note": "tr bertscore rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4688866044361623
   },
@@ -816,10 +828,10 @@
     "value": 0.4088041176243594
   },
   "LangBERTScoreZH": {
-    "fmt": ".217",
+    "fmt": ".272",
     "note": "zh bertscore rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.2173449213381363
+    "value": 0.2717489738653517
   },
   "LangBERTScoreZU": {
     "fmt": ".356",
@@ -853,7 +865,7 @@
   },
   "LangCOMETCS": {
     "fmt": ".573",
-    "note": "cs comet rho (direction=en_to_x, tier=medium)",
+    "note": "cs comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5729665391898756
   },
@@ -864,44 +876,44 @@
     "value": 0.5729665391898756
   },
   "LangCOMETDE": {
-    "fmt": ".425",
+    "fmt": ".427",
     "note": "de comet rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.4252877623531509
+    "value": 0.4265846551905108
   },
   "LangCOMETDECIhi": {
-    "fmt": ".433",
+    "fmt": ".444",
     "note": "de COMET 95% bootstrap CI upper bound",
     "source": "correlations.csv",
-    "value": 0.4327361936004792
+    "value": 0.4439105142979804
   },
   "LangCOMETDECIlo": {
-    "fmt": ".418",
+    "fmt": ".409",
     "note": "de COMET 95% bootstrap CI lower bound",
     "source": "correlations.csv",
-    "value": 0.4176672027945225
+    "value": 0.4088709507924645
   },
   "LangCOMETDETbl": {
-    "fmt": "0.425",
+    "fmt": "0.427",
     "note": "de comet rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.4252877623531509
+    "value": 0.4265846551905108
   },
   "LangCOMETES": {
-    "fmt": ".586",
+    "fmt": ".329",
     "note": "es comet rho (direction=en_to_x, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.5861358001398301
+    "value": 0.32851015948151496
   },
   "LangCOMETESTbl": {
-    "fmt": "0.586",
+    "fmt": "0.329",
     "note": "es comet rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.5861358001398301
+    "value": 0.32851015948151496
   },
   "LangCOMETET": {
     "fmt": ".631",
-    "note": "et comet rho (direction=en_to_x, tier=medium)",
+    "note": "et comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6309729362097787
   },
@@ -913,7 +925,7 @@
   },
   "LangCOMETFI": {
     "fmt": ".627",
-    "note": "fi comet rho (direction=en_to_x, tier=medium)",
+    "note": "fi comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6267683417362208
   },
@@ -937,7 +949,7 @@
   },
   "LangCOMETGU": {
     "fmt": ".529",
-    "note": "gu comet rho (direction=x_to_en, tier=medium)",
+    "note": "gu comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5285664730195541
   },
@@ -949,7 +961,7 @@
   },
   "LangCOMETHA": {
     "fmt": ".183",
-    "note": "ha comet rho (direction=en_to_x, tier=low)",
+    "note": "ha comet rho (direction=mixed, tier=low)",
     "source": "direction_analysis.csv",
     "value": 0.1831237954307669
   },
@@ -960,16 +972,16 @@
     "value": 0.1831237954307669
   },
   "LangCOMETHE": {
-    "fmt": ".713",
+    "fmt": ".482",
     "note": "he comet rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.7130465205779265
+    "value": 0.4820284304166359
   },
   "LangCOMETHETbl": {
-    "fmt": "0.713",
+    "fmt": "0.482",
     "note": "he comet rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.7130465205779265
+    "value": 0.4820284304166359
   },
   "LangCOMETHI": {
     "fmt": ".194",
@@ -997,7 +1009,7 @@
   },
   "LangCOMETIS": {
     "fmt": ".401",
-    "note": "is comet rho (direction=en_to_x, tier=medium)",
+    "note": "is comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4014651385416316
   },
@@ -1009,7 +1021,7 @@
   },
   "LangCOMETJA": {
     "fmt": ".279",
-    "note": "ja comet rho (direction=en_to_x, tier=medium)",
+    "note": "ja comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.2790309921619951
   },
@@ -1033,7 +1045,7 @@
   },
   "LangCOMETKK": {
     "fmt": ".613",
-    "note": "kk comet rho (direction=x_to_en, tier=medium)",
+    "note": "kk comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6127123687497842
   },
@@ -1069,7 +1081,7 @@
   },
   "LangCOMETLT": {
     "fmt": ".634",
-    "note": "lt comet rho (direction=en_to_x, tier=medium)",
+    "note": "lt comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6342616324812933
   },
@@ -1105,7 +1117,7 @@
   },
   "LangCOMETPL": {
     "fmt": ".490",
-    "note": "pl comet rho (direction=en_to_x, tier=medium)",
+    "note": "pl comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4898121371915
   },
@@ -1125,13 +1137,13 @@
     "fmt": ".360",
     "note": "ps COMET 95% bootstrap CI upper bound",
     "source": "correlations.csv",
-    "value": 0.3595276349135076
+    "value": 0.3602860317239658
   },
   "LangCOMETPSCIlo": {
-    "fmt": ".307",
+    "fmt": ".305",
     "note": "ps COMET 95% bootstrap CI lower bound",
     "source": "correlations.csv",
-    "value": 0.3073162885427243
+    "value": 0.3051050398075871
   },
   "LangCOMETPSTbl": {
     "fmt": "0.333",
@@ -1140,16 +1152,16 @@
     "value": 0.3333213433630915
   },
   "LangCOMETRU": {
-    "fmt": ".157",
+    "fmt": ".455",
     "note": "ru comet rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.1574080785010551
+    "value": 0.4554829880558839
   },
   "LangCOMETRUTbl": {
-    "fmt": "0.157",
+    "fmt": "0.455",
     "note": "ru comet rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.1574080785010551
+    "value": 0.4554829880558839
   },
   "LangCOMETSW": {
     "fmt": ".095",
@@ -1165,7 +1177,7 @@
   },
   "LangCOMETTA": {
     "fmt": ".529",
-    "note": "ta comet rho (direction=en_to_x, tier=medium)",
+    "note": "ta comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5290061608276615
   },
@@ -1189,7 +1201,7 @@
   },
   "LangCOMETTR": {
     "fmt": ".560",
-    "note": "tr comet rho (direction=en_to_x, tier=medium)",
+    "note": "tr comet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5603816900101832
   },
@@ -1224,16 +1236,16 @@
     "value": 0.5194362275152489
   },
   "LangCOMETZH": {
-    "fmt": ".447",
+    "fmt": ".489",
     "note": "zh comet rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.4471260674853614
+    "value": 0.4888177121272019
   },
   "LangCOMETZHTbl": {
-    "fmt": "0.447",
+    "fmt": "0.489",
     "note": "zh comet rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.4471260674853614
+    "value": 0.4888177121272019
   },
   "LangCOMETZU": {
     "fmt": ".338",
@@ -1261,31 +1273,31 @@
   },
   "LangKiwiCS": {
     "fmt": ".586",
-    "note": "cs cometkiwi rho (direction=en_to_x, tier=medium)",
+    "note": "cs cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5861480801350487
   },
   "LangKiwiDE": {
-    "fmt": ".294",
+    "fmt": ".317",
     "note": "de cometkiwi rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.2939402251952097
+    "value": 0.3169251292124758
   },
   "LangKiwiES": {
-    "fmt": ".431",
+    "fmt": ".263",
     "note": "es cometkiwi rho (direction=en_to_x, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.4310835013955519
+    "value": 0.2625913893353353
   },
   "LangKiwiET": {
     "fmt": ".645",
-    "note": "et cometkiwi rho (direction=en_to_x, tier=medium)",
+    "note": "et cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6446127856199859
   },
   "LangKiwiFI": {
     "fmt": ".630",
-    "note": "fi cometkiwi rho (direction=en_to_x, tier=medium)",
+    "note": "fi cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6301473197002982
   },
@@ -1297,21 +1309,21 @@
   },
   "LangKiwiGU": {
     "fmt": ".561",
-    "note": "gu cometkiwi rho (direction=x_to_en, tier=medium)",
+    "note": "gu cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5614462901640704
   },
   "LangKiwiHA": {
     "fmt": ".115",
-    "note": "ha cometkiwi rho (direction=en_to_x, tier=low)",
+    "note": "ha cometkiwi rho (direction=mixed, tier=low)",
     "source": "direction_analysis.csv",
     "value": 0.1149111784260649
   },
   "LangKiwiHE": {
-    "fmt": ".569",
+    "fmt": ".461",
     "note": "he cometkiwi rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.5693236989231437
+    "value": 0.46091715552282947
   },
   "LangKiwiHI": {
     "fmt": ".194",
@@ -1327,13 +1339,13 @@
   },
   "LangKiwiIS": {
     "fmt": ".400",
-    "note": "is cometkiwi rho (direction=en_to_x, tier=medium)",
+    "note": "is cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.3998520740431151
   },
   "LangKiwiJA": {
     "fmt": ".309",
-    "note": "ja cometkiwi rho (direction=en_to_x, tier=medium)",
+    "note": "ja cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.3089616308409051
   },
@@ -1345,7 +1357,7 @@
   },
   "LangKiwiKK": {
     "fmt": ".624",
-    "note": "kk cometkiwi rho (direction=x_to_en, tier=medium)",
+    "note": "kk cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6238955710955831
   },
@@ -1363,7 +1375,7 @@
   },
   "LangKiwiLT": {
     "fmt": ".640",
-    "note": "lt cometkiwi rho (direction=en_to_x, tier=medium)",
+    "note": "lt cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6402996144161706
   },
@@ -1381,7 +1393,7 @@
   },
   "LangKiwiPL": {
     "fmt": ".489",
-    "note": "pl cometkiwi rho (direction=en_to_x, tier=medium)",
+    "note": "pl cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4894936226150152
   },
@@ -1392,10 +1404,10 @@
     "value": 0.2950800852352551
   },
   "LangKiwiRU": {
-    "fmt": ".246",
+    "fmt": ".384",
     "note": "ru cometkiwi rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.2455415238921015
+    "value": 0.3838922629930155
   },
   "LangKiwiSW": {
     "fmt": ".121",
@@ -1405,7 +1417,7 @@
   },
   "LangKiwiTA": {
     "fmt": ".556",
-    "note": "ta cometkiwi rho (direction=en_to_x, tier=medium)",
+    "note": "ta cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5564983797826085
   },
@@ -1417,7 +1429,7 @@
   },
   "LangKiwiTR": {
     "fmt": ".556",
-    "note": "tr cometkiwi rho (direction=en_to_x, tier=medium)",
+    "note": "tr cometkiwi rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5561162209905003
   },
@@ -1447,31 +1459,31 @@
   },
   "LangKiwiXXIIICS": {
     "fmt": ".645",
-    "note": "cs cometkiwi23 rho (direction=en_to_x, tier=medium)",
+    "note": "cs cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6447314034406012
   },
   "LangKiwiXXIIIDE": {
-    "fmt": ".367",
+    "fmt": ".395",
     "note": "de cometkiwi23 rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.3671318971428887
+    "value": 0.3948794114400464
   },
   "LangKiwiXXIIIES": {
-    "fmt": ".444",
+    "fmt": ".279",
     "note": "es cometkiwi23 rho (direction=en_to_x, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.44408306689171884
+    "value": 0.27852470285574493
   },
   "LangKiwiXXIIIET": {
     "fmt": ".709",
-    "note": "et cometkiwi23 rho (direction=en_to_x, tier=medium)",
+    "note": "et cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.7088133113401306
   },
   "LangKiwiXXIIIFI": {
     "fmt": ".689",
-    "note": "fi cometkiwi23 rho (direction=en_to_x, tier=medium)",
+    "note": "fi cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.688789550072748
   },
@@ -1483,21 +1495,21 @@
   },
   "LangKiwiXXIIIGU": {
     "fmt": ".609",
-    "note": "gu cometkiwi23 rho (direction=x_to_en, tier=medium)",
+    "note": "gu cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6094091300103305
   },
   "LangKiwiXXIIIHA": {
     "fmt": ".198",
-    "note": "ha cometkiwi23 rho (direction=en_to_x, tier=low)",
+    "note": "ha cometkiwi23 rho (direction=mixed, tier=low)",
     "source": "direction_analysis.csv",
     "value": 0.1983206488632585
   },
   "LangKiwiXXIIIHE": {
-    "fmt": ".540",
+    "fmt": ".442",
     "note": "he cometkiwi23 rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.5396134532885682
+    "value": 0.4424201195666759
   },
   "LangKiwiXXIIIHI": {
     "fmt": ".149",
@@ -1513,13 +1525,13 @@
   },
   "LangKiwiXXIIIIS": {
     "fmt": ".416",
-    "note": "is cometkiwi23 rho (direction=en_to_x, tier=medium)",
+    "note": "is cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4155105788019963
   },
   "LangKiwiXXIIIJA": {
     "fmt": ".328",
-    "note": "ja cometkiwi23 rho (direction=en_to_x, tier=medium)",
+    "note": "ja cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.328177978578447
   },
@@ -1531,7 +1543,7 @@
   },
   "LangKiwiXXIIIKK": {
     "fmt": ".680",
-    "note": "kk cometkiwi23 rho (direction=x_to_en, tier=medium)",
+    "note": "kk cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.679927916010856
   },
@@ -1549,7 +1561,7 @@
   },
   "LangKiwiXXIIILT": {
     "fmt": ".700",
-    "note": "lt cometkiwi23 rho (direction=en_to_x, tier=medium)",
+    "note": "lt cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6999047445310835
   },
@@ -1567,7 +1579,7 @@
   },
   "LangKiwiXXIIIPL": {
     "fmt": ".575",
-    "note": "pl cometkiwi23 rho (direction=en_to_x, tier=medium)",
+    "note": "pl cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5746008847768328
   },
@@ -1578,10 +1590,10 @@
     "value": 0.3928515984598136
   },
   "LangKiwiXXIIIRU": {
-    "fmt": ".198",
+    "fmt": ".454",
     "note": "ru cometkiwi23 rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.1977251559573545
+    "value": 0.4537791476817964
   },
   "LangKiwiXXIIISW": {
     "fmt": ".165",
@@ -1591,7 +1603,7 @@
   },
   "LangKiwiXXIIITA": {
     "fmt": ".611",
-    "note": "ta cometkiwi23 rho (direction=en_to_x, tier=medium)",
+    "note": "ta cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6106547209030048
   },
@@ -1603,7 +1615,7 @@
   },
   "LangKiwiXXIIITR": {
     "fmt": ".624",
-    "note": "tr cometkiwi23 rho (direction=en_to_x, tier=medium)",
+    "note": "tr cometkiwi23 rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6244096503904808
   },
@@ -1620,10 +1632,10 @@
     "value": 0.4589746105534694
   },
   "LangKiwiXXIIIZH": {
-    "fmt": ".415",
+    "fmt": ".466",
     "note": "zh cometkiwi23 rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.4146549055537475
+    "value": 0.4660713912014166
   },
   "LangKiwiXXIIIZU": {
     "fmt": ".340",
@@ -1632,10 +1644,10 @@
     "value": 0.3401428861948585
   },
   "LangKiwiZH": {
-    "fmt": ".410",
+    "fmt": ".476",
     "note": "zh cometkiwi rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.4099798826717343
+    "value": 0.475608604715947
   },
   "LangKiwiZU": {
     "fmt": ".247",
@@ -1644,400 +1656,400 @@
     "value": 0.2470452116587753
   },
   "LangMetricXAM": {
-    "fmt": ".073",
+    "fmt": ".062",
     "note": "am metricx rho (direction=en_to_x, tier=low)",
     "source": "direction_analysis.csv",
-    "value": 0.0725800259046546
+    "value": 0.0617821485902234
   },
   "LangMetricXAMTbl": {
-    "fmt": "0.073",
+    "fmt": "0.062",
     "note": "am metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.0725800259046546
+    "value": 0.0617821485902234
   },
   "LangMetricXBN": {
-    "fmt": ".485",
+    "fmt": ".489",
     "note": "bn metricx rho (direction=pivot, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.4850100430108648
+    "value": 0.4889645036070231
   },
   "LangMetricXBNTbl": {
-    "fmt": "0.485",
+    "fmt": "0.489",
     "note": "bn metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.4850100430108648
+    "value": 0.4889645036070231
   },
   "LangMetricXCS": {
-    "fmt": ".594",
-    "note": "cs metricx rho (direction=en_to_x, tier=medium)",
+    "fmt": ".605",
+    "note": "cs metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.5935197808001621
+    "value": 0.6054588908857003
   },
   "LangMetricXCSTbl": {
-    "fmt": "0.594",
+    "fmt": "0.605",
     "note": "cs metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.5935197808001621
+    "value": 0.6054588908857003
   },
   "LangMetricXDE": {
-    "fmt": ".438",
+    "fmt": ".493",
     "note": "de metricx rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.4379716121105476
+    "value": 0.4928482877252264
   },
   "LangMetricXDETbl": {
-    "fmt": "0.438",
+    "fmt": "0.493",
     "note": "de metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.4379716121105476
+    "value": 0.4928482877252264
   },
   "LangMetricXES": {
-    "fmt": ".625",
+    "fmt": ".353",
     "note": "es metricx rho (direction=en_to_x, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.624998754612389
+    "value": 0.3532980871389327
   },
   "LangMetricXESTbl": {
-    "fmt": "0.625",
+    "fmt": "0.353",
     "note": "es metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.624998754612389
+    "value": 0.3532980871389327
   },
   "LangMetricXET": {
-    "fmt": ".685",
-    "note": "et metricx rho (direction=en_to_x, tier=medium)",
+    "fmt": ".693",
+    "note": "et metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.6848680113772269
+    "value": 0.6931379187627532
   },
   "LangMetricXETTbl": {
-    "fmt": "0.685",
+    "fmt": "0.693",
     "note": "et metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.6848680113772269
+    "value": 0.6931379187627532
   },
   "LangMetricXFI": {
-    "fmt": ".667",
-    "note": "fi metricx rho (direction=en_to_x, tier=medium)",
+    "fmt": ".677",
+    "note": "fi metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.6671418355624082
+    "value": 0.6768944886729438
   },
   "LangMetricXFITbl": {
-    "fmt": "0.667",
+    "fmt": "0.677",
     "note": "fi metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.6671418355624082
+    "value": 0.6768944886729438
   },
   "LangMetricXFR": {
-    "fmt": ".502",
+    "fmt": ".533",
     "note": "fr metricx rho (direction=pivot, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.502443604566852
+    "value": 0.5329088884845491
   },
   "LangMetricXFRTbl": {
-    "fmt": "0.502",
+    "fmt": "0.533",
     "note": "fr metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.502443604566852
+    "value": 0.5329088884845491
   },
   "LangMetricXGU": {
-    "fmt": ".583",
-    "note": "gu metricx rho (direction=x_to_en, tier=medium)",
+    "fmt": ".603",
+    "note": "gu metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.5834817437239672
+    "value": 0.6029465972122404
   },
   "LangMetricXGUTbl": {
-    "fmt": "0.583",
+    "fmt": "0.603",
     "note": "gu metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.5834817437239672
+    "value": 0.6029465972122404
   },
   "LangMetricXHA": {
-    "fmt": ".245",
-    "note": "ha metricx rho (direction=en_to_x, tier=low)",
+    "fmt": ".250",
+    "note": "ha metricx rho (direction=mixed, tier=low)",
     "source": "direction_analysis.csv",
-    "value": 0.2449097198689231
+    "value": 0.2501871125338167
   },
   "LangMetricXHATbl": {
-    "fmt": "0.245",
+    "fmt": "0.250",
     "note": "ha metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.2449097198689231
+    "value": 0.2501871125338167
   },
   "LangMetricXHE": {
-    "fmt": ".653",
+    "fmt": ".504",
     "note": "he metricx rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.6534978856723711
+    "value": 0.5044261982453482
   },
   "LangMetricXHETbl": {
-    "fmt": "0.653",
+    "fmt": "0.504",
     "note": "he metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.6534978856723711
+    "value": 0.5044261982453482
   },
   "LangMetricXHI": {
-    "fmt": ".388",
+    "fmt": ".407",
     "note": "hi metricx rho (direction=pivot, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.3880647226970362
+    "value": 0.4067598541713453
   },
   "LangMetricXHITbl": {
-    "fmt": "0.388",
+    "fmt": "0.407",
     "note": "hi metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.3880647226970362
+    "value": 0.4067598541713453
   },
   "LangMetricXHT": {
-    "fmt": ".170",
+    "fmt": ".165",
     "note": "ht metricx rho (direction=en_to_x, tier=low)",
     "source": "direction_analysis.csv",
-    "value": 0.1698828341982579
+    "value": 0.16511807785435
   },
   "LangMetricXHTTbl": {
-    "fmt": "0.170",
+    "fmt": "0.165",
     "note": "ht metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.1698828341982579
+    "value": 0.16511807785435
   },
   "LangMetricXIS": {
-    "fmt": ".521",
-    "note": "is metricx rho (direction=en_to_x, tier=medium)",
+    "fmt": ".527",
+    "note": "is metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.520584025384773
+    "value": 0.5274318662637979
   },
   "LangMetricXISTbl": {
-    "fmt": "0.521",
+    "fmt": "0.527",
     "note": "is metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.520584025384773
+    "value": 0.5274318662637979
   },
   "LangMetricXJA": {
-    "fmt": ".301",
-    "note": "ja metricx rho (direction=en_to_x, tier=medium)",
+    "fmt": ".300",
+    "note": "ja metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.3012067685839771
+    "value": 0.2999412066591346
   },
   "LangMetricXJATbl": {
-    "fmt": "0.301",
+    "fmt": "0.300",
     "note": "ja metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.3012067685839771
+    "value": 0.2999412066591346
   },
   "LangMetricXKA": {
-    "fmt": ".075",
+    "fmt": ".069",
     "note": "ka metricx rho (direction=en_to_x, tier=low)",
     "source": "direction_analysis.csv",
-    "value": 0.0748433266782613
+    "value": 0.0692207294481617
   },
   "LangMetricXKATbl": {
-    "fmt": "0.075",
+    "fmt": "0.069",
     "note": "ka metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.0748433266782613
+    "value": 0.0692207294481617
   },
   "LangMetricXKK": {
-    "fmt": ".672",
-    "note": "kk metricx rho (direction=x_to_en, tier=medium)",
+    "fmt": ".682",
+    "note": "kk metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.6722685037187593
+    "value": 0.6815713506894732
   },
   "LangMetricXKKTbl": {
-    "fmt": "0.672",
+    "fmt": "0.682",
     "note": "kk metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.6722685037187593
+    "value": 0.6815713506894732
   },
   "LangMetricXKM": {
-    "fmt": ".516",
+    "fmt": ".525",
     "note": "km metricx rho (direction=x_to_en, tier=low)",
     "source": "direction_analysis.csv",
-    "value": 0.5158753025618308
+    "value": 0.5249384535544908
   },
   "LangMetricXKMTbl": {
-    "fmt": "0.516",
+    "fmt": "0.525",
     "note": "km metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.5158753025618308
+    "value": 0.5249384535544908
   },
   "LangMetricXLO": {
-    "fmt": "-0.016",
+    "fmt": "-0.026",
     "note": "lo metricx rho (direction=en_to_x, tier=low)",
     "source": "direction_analysis.csv",
-    "value": -0.0164139226308916
+    "value": -0.0257452224109461
   },
   "LangMetricXLOTbl": {
-    "fmt": "-0.016",
+    "fmt": "-0.026",
     "note": "lo metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": -0.0164139226308916
+    "value": -0.0257452224109461
   },
   "LangMetricXLT": {
-    "fmt": ".673",
-    "note": "lt metricx rho (direction=en_to_x, tier=medium)",
+    "fmt": ".686",
+    "note": "lt metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.6728173808122774
+    "value": 0.6858619652835365
   },
   "LangMetricXLTTbl": {
-    "fmt": "0.673",
+    "fmt": "0.686",
     "note": "lt metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.6728173808122774
+    "value": 0.6858619652835365
   },
   "LangMetricXLV": {
-    "fmt": ".807",
+    "fmt": ".819",
     "note": "lv metricx rho (direction=en_to_x, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.8066916319037543
+    "value": 0.8185881584391274
   },
   "LangMetricXLVTbl": {
-    "fmt": "0.807",
+    "fmt": "0.819",
     "note": "lv metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.8066916319037543
+    "value": 0.8185881584391274
   },
   "LangMetricXMY": {
     "fmt": "-0.015",
     "note": "my metricx rho (direction=en_to_x, tier=low)",
     "source": "direction_analysis.csv",
-    "value": -0.0151366869995472
+    "value": -0.0145054589950734
   },
   "LangMetricXMYTbl": {
     "fmt": "-0.015",
     "note": "my metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": -0.0151366869995472
+    "value": -0.0145054589950734
   },
   "LangMetricXPL": {
-    "fmt": ".535",
-    "note": "pl metricx rho (direction=en_to_x, tier=medium)",
+    "fmt": ".560",
+    "note": "pl metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.535380122008207
+    "value": 0.5596157229651003
   },
   "LangMetricXPLTbl": {
-    "fmt": "0.535",
+    "fmt": "0.560",
     "note": "pl metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.535380122008207
+    "value": 0.5596157229651003
   },
   "LangMetricXPS": {
-    "fmt": ".388",
+    "fmt": ".396",
     "note": "ps metricx rho (direction=x_to_en, tier=low)",
     "source": "direction_analysis.csv",
-    "value": 0.3879172389437177
+    "value": 0.3960133144534704
   },
   "LangMetricXPSTbl": {
-    "fmt": "0.388",
+    "fmt": "0.396",
     "note": "ps metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.3879172389437177
+    "value": 0.3960133144534704
   },
   "LangMetricXRU": {
-    "fmt": ".146",
+    "fmt": ".611",
     "note": "ru metricx rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.1461767163866524
+    "value": 0.6107068446389168
   },
   "LangMetricXRUTbl": {
-    "fmt": "0.146",
+    "fmt": "0.611",
     "note": "ru metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.1461767163866524
+    "value": 0.6107068446389168
   },
   "LangMetricXSW": {
-    "fmt": ".097",
+    "fmt": ".082",
     "note": "sw metricx rho (direction=en_to_x, tier=low)",
     "source": "direction_analysis.csv",
-    "value": 0.0968740417474433
+    "value": 0.0815353559788683
   },
   "LangMetricXSWTbl": {
-    "fmt": "0.097",
+    "fmt": "0.082",
     "note": "sw metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.0968740417474433
+    "value": 0.0815353559788683
   },
   "LangMetricXTA": {
-    "fmt": ".605",
-    "note": "ta metricx rho (direction=en_to_x, tier=medium)",
+    "fmt": ".608",
+    "note": "ta metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.604946989869576
+    "value": 0.6084565772062435
   },
   "LangMetricXTATbl": {
-    "fmt": "0.605",
+    "fmt": "0.608",
     "note": "ta metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.604946989869576
+    "value": 0.6084565772062435
   },
   "LangMetricXTH": {
-    "fmt": ".116",
+    "fmt": ".099",
     "note": "th metricx rho (direction=en_to_x, tier=low)",
     "source": "direction_analysis.csv",
-    "value": 0.116304602097763
+    "value": 0.0985020334926985
   },
   "LangMetricXTHTbl": {
-    "fmt": "0.116",
+    "fmt": "0.099",
     "note": "th metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.116304602097763
+    "value": 0.0985020334926985
   },
   "LangMetricXTR": {
-    "fmt": ".599",
-    "note": "tr metricx rho (direction=en_to_x, tier=medium)",
+    "fmt": ".613",
+    "note": "tr metricx rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.5985448388791819
+    "value": 0.6130589872778422
   },
   "LangMetricXTRTbl": {
-    "fmt": "0.599",
+    "fmt": "0.613",
     "note": "tr metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.5985448388791819
+    "value": 0.6130589872778422
   },
   "LangMetricXUK": {
-    "fmt": ".012",
+    "fmt": ".006",
     "note": "uk metricx rho (direction=x_to_en, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.0122134371902896
+    "value": 0.0060477453828193
   },
   "LangMetricXUKTbl": {
-    "fmt": "0.012",
+    "fmt": "0.006",
     "note": "uk metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.0122134371902896
+    "value": 0.0060477453828193
   },
   "LangMetricXXH": {
-    "fmt": ".680",
+    "fmt": ".695",
     "note": "xh metricx rho (direction=pivot, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.6795240980499274
+    "value": 0.6950518955160215
   },
   "LangMetricXXHTbl": {
-    "fmt": "0.680",
+    "fmt": "0.695",
     "note": "xh metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.6795240980499274
+    "value": 0.6950518955160215
   },
   "LangMetricXZH": {
-    "fmt": ".621",
+    "fmt": ".615",
     "note": "zh metricx rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.6206870006365048
+    "value": 0.6147140901917817
   },
   "LangMetricXZHTbl": {
-    "fmt": "0.621",
+    "fmt": "0.615",
     "note": "zh metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.6206870006365048
+    "value": 0.6147140901917817
   },
   "LangMetricXZU": {
-    "fmt": ".593",
+    "fmt": ".615",
     "note": "zu metricx rho (direction=pivot, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.592976983355986
+    "value": 0.6145521727656358
   },
   "LangMetricXZUTbl": {
-    "fmt": "0.593",
+    "fmt": "0.615",
     "note": "zu metricx rho (Table 7 cell)",
     "source": "direction_analysis.csv",
-    "value": 0.592976983355986
+    "value": 0.6145521727656358
   },
   "LangNAM": {
     "fmt": "1{,}012",
@@ -2064,10 +2076,10 @@
     "value": 49741
   },
   "LangNES": {
-    "fmt": "11{,}289",
+    "fmt": "8{,}708",
     "note": "Segment count for es",
     "source": "direction_analysis.csv",
-    "value": 11289
+    "value": 8708
   },
   "LangNET": {
     "fmt": "33{,}872",
@@ -2100,10 +2112,10 @@
     "value": 23983
   },
   "LangNHE": {
-    "fmt": "12{,}441",
+    "fmt": "9{,}840",
     "note": "Segment count for he",
     "source": "direction_analysis.csv",
-    "value": 12441
+    "value": 9840
   },
   "LangNHI": {
     "fmt": "4{,}461",
@@ -2263,31 +2275,31 @@
   },
   "LangXCOMETCS": {
     "fmt": ".546",
-    "note": "cs xcomet rho (direction=en_to_x, tier=medium)",
+    "note": "cs xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5464178568322308
   },
   "LangXCOMETDE": {
-    "fmt": ".510",
+    "fmt": ".480",
     "note": "de xcomet rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.509891940855611
+    "value": 0.4795764063965662
   },
   "LangXCOMETES": {
-    "fmt": ".556",
+    "fmt": ".355",
     "note": "es xcomet rho (direction=en_to_x, tier=medium)",
     "source": "direction_analysis.csv",
-    "value": 0.555549425033129
+    "value": 0.3553536048305974
   },
   "LangXCOMETET": {
     "fmt": ".617",
-    "note": "et xcomet rho (direction=en_to_x, tier=medium)",
+    "note": "et xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6172415472516591
   },
   "LangXCOMETFI": {
     "fmt": ".600",
-    "note": "fi xcomet rho (direction=en_to_x, tier=medium)",
+    "note": "fi xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5997115713410824
   },
@@ -2299,21 +2311,21 @@
   },
   "LangXCOMETGU": {
     "fmt": ".479",
-    "note": "gu xcomet rho (direction=x_to_en, tier=medium)",
+    "note": "gu xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4792305619530868
   },
   "LangXCOMETHA": {
     "fmt": ".181",
-    "note": "ha xcomet rho (direction=en_to_x, tier=low)",
+    "note": "ha xcomet rho (direction=mixed, tier=low)",
     "source": "direction_analysis.csv",
     "value": 0.1813517204247645
   },
   "LangXCOMETHE": {
-    "fmt": ".660",
+    "fmt": ".526",
     "note": "he xcomet rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.6598043487497715
+    "value": 0.5264855488692951
   },
   "LangXCOMETHI": {
     "fmt": ".182",
@@ -2329,13 +2341,13 @@
   },
   "LangXCOMETIS": {
     "fmt": ".406",
-    "note": "is xcomet rho (direction=en_to_x, tier=medium)",
+    "note": "is xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4056487591320353
   },
   "LangXCOMETJA": {
     "fmt": ".261",
-    "note": "ja xcomet rho (direction=en_to_x, tier=medium)",
+    "note": "ja xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.2608652982597461
   },
@@ -2347,7 +2359,7 @@
   },
   "LangXCOMETKK": {
     "fmt": ".569",
-    "note": "kk xcomet rho (direction=x_to_en, tier=medium)",
+    "note": "kk xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5689480859370712
   },
@@ -2365,7 +2377,7 @@
   },
   "LangXCOMETLT": {
     "fmt": ".602",
-    "note": "lt xcomet rho (direction=en_to_x, tier=medium)",
+    "note": "lt xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.6015943750468857
   },
@@ -2383,7 +2395,7 @@
   },
   "LangXCOMETPL": {
     "fmt": ".451",
-    "note": "pl xcomet rho (direction=en_to_x, tier=medium)",
+    "note": "pl xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4507056684775111
   },
@@ -2394,10 +2406,10 @@
     "value": 0.3089744118117268
   },
   "LangXCOMETRU": {
-    "fmt": ".191",
+    "fmt": ".521",
     "note": "ru xcomet rho (direction=en_to_x, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.1911593244405328
+    "value": 0.5207053654821523
   },
   "LangXCOMETSW": {
     "fmt": ".137",
@@ -2407,7 +2419,7 @@
   },
   "LangXCOMETTA": {
     "fmt": ".413",
-    "note": "ta xcomet rho (direction=en_to_x, tier=medium)",
+    "note": "ta xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.4132131263405947
   },
@@ -2419,7 +2431,7 @@
   },
   "LangXCOMETTR": {
     "fmt": ".516",
-    "note": "tr xcomet rho (direction=en_to_x, tier=medium)",
+    "note": "tr xcomet rho (direction=mixed, tier=medium)",
     "source": "direction_analysis.csv",
     "value": 0.5155902257029945
   },
@@ -2436,10 +2448,10 @@
     "value": 0.4339675468971595
   },
   "LangXCOMETZH": {
-    "fmt": ".581",
+    "fmt": ".597",
     "note": "zh xcomet rho (direction=x_to_en, tier=high)",
     "source": "direction_analysis.csv",
-    "value": 0.5808492013789148
+    "value": 0.596703169364329
   },
   "LangXCOMETZU": {
     "fmt": ".339",
@@ -2448,34 +2460,34 @@
     "value": 0.3387972997114117
   },
   "MixedModelDirXtoEnCoef": {
-    "fmt": "-0.286",
+    "fmt": "-0.289",
     "note": "LMM fixed effect: X->en vs en->X (reference), controlling for morphology, language random intercept",
     "source": "recompute:mixed_effects",
-    "value": -0.285564693250342
+    "value": -0.28858065576091235
   },
   "MixedModelDirXtoEnP": {
-    "fmt": "7.5\\times10^{-17}",
+    "fmt": "2.8\\times10^{-18}",
     "note": "LMM p-value for X->en direction effect",
     "source": "recompute:mixed_effects",
-    "value": 7.465396162715386e-17
+    "value": 2.840433452891628e-18
   },
   "MixedModelICC": {
-    "fmt": "0.79",
+    "fmt": "0.71",
     "note": "Intraclass correlation: fraction of variance from the language random intercept",
     "source": "recompute:mixed_effects",
-    "value": 0.7874000995658244
+    "value": 0.7069753107255246
   },
   "MixedModelMorphFusionalCoef": {
-    "fmt": "-0.136",
+    "fmt": "-0.150",
     "note": "LMM fixed effect: fusional vs agglutinative (reference), controlling for direction, language random intercept",
     "source": "recompute:mixed_effects",
-    "value": -0.13642152322221063
+    "value": -0.14958217976678026
   },
   "MixedModelMorphFusionalP": {
-    "fmt": "0.118",
+    "fmt": "0.037",
     "note": "LMM p-value for fusional morphology effect",
     "source": "recompute:mixed_effects",
-    "value": 0.11838419880496082
+    "value": 0.03719548678462566
   },
   "MixedModelNLangs": {
     "fmt": "26",
@@ -2488,6 +2500,210 @@
     "note": "LMM observation count",
     "source": "recompute:mixed_effects",
     "value": 38
+  },
+  "MqmCtrlGapDATwenty": {
+    "fmt": "+0.073",
+    "note": "wmt20: mean en->X minus mean X->en COMET Spearman under DA",
+    "source": "mqm_control.csv",
+    "value": 0.0726693022801238
+  },
+  "MqmCtrlGapDATwentyCIhi": {
+    "fmt": "+0.105",
+    "note": "wmt20 DA gap, 95% CI high",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 0.1054581018896315
+  },
+  "MqmCtrlGapDATwentyCIlo": {
+    "fmt": "+0.039",
+    "note": "wmt20 DA gap, 95% CI low (1000 resamples of source segments)",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 0.0392880756780182
+  },
+  "MqmCtrlGapDATwentyOne": {
+    "fmt": "+0.334",
+    "note": "wmt21.news: mean en->X minus mean X->en COMET Spearman under DA",
+    "source": "mqm_control.csv",
+    "value": 0.333578745758115
+  },
+  "MqmCtrlGapDATwentyOneCIhi": {
+    "fmt": "+0.381",
+    "note": "wmt21.news DA gap, 95% CI high",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 0.3805242240021084
+  },
+  "MqmCtrlGapDATwentyOneCIlo": {
+    "fmt": "+0.284",
+    "note": "wmt21.news DA gap, 95% CI low (1000 resamples of source segments)",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 0.2837979329964024
+  },
+  "MqmCtrlGapDATwentyThree": {
+    "fmt": "+0.163",
+    "note": "wmt23: mean en->X minus mean X->en COMET Spearman under DA",
+    "source": "mqm_control.csv",
+    "value": 0.1630372903793862
+  },
+  "MqmCtrlGapDATwentyThreeCIhi": {
+    "fmt": "+0.197",
+    "note": "wmt23 DA gap, 95% CI high",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 0.1972228725819741
+  },
+  "MqmCtrlGapDATwentyThreeCIlo": {
+    "fmt": "+0.125",
+    "note": "wmt23 DA gap, 95% CI low (1000 resamples of source segments)",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 0.124555882294757
+  },
+  "MqmCtrlGapDATwentyTwo": {
+    "fmt": "+0.382",
+    "note": "wmt22: mean en->X minus mean X->en COMET Spearman under DA",
+    "source": "mqm_control.csv",
+    "value": 0.3821372910542345
+  },
+  "MqmCtrlGapDATwentyTwoCIhi": {
+    "fmt": "+0.410",
+    "note": "wmt22 DA gap, 95% CI high",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 0.4099775609620327
+  },
+  "MqmCtrlGapDATwentyTwoCIlo": {
+    "fmt": "+0.354",
+    "note": "wmt22 DA gap, 95% CI low (1000 resamples of source segments)",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 0.3543746041513742
+  },
+  "MqmCtrlGapMQMTwenty": {
+    "fmt": "-0.102",
+    "note": "wmt20: mean en->X minus mean X->en COMET Spearman under MQM",
+    "source": "mqm_control.csv",
+    "value": -0.10158276303307567
+  },
+  "MqmCtrlGapMQMTwentyCIhi": {
+    "fmt": "-0.065",
+    "note": "wmt20 MQM gap, 95% CI high",
+    "source": "followup_bootstrap_ci.csv",
+    "value": -0.0653565401615295
+  },
+  "MqmCtrlGapMQMTwentyCIlo": {
+    "fmt": "-0.142",
+    "note": "wmt20 MQM gap, 95% CI low (1000 resamples of source segments)",
+    "source": "followup_bootstrap_ci.csv",
+    "value": -0.1420387025523269
+  },
+  "MqmCtrlGapMQMTwentyOne": {
+    "fmt": "-0.134",
+    "note": "wmt21.news: mean en->X minus mean X->en COMET Spearman under MQM",
+    "source": "mqm_control.csv",
+    "value": -0.1341914569972108
+  },
+  "MqmCtrlGapMQMTwentyOneCIhi": {
+    "fmt": "-0.089",
+    "note": "wmt21.news MQM gap, 95% CI high",
+    "source": "followup_bootstrap_ci.csv",
+    "value": -0.0892002943151524
+  },
+  "MqmCtrlGapMQMTwentyOneCIlo": {
+    "fmt": "-0.180",
+    "note": "wmt21.news MQM gap, 95% CI low (1000 resamples of source segments)",
+    "source": "followup_bootstrap_ci.csv",
+    "value": -0.1801202441308962
+  },
+  "MqmCtrlGapMQMTwentyThree": {
+    "fmt": "+0.109",
+    "note": "wmt23: mean en->X minus mean X->en COMET Spearman under MQM",
+    "source": "mqm_control.csv",
+    "value": 0.1092789588359977
+  },
+  "MqmCtrlGapMQMTwentyThreeCIhi": {
+    "fmt": "+0.154",
+    "note": "wmt23 MQM gap, 95% CI high",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 0.1541584308201362
+  },
+  "MqmCtrlGapMQMTwentyThreeCIlo": {
+    "fmt": "+0.064",
+    "note": "wmt23 MQM gap, 95% CI low (1000 resamples of source segments)",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 0.0641061960277623
+  },
+  "MqmCtrlGapMQMTwentyTwo": {
+    "fmt": "-0.039",
+    "note": "wmt22: mean en->X minus mean X->en COMET Spearman under MQM",
+    "source": "mqm_control.csv",
+    "value": -0.039444884878222175
+  },
+  "MqmCtrlGapMQMTwentyTwoCIhi": {
+    "fmt": "-0.005",
+    "note": "wmt22 MQM gap, 95% CI high",
+    "source": "followup_bootstrap_ci.csv",
+    "value": -0.0053871820637366
+  },
+  "MqmCtrlGapMQMTwentyTwoCIlo": {
+    "fmt": "-0.072",
+    "note": "wmt22 MQM gap, 95% CI low (1000 resamples of source segments)",
+    "source": "followup_bootstrap_ci.csv",
+    "value": -0.0721985090299713
+  },
+  "MqmCtrlNCIExclZeroDA": {
+    "fmt": "4",
+    "note": "Years whose DA gap CI excludes zero",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 4
+  },
+  "MqmCtrlNCIExclZeroMQM": {
+    "fmt": "4",
+    "note": "Years whose MQM gap CI excludes zero",
+    "source": "followup_bootstrap_ci.csv",
+    "value": 4
+  },
+  "MqmCtrlNNegMQM": {
+    "fmt": "3",
+    "note": "Years in which the MQM gap is negative (X->en better evaluated than en->X)",
+    "source": "mqm_control.csv",
+    "value": 3
+  },
+  "MqmCtrlNPairs": {
+    "fmt": "4",
+    "note": "Language pairs with expert MQM in the control (en-de, en-ru, zh-en, he-en)",
+    "source": "mqm_control.csv",
+    "value": 4
+  },
+  "MqmCtrlNYearsDA": {
+    "fmt": "4",
+    "note": "Number of WMT years with a same-year DA direction gap",
+    "source": "mqm_control.csv",
+    "value": 4
+  },
+  "MqmCtrlNYearsMQM": {
+    "fmt": "4",
+    "note": "Number of WMT years with a same-year MQM direction gap",
+    "source": "mqm_control.csv",
+    "value": 4
+  },
+  "MqmCtrlZhTwentyTwoCOMETCrowdDA": {
+    "fmt": ".023",
+    "note": "WMT22 zh-en COMET Spearman vs DA labels, identical segment set",
+    "source": "mqm_control_three_labels.csv",
+    "value": 0.0233478969169916
+  },
+  "MqmCtrlZhTwentyTwoCOMETMQM": {
+    "fmt": ".533",
+    "note": "WMT22 zh-en COMET Spearman vs MQM labels, identical segment set",
+    "source": "mqm_control_three_labels.csv",
+    "value": 0.5326346226511619
+  },
+  "MqmCtrlZhTwentyTwoCOMETSrcDA": {
+    "fmt": ".458",
+    "note": "WMT22 zh-en COMET Spearman vs DA-appraise labels, identical segment set",
+    "source": "mqm_control_three_labels.csv",
+    "value": 0.4578496311575312
+  },
+  "MqmCtrlZhTwentyTwoN": {
+    "fmt": "10{,}472",
+    "note": "WMT22 zh-en segments with all three label types",
+    "source": "mqm_control_three_labels.csv",
+    "value": 10472
   },
   "NumHumanAnnotatedLanguages": {
     "fmt": "26",
@@ -2508,10 +2724,10 @@
     "value": 33
   },
   "NumMetrics": {
-    "fmt": "10",
-    "note": "bleu chrf bertscore bleurt comet xcomet metricx cometkiwi cometkiwi23 gemba",
-    "source": "manual",
-    "value": 10
+    "fmt": "9",
+    "note": "Distinct metrics in correlations.csv, excluding the ensemble (GEMBA removed 2026-11-10)",
+    "source": "correlations.csv",
+    "value": 9
   },
   "NumMixedLangs": {
     "fmt": "12",
@@ -2538,10 +2754,10 @@
     "value": 7
   },
   "PivotMetricXWins": {
-    "fmt": "4",
+    "fmt": "5",
     "note": "MetricX overall-best count, pivot languages",
     "source": "recompute:pivot",
-    "value": 4
+    "value": 5
   },
   "PivotN": {
     "fmt": "5",
@@ -2556,16 +2772,16 @@
     "value": -0.03824125812783641
   },
   "RidgeCKPearson": {
-    "fmt": "0.56",
+    "fmt": "0.54",
     "note": "Ridge LOLO-CV Pearson r, CometKiwi",
     "source": "predictor/summary.json",
-    "value": 0.558
+    "value": 0.543
   },
   "RidgeCKXXIIIPearson": {
-    "fmt": "0.47",
+    "fmt": "0.50",
     "note": "Ridge LOLO-CV Pearson r, CometKiwi23",
     "source": "predictor/summary.json",
-    "value": 0.469
+    "value": 0.501
   },
   "RidgeNLangs": {
     "fmt": "26",
@@ -2573,29 +2789,35 @@
     "source": "predictor/summary.json",
     "value": 26
   },
+  "RidgeNUnits": {
+    "fmt": "38",
+    "note": "Ridge units: single-direction languages + one unit per direction for mixed languages",
+    "source": "predictor/summary.json",
+    "value": 38
+  },
   "RidgeRecAcc": {
-    "fmt": "5/26",
+    "fmt": "6/38",
     "note": "Ridge recommendation accuracy (best-metric prediction)",
     "source": "predictor/summary.json",
-    "value": "5/26"
+    "value": "6/38"
   },
   "RuDelta": {
-    "fmt": "+0.285",
+    "fmt": "-0.013",
     "note": "ru stratified mean - pooled",
     "source": "tier_anomaly.csv",
-    "value": 0.2846428396430031
+    "value": -0.013431430863252436
   },
   "RuRangeHi": {
     "fmt": "0.50",
     "note": "ru year rho max",
     "source": "tier_anomaly.csv",
-    "value": 0.5007728478136653
+    "value": 0.5007714532557528
   },
   "RuRangeLo": {
     "fmt": "0.38",
     "note": "ru year rho min",
     "source": "tier_anomaly.csv",
-    "value": 0.383328988474451
+    "value": 0.3833316611295101
   },
   "RuWmtOneN": {
     "fmt": "15{,}600",
@@ -2607,7 +2829,7 @@
     "fmt": ".383",
     "note": "ru WMT2021 COMET rho, n=15600",
     "source": "tier_anomaly.csv",
-    "value": 0.383328988474451
+    "value": 0.3833316611295101
   },
   "RuWmtTwoN": {
     "fmt": "19{,}725",
@@ -2619,7 +2841,7 @@
     "fmt": ".501",
     "note": "ru WMT2022 COMET rho, n=19725",
     "source": "tier_anomaly.csv",
-    "value": 0.5007728478136653
+    "value": 0.5007714532557528
   },
   "SepCKXXIIICSEX": {
     "fmt": "0.768",
@@ -2934,160 +3156,160 @@
     "value": 0.5271455831242093
   },
   "SepMXCSEX": {
-    "fmt": "0.723",
+    "fmt": "0.740",
     "note": "cs en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.7232722193621454
+    "value": 0.7404495147328217
   },
   "SepMXCSXE": {
-    "fmt": "0.303",
+    "fmt": "0.316",
     "note": "cs x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.3028263692637909
+    "value": 0.3162528665719075
   },
   "SepMXETEX": {
-    "fmt": "0.808",
+    "fmt": "0.822",
     "note": "et en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.8084794323716087
+    "value": 0.8215885257412854
   },
   "SepMXETXE": {
-    "fmt": "0.589",
+    "fmt": "0.602",
     "note": "et x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.5890358520952278
+    "value": 0.6019970384237973
   },
   "SepMXFIEX": {
-    "fmt": "0.788",
+    "fmt": "0.797",
     "note": "fi en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.7876088038977201
+    "value": 0.7974560372720556
   },
   "SepMXFIXE": {
-    "fmt": "0.559",
+    "fmt": "0.571",
     "note": "fi x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.5585583180002737
+    "value": 0.5710049190524655
   },
   "SepMXGUEX": {
-    "fmt": "0.735",
+    "fmt": "0.748",
     "note": "gu en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.7353401552517443
+    "value": 0.7483794896293672
   },
   "SepMXGUXE": {
-    "fmt": "0.437",
+    "fmt": "0.449",
     "note": "gu x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.437459655916988
+    "value": 0.448594665060628
   },
   "SepMXHAEX": {
-    "fmt": "0.479",
+    "fmt": "0.493",
     "note": "ha en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.4786742516743663
+    "value": 0.4930121343971932
   },
   "SepMXHAXE": {
-    "fmt": "0.047",
+    "fmt": "0.039",
     "note": "ha x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.0468879013697904
+    "value": 0.038713595858048
   },
   "SepMXISEX": {
-    "fmt": "0.759",
+    "fmt": "0.773",
     "note": "is en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.7588030695342687
+    "value": 0.772923305066341
   },
   "SepMXISXE": {
     "fmt": "0.066",
     "note": "is x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.0663192343077172
+    "value": 0.065752953688507
   },
   "SepMXJAEX": {
-    "fmt": "0.636",
+    "fmt": "0.657",
     "note": "ja en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.6360187733767129
+    "value": 0.6567036229938068
   },
   "SepMXJAXE": {
-    "fmt": "0.150",
+    "fmt": "0.147",
     "note": "ja x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.1503123936810517
+    "value": 0.1468307169966639
   },
   "SepMXKKEX": {
-    "fmt": "0.770",
+    "fmt": "0.784",
     "note": "kk en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.7701534297545845
+    "value": 0.7842604075359636
   },
   "SepMXKKXE": {
-    "fmt": "0.532",
+    "fmt": "0.545",
     "note": "kk x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.5320141500746374
+    "value": 0.5446566969665587
   },
   "SepMXLTEX": {
-    "fmt": "0.790",
+    "fmt": "0.803",
     "note": "lt en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.7895101875413343
+    "value": 0.8029595512443014
   },
   "SepMXLTXE": {
-    "fmt": "0.524",
+    "fmt": "0.536",
     "note": "lt x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.5240333289348242
+    "value": 0.5361855940155261
   },
   "SepMXLVEX": {
-    "fmt": "0.807",
+    "fmt": "0.819",
     "note": "lv en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.8066916319037543
+    "value": 0.8185881584391274
   },
   "SepMXPLEX": {
-    "fmt": "0.691",
+    "fmt": "0.717",
     "note": "pl en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.6910123809420448
+    "value": 0.7172173959918412
   },
   "SepMXPLXE": {
-    "fmt": "0.306",
+    "fmt": "0.337",
     "note": "pl x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.3058727914355919
+    "value": 0.3368469513153261
   },
   "SepMXPSXE": {
-    "fmt": "0.388",
+    "fmt": "0.396",
     "note": "ps x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.3879172389437177
+    "value": 0.3960133144534704
   },
   "SepMXTAEX": {
-    "fmt": "0.751",
+    "fmt": "0.761",
     "note": "ta en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.7513876252318741
+    "value": 0.7605001411386597
   },
   "SepMXTAXE": {
-    "fmt": "0.408",
+    "fmt": "0.420",
     "note": "ta x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.4084340266449287
+    "value": 0.4198708078468798
   },
   "SepMXTREX": {
-    "fmt": "0.787",
+    "fmt": "0.803",
     "note": "tr en_to_x metricx",
     "source": "recompute:table6",
-    "value": 0.7867111507057265
+    "value": 0.8034396375758154
   },
   "SepMXTRXE": {
-    "fmt": "0.560",
+    "fmt": "0.571",
     "note": "tr x_to_en metricx",
     "source": "recompute:table6",
-    "value": 0.559919259555844
+    "value": 0.5714334308935128
   },
   "SepNCSEX": {
     "fmt": "70{,}943",
@@ -3246,10 +3468,10 @@
     "value": 30186
   },
   "TableFourEntoXAgglutin": {
-    "fmt": "0.432",
+    "fmt": "0.446",
     "note": "n=6",
     "source": "recompute:table4",
-    "value": 0.4322091221603008
+    "value": 0.44614064831352734
   },
   "TableFourEntoXFusional": {
     "fmt": "0.356",
@@ -3264,10 +3486,10 @@
     "value": 34
   },
   "TableFourPivotFusional": {
-    "fmt": "0.327",
+    "fmt": "0.346",
     "note": "n=5",
     "source": "recompute:table4",
-    "value": 0.32748644609304745
+    "value": 0.3455300186658291
   },
   "TableFourTotalPairs": {
     "fmt": "35",
@@ -3282,28 +3504,28 @@
     "value": 0.196105626658871
   },
   "TableFourXtoEnFusional": {
-    "fmt": "0.130",
+    "fmt": "0.138",
     "note": "n=8",
     "source": "recompute:table4",
-    "value": 0.13025417354920957
+    "value": 0.13805968943701688
   },
   "TableFourXtoEnIsolating": {
-    "fmt": "0.326",
+    "fmt": "0.302",
     "note": "n=2",
     "source": "recompute:table4",
-    "value": 0.32592987478597835
+    "value": 0.3016147044725794
   },
   "TierBERTScoreHighRho": {
-    "fmt": ".265",
+    "fmt": ".274",
     "note": "bertscore mean Spearman rho, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.26490081822914263
+    "value": 0.274169215095714
   },
   "TierBERTScoreHighSPA": {
-    "fmt": ".617",
+    "fmt": ".610",
     "note": "bertscore mean SPA, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.6171678315230922
+    "value": 0.6097324502714022
   },
   "TierBERTScoreLowRho": {
     "fmt": ".283",
@@ -3318,28 +3540,28 @@
     "value": 0.5954635189686482
   },
   "TierBERTScoreMedRho": {
-    "fmt": ".404",
+    "fmt": ".297",
     "note": "bertscore mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.4042360888371552
+    "value": 0.2967798176963237
   },
   "TierBERTScoreMedSPA": {
-    "fmt": ".688",
+    "fmt": ".634",
     "note": "bertscore mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.6880565929272691
+    "value": 0.6343117499905554
   },
   "TierBLEUHighRho": {
-    "fmt": ".186",
+    "fmt": ".201",
     "note": "bleu mean Spearman rho, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.1858245300736293
+    "value": 0.20129653819003868
   },
   "TierBLEUHighSPA": {
-    "fmt": ".582",
+    "fmt": ".581",
     "note": "bleu mean SPA, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.5815706235536795
+    "value": 0.5813288921499751
   },
   "TierBLEULowRho": {
     "fmt": ".230",
@@ -3354,70 +3576,70 @@
     "value": 0.5761536025501595
   },
   "TierBLEUMedRho": {
-    "fmt": ".293",
+    "fmt": ".215",
     "note": "bleu mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.29301293198458883
+    "value": 0.21451778983034242
   },
   "TierBLEUMedSPA": {
-    "fmt": ".636",
+    "fmt": ".597",
     "note": "bleu mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.6360134724360749
+    "value": 0.5973165154460532
   },
   "TierBLEURTHighRho": {
-    "fmt": ".349",
+    "fmt": ".448",
     "note": "bleurt mean Spearman rho, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.34930246271562
+    "value": 0.4484279570467853
   },
   "TierBLEURTHighSPA": {
-    "fmt": ".654",
+    "fmt": ".683",
     "note": "bleurt mean SPA, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.6537815465987973
+    "value": 0.6834843914569346
   },
   "TierBLEURTLowRho": {
-    "fmt": ".291",
+    "fmt": ".272",
     "note": "bleurt mean Spearman rho, low tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.2911881862003855
+    "value": 0.2716584142361403
   },
   "TierBLEURTLowSPA": {
-    "fmt": ".600",
+    "fmt": ".593",
     "note": "bleurt mean SPA, low tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.5998427807079212
+    "value": 0.5934413092320519
   },
   "TierBLEURTMedRho": {
-    "fmt": ".423",
+    "fmt": ".362",
     "note": "bleurt mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.42318305397182343
+    "value": 0.3622515649497269
   },
   "TierBLEURTMedSPA": {
-    "fmt": ".702",
+    "fmt": ".628",
     "note": "bleurt mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.7019491679926864
+    "value": 0.6280202841930174
   },
   "TierCOMETHighPlusEsRho": {
-    "fmt": ".466",
+    "fmt": ".436",
     "note": "Hypothetical High-tier COMET mean if Spanish were included (de,ru,zh,he,es)",
     "source": "correlations.csv",
-    "value": 0.4658008458114648
+    "value": 0.43628478905434953
   },
   "TierCOMETHighRho": {
-    "fmt": ".436",
+    "fmt": ".463",
     "note": "comet mean Spearman rho, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.43571710722937346
+    "value": 0.4632284464475581
   },
   "TierCOMETHighSPA": {
-    "fmt": ".690",
+    "fmt": ".684",
     "note": "comet mean SPA, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.6896054883523972
+    "value": 0.6843354122008917
   },
   "TierCOMETLowRho": {
     "fmt": ".331",
@@ -3432,28 +3654,28 @@
     "value": 0.6127672107041904
   },
   "TierCOMETMedRho": {
-    "fmt": ".526",
+    "fmt": ".397",
     "note": "comet mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.5259173173812791
+    "value": 0.39710449705212153
   },
   "TierCOMETMedSPA": {
-    "fmt": ".747",
+    "fmt": ".686",
     "note": "comet mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.7465095605368202
+    "value": 0.6855823618046826
   },
   "TierChrFHighRho": {
-    "fmt": ".201",
+    "fmt": ".233",
     "note": "chrf mean Spearman rho, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.20069331627510534
+    "value": 0.23278979877283984
   },
   "TierChrFHighSPA": {
-    "fmt": ".588",
+    "fmt": ".595",
     "note": "chrf mean SPA, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.5884705566461229
+    "value": 0.5945929888618406
   },
   "TierChrFLowRho": {
     "fmt": ".267",
@@ -3468,88 +3690,76 @@
     "value": 0.5898972593686156
   },
   "TierChrFMedRho": {
-    "fmt": ".295",
+    "fmt": ".249",
     "note": "chrf mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.2950780695439549
+    "value": 0.2486567723873107
   },
   "TierChrFMedSPA": {
-    "fmt": ".632",
+    "fmt": ".612",
     "note": "chrf mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.6319197090467703
+    "value": 0.6118334548563815
   },
   "TierEnsembleHighRho": {
-    "fmt": ".485",
+    "fmt": ".540",
     "note": "ensemble mean Spearman rho, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.48527728624142585
+    "value": 0.5399874705526572
   },
   "TierEnsembleHighSPA": {
-    "fmt": ".709",
+    "fmt": ".716",
     "note": "ensemble mean SPA, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.7093339032213279
+    "value": 0.7163680211773173
   },
   "TierEnsembleLowRho": {
-    "fmt": ".363",
+    "fmt": ".365",
     "note": "ensemble mean Spearman rho, low tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.3628330202494143
+    "value": 0.365442953697597
   },
   "TierEnsembleLowSPA": {
-    "fmt": ".624",
+    "fmt": ".625",
     "note": "ensemble mean SPA, low tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.6243247823588569
+    "value": 0.6252987084636051
   },
   "TierEnsembleMedRho": {
-    "fmt": ".557",
+    "fmt": ".444",
     "note": "ensemble mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.557283717081434
+    "value": 0.4439557847007545
   },
   "TierEnsembleMedSPA": {
-    "fmt": ".759",
+    "fmt": ".708",
     "note": "ensemble mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.7587093095772299
-  },
-  "TierGEMBAHighRho": {
-    "fmt": ".035",
-    "note": "gemba mean Spearman rho, high tier (averaged across annotation tiers)",
-    "source": "tier_summary.csv",
-    "value": 0.0351293517246293
-  },
-  "TierGEMBAHighSPA": {
-    "fmt": ".501",
-    "note": "gemba mean SPA, high tier (averaged across annotation tiers)",
-    "source": "tier_summary.csv",
-    "value": 0.5011926862481128
+    "value": 0.7075081961585845
   },
   "TierKiwiXXIIHighRho": {
-    "fmt": ".380",
+    "fmt": ".409",
     "note": "cometkiwi mean Spearman rho, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.3796963326705473
+    "value": 0.40933578811106697
   },
   "TierKiwiXXIIHighSPA": {
-    "fmt": ".661",
+    "fmt": ".663",
     "note": "cometkiwi mean SPA, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.6612879465557366
+    "value": 0.6628539845188433
   },
   "TierKiwiXXIIIHighRho": {
-    "fmt": ".380",
+    "fmt": ".439",
     "note": "cometkiwi23 mean Spearman rho, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.37978135298563975
+    "value": 0.43928751747248385
   },
   "TierKiwiXXIIIHighSPA": {
-    "fmt": ".660",
+    "fmt": ".673",
     "note": "cometkiwi23 mean SPA, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.6603728854578416
+    "value": 0.6727292095677093
   },
   "TierKiwiXXIIILowRho": {
     "fmt": ".368",
@@ -3564,16 +3774,16 @@
     "value": 0.6259725474794021
   },
   "TierKiwiXXIIIMedRho": {
-    "fmt": ".474",
+    "fmt": ".391",
     "note": "cometkiwi23 mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.4738268854269492
+    "value": 0.3910477034089622
   },
   "TierKiwiXXIIIMedSPA": {
-    "fmt": ".714",
+    "fmt": ".678",
     "note": "cometkiwi23 mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.7136784120926355
+    "value": 0.6779925133886195
   },
   "TierKiwiXXIILowRho": {
     "fmt": ".289",
@@ -3588,88 +3798,88 @@
     "value": 0.598368331682788
   },
   "TierKiwiXXIIMedRho": {
-    "fmt": ".445",
+    "fmt": ".361",
     "note": "cometkiwi mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.4450035344992556
+    "value": 0.3607574784691473
   },
   "TierKiwiXXIIMedSPA": {
-    "fmt": ".701",
+    "fmt": ".663",
     "note": "cometkiwi mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.7009042192588242
+    "value": 0.6631264232997274
   },
   "TierMetricXHighRho": {
-    "fmt": ".465",
+    "fmt": ".556",
     "note": "metricx mean Spearman rho, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.464583303701519
+    "value": 0.5556738552003182
   },
   "TierMetricXHighSPA": {
-    "fmt": ".698",
+    "fmt": ".722",
     "note": "metricx mean SPA, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.698142761496257
+    "value": 0.7215938961936041
   },
   "TierMetricXLowRho": {
-    "fmt": ".383",
+    "fmt": ".390",
     "note": "metricx mean Spearman rho, low tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.3829007537914906
+    "value": 0.3903796268472593
   },
   "TierMetricXLowSPA": {
-    "fmt": ".632",
+    "fmt": ".635",
     "note": "metricx mean SPA, low tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.6324197723875487
+    "value": 0.6352692065290976
   },
   "TierMetricXMedRho": {
-    "fmt": ".588",
+    "fmt": ".458",
     "note": "metricx mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.5875461695699508
+    "value": 0.457683732187391
   },
   "TierMetricXMedSPA": {
-    "fmt": ".773",
+    "fmt": ".712",
     "note": "metricx mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.7727055494632983
+    "value": 0.7124571290414191
   },
   "TierOneBLowExHaMean": {
-    "fmt": "0.388",
+    "fmt": "0.389",
     "note": "Tier 1b (DA-only) low-resource mean rho, ha additionally excluded (documented annotation-noise outlier)",
     "source": "recompute:tier1b_check",
-    "value": 0.38775352410267333
+    "value": 0.38896997954933954
   },
   "TierOneBLowMean": {
-    "fmt": "0.312",
+    "fmt": "0.311",
     "note": "Tier 1b (DA-only) low-resource mean rho across all metrics, uk excluded",
     "source": "recompute:tier1b_check",
-    "value": 0.31199109435376116
+    "value": 0.31104699780773176
   },
   "TierOneBMedMean": {
-    "fmt": "0.441",
+    "fmt": "0.451",
     "note": "Tier 1b (DA-only) medium-resource mean rho across all metrics, uk excluded",
     "source": "recompute:tier1b_check",
-    "value": 0.4411063052579647
+    "value": 0.451205860126464
   },
   "TierOneTotalSegments": {
-    "fmt": "723{,}664",
+    "fmt": "718{,}482",
     "note": "Sum of n across Tier-1a+1b languages (comet rows) \u2014 replaces a stale '371k+' claim that didn't match Tier-1a (174,077), Tier-1b (549,587), or their sum (723,664) under any aggregation tried",
     "source": "correlations.csv",
-    "value": 723664
+    "value": 718482
   },
   "TierxCOMETHighRho": {
-    "fmt": ".485",
+    "fmt": ".531",
     "note": "xcomet mean Spearman rho, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.4854262038562075
+    "value": 0.5308676225280856
   },
   "TierxCOMETHighSPA": {
-    "fmt": ".709",
+    "fmt": ".713",
     "note": "xcomet mean SPA, high tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.7093781923841975
+    "value": 0.7130354629958506
   },
   "TierxCOMETLowRho": {
     "fmt": ".315",
@@ -3684,22 +3894,22 @@
     "value": 0.6067268206812141
   },
   "TierxCOMETMedRho": {
-    "fmt": ".496",
+    "fmt": ".396",
     "note": "xcomet mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.4960697528210414
+    "value": 0.3959718427197756
   },
   "TierxCOMETMedSPA": {
-    "fmt": ".730",
+    "fmt": ".688",
     "note": "xcomet mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.7298844733805783
+    "value": 0.6875471485155713
   },
   "TotalSegments": {
-    "fmt": "730{,}748",
-    "note": "Total segments across all tiers: MQM_HF(150347) + DA(549587) + Tier2(7084) + span_fallback(23730)",
-    "source": "manual/pipeline_run",
-    "value": 730748
+    "fmt": "725{,}566",
+    "note": "Total scored segments across all tiers (sum of COMET n in correlations.csv; equals scores_comet.csv rows)",
+    "source": "correlations.csv",
+    "value": 725566
   },
   "UkJaGap": {
     "fmt": "0.143",
@@ -3708,16 +3918,16 @@
     "value": 0.1427533748928822
   },
   "WilliamsMaxT": {
-    "fmt": "+102",
-    "note": "Max Williams t: lang=zh metric=metricx vs comet n=65281",
+    "fmt": "+61",
+    "note": "Max Williams t: lang=cs metric=cometkiwi23 vs comet n=135844",
     "source": "williams_tests.csv",
-    "value": 102.1438863406207
+    "value": 61.04006736878167
   },
   "WilliamsMinT": {
-    "fmt": "-139",
+    "fmt": "-129",
     "note": "Min Williams t: lang=cs metric=bleu vs comet n=135844",
     "source": "williams_tests.csv",
-    "value": -139.31836426030858
+    "value": -128.9916994796655
   },
   "WilliamsNMax": {
     "fmt": "135{,}844",
@@ -3744,34 +3954,34 @@
     "value": "uk,zu"
   },
   "WilliamsUKBLEUvsCOMETPval": {
-    "fmt": "7.1\\times10^{-1}",
+    "fmt": "2.0\\times10^{-1}",
     "note": "uk bleu vs COMET Williams p-value (Tier-1 exception)",
     "source": "williams_tests.csv",
-    "value": 0.7147478298560366
+    "value": 0.1954205216349651
   },
   "WilliamsUKCHRFvsCOMETPval": {
-    "fmt": "9.4\\times10^{-1}",
+    "fmt": "2.3\\times10^{-1}",
     "note": "uk chrf vs COMET Williams p-value (Tier-1 exception)",
     "source": "williams_tests.csv",
-    "value": 0.94366193486214
+    "value": 0.2319059214924571
   },
   "WilliamsZUBLEUvsCOMETPval": {
-    "fmt": "7.5\\times10^{-9}",
+    "fmt": "2.8\\times10^{-6}",
     "note": "zu bleu vs COMET Williams p-value (Tier-1 exception)",
     "source": "williams_tests.csv",
-    "value": 7.488036111337014e-09
+    "value": 2.7624100091622265e-06
   },
   "WilliamsZUCHRFvsCOMETPval": {
-    "fmt": "3.6\\times10^{-1}",
+    "fmt": "3.9\\times10^{-1}",
     "note": "zu chrf vs COMET Williams p-value (Tier-1 exception)",
     "source": "williams_tests.csv",
-    "value": 0.3595709175409922
+    "value": 0.3895524395028683
   },
   "WinEntoXAgglutin": {
-    "fmt": "4",
+    "fmt": "5",
     "note": "EntoXAgglutin win count",
     "source": "recompute:table4_wins",
-    "value": 4
+    "value": 5
   },
   "WinEntoXFusional": {
     "fmt": "4",
@@ -3810,16 +4020,16 @@
     "value": 2
   },
   "WinXtoEnAgglutin": {
-    "fmt": "6",
+    "fmt": "5",
     "note": "XtoEnAgglutin win count",
     "source": "recompute:table4_wins",
-    "value": 6
+    "value": 5
   },
   "WinXtoEnFusional": {
-    "fmt": "6",
+    "fmt": "4",
     "note": "XtoEnFusional win count",
     "source": "recompute:table4_wins",
-    "value": 6
+    "value": 4
   },
   "WinXtoEnIsolating": {
     "fmt": "2",
@@ -3828,22 +4038,22 @@
     "value": 2
   },
   "YearStratEntoXFusionalPooled": {
-    "fmt": "0.563",
+    "fmt": "0.567",
     "note": "en_to_x x fusional cell mean COMET rho, using pooled (not year-stratified) de/ru values",
     "source": "recompute:year_strat_robustness",
-    "value": 0.5626190512583741
+    "value": 0.5667936674317614
   },
   "YearStratEntoXFusionalStrat": {
-    "fmt": "0.591",
+    "fmt": "0.565",
     "note": "en_to_x x fusional cell mean COMET rho, de/ru replaced with their mean-of-per-year rho",
     "source": "recompute:year_strat_robustness",
-    "value": 0.591107184087883
+    "value": 0.56534465700282
   },
   "ZhDelta": {
-    "fmt": "+0.054",
+    "fmt": "+0.013",
     "note": "zh stratified mean - pooled",
     "source": "tier_anomaly.csv",
-    "value": 0.05439845929346315
+    "value": 0.012706803389162136
   },
   "ZhRangeHi": {
     "fmt": "0.57",
@@ -3855,12 +4065,12 @@
     "fmt": "0.47",
     "note": "zh year rho min",
     "source": "tier_anomaly.csv",
-    "value": 0.4677079185708636
+    "value": 0.4677078847834821
   },
   "ZuluXcometPval": {
-    "fmt": "9.2\\times10^{-1}",
+    "fmt": "9.7\\times10^{-1}",
     "note": "Zulu xCOMET vs COMET Williams p-value",
     "source": "williams_tests.csv",
-    "value": 0.9210505136018028
+    "value": 0.970047949644264
   }
 }

@@ -101,7 +101,16 @@ def load_lang(lang: str, subdir: str, lang_pair: str, offset: int):
             print(f"  No TSV found for {lang} in {subdir}")
             return pd.DataFrame()
 
-    df = pd.read_csv(tsv_path, sep="\t", on_bad_lines="skip")
+    # 2026-11-09: same fixes as mqmbench.data.wmt_mqm.load_wmt_mqm_spans --
+    # QUOTE_NONE (default quoting merged/dropped lines with '"'), strip the
+    # <v>...</v> error markup from target, drop human-reference "systems"
+    # (refA etc. would be scored against themselves) and canary rows.
+    import csv
+    df = pd.read_csv(tsv_path, sep="\t", dtype=str, quoting=csv.QUOTE_NONE,
+                     keep_default_na=False, on_bad_lines="skip")
+    df["target"] = df["target"].str.replace(r"</?v>", "", regex=True)
+    df = df[~df["system"].str.match(r"^ref[A-Z]?$") & (df["doc"].str.lower() != "canary")].copy()
+    df["globalSegId"] = df["globalSegId"].astype(int)
     print(f"  {lang}: {len(df)} span rows from {tsv_path.name}")
 
     # For he-en: offset-based lookup works (established empirically).
@@ -136,7 +145,9 @@ def load_lang(lang: str, subdir: str, lang_pair: str, offset: int):
             source=("source", "first"),
             hypothesis=(hyp_col, "first"),
             total_penalty=("penalty", "sum"),
-            n_raters=("penalty", "count"),
+            # 2026-11-09: was ("penalty", "count"), i.e. the number of error
+            # ROWS, so each unit's penalty was divided by its own error count.
+            n_raters=("rater", "nunique"),
         )
         .reset_index()
     )
