@@ -1860,3 +1860,40 @@ Not fixed (deferred, disclose): static direction labels in direction_analysis.cs
   - Rebuilt main.pdf (17 pp) and diff.pdf (22 pp). Checks: invariants 66/66, reportkit claims 28/28, lint 0.
   - Verified from WMT21 findings (Akhbardeh et al. 2021): into-English, including ha-en and is-en, used crowd reference-based monolingual DA (p. 11; Table 6, p. 14), so the Ukrainian paragraph and the Table 8 caption stand.
   - Committed ccd34fe on publishability-upgrades (73 files; Eric's audit and triage left untracked; results_metricx_fix/ and the diff build gitignored). Fast-forwarded local main to it. NOT pushed.
+
+## 2026-11-12: final SSOT sensitivity trace and WMT21 citation
+- Replaced the qualitative MQM-control caveat with generated quantities: excluding human-reference systems changes the sign of 0 of 8 yearly label-specific gaps, and excluding he-en leaves the WMT23 MQM gap positive (+0.122). `scripts/audit/mqm_control.py` now identifies official `ref*`/`human*` systems and emits no-human COMET correlations; `scripts/generate_paper_stats.py` computes the gaps/counts into `results/paper_stats.json`; `render_macros.py` generated the paper macros.
+- Added source-level invariant checks that recompute the sensitivity comparison count, sign-change count, and no-he WMT23 gap from `results/mqm_control.csv` and compare them with the macros. All invariant checks pass.
+- Fixed `scripts/generate_paper_stats.py` to read the existing SSOT object, merge its generated entries, and write the merged object. The old blind overwrite violated the standing SSOT rule even though this generator currently recreates the paper's full generated key set.
+- Added Akhbardeh et al. (2021), WMT21 findings, to `custom.bib` and cited pp. 11 and 14 for the statement that ha-en and is-en used into-English crowd reference-based DA.
+- Rebuilt `arxiv_submission/main.pdf`: success, 18 pages. Rebuilt `arxiv_submission/diff_vs_published/diff.pdf`: success, 22 pages. Final logs have no unresolved citations/references or fatal errors. The main paper grew by one page because of the added bibliography entry; no approved scientific text was trimmed to recover the page.
+- Fixed `scripts/find_hardcoded_values.py` to honor `PAPER_DIR`; it had silently scanned the published `latex/main.tex` even when checking v2. The v2 scan reports 0 candidate hardcoded numeric literals.
+- Restored unrelated regenerated CSV floating-point serialization noise. Changes remain uncommitted; nothing was pushed.
+- Added Eric Ringger's email (`ringger@byu.edu`) to the v2 author block and the review diff. Rebuilt both PDFs successfully; page counts remain 18 and 22, with clean final logs.
+
+## 2026-11-16/17: figures, BLEURT out, spBLEU, training overlap, boxed version note
+- Figures (Isaac's specs):
+  - New Fig 1 (plot_mqm_control): the DA vs MQM direction gap by WMT year with CIs; shaded = crowd reference-based into-English DA.
+  - Heatmap redone as TRANSPOSED: metrics as rows grouped by family; pairs as columns grouped en->X/X->en/X<->Y (DA), Expert MQM, Tier 2; sorted by the mean of the 5 learned metrics; equal 0.06 in gaps; full data range, no clipping.
+  - Main text: Fig 2 at page width with rho x 100 values. Appendix: Fig 5, rotated, with two-decimal values.
+  - All figures referenced. Contribution heading: "Direction dominates under crowd DA and mostly reverses under expert MQM."
+- BLEURT excluded everywhere (metric_scope.EXCLUDED_METRICS); NumMetrics 8.
+- BLEU for ja/th/lo/my targets rescored with flores200 spBLEU (scripts/rescore_bleu_spm.py).
+  - Guarded: the 13a recompute equalled the stored BLEU on 100% of rows. Backup at results/backup_pre_spbleu_2026-11-16/.
+  - en-ja BLEU vs DA rho: .000 -> .238. The en->X agglutinative gain over BLEU: .351 -> .311.
+- Training-data overlap: each learned metric's training years verified from its paper. sec:overlap + Table 2 (full width).
+  - MetricX-24 (DA 2015-22 except into-English 21-22) is the only metric trained on our WMT21-22 out-of-English and non-English DA. That explains its X<->Y lead.
+  - On WMT23 he-en and WMT24 en-es (outside every metric's training data) xCOMET >= MetricX. "MetricX best" is qualified in the abstract, contributions and conclusion. reportkit claim oos-metricx-not-best.
+- X<->Y check: MetricX's lead is not from degenerate outputs (<0.5% of rows, and removing them changes nothing).
+- Version note: boxed, before the abstract, ordered Corrected / Withdrawn / Unchanged (shared convention with the Mapudungun session, approved by Isaac).
+- MetricX orientation (25 - raw) is stated in the methods.
+- generate_paper_stats.py: key-ownership file (results/paper_stats.owned_by_generate_paper_stats.json). The merge now removes stale keys the script stopped producing. It removed the 6 TierBLEURT* keys.
+- scripts/make_diff_pdf.py: every change shows. Macros are expanded per side; captions and headings are diffed; changed tables and figures (text or image bytes) get yellow banners; removed floats are listed.
+- Regen 15465599 AM_regen OK (1h44m). Checks: 24 tests, invariants pass, claims 29/29, lint 0, hardcoded scan 0.
+- ACL Anthology corrections policy (read 2026-11-17):
+  - It is a revision (an erratum is "short notes").
+  - Adding an author needs no program-chair approval; author metadata must match the PDF.
+  - Title change is not addressed; metadata must be consistent with the PDF.
+  - No stated scope or page limits, but unsuitable submissions "will be rejected, potentially without notice".
+  - Original stays available; revisions are watermarked.
+  - The GitHub issue template was not readable (login wall).

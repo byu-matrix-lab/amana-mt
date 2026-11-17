@@ -14,6 +14,8 @@
 \usepackage{amssymb}
 \usepackage{xcolor}
 \usepackage{enumitem}
+\usepackage{rotating}
+\usepackage{tabularx}
 
 \newcommand{\PAhalf}{PA$_{1/2}$}
 
@@ -23,43 +25,52 @@
   Brigham Young University \\
   \texttt{it238@byu.edu} \And
   Eric Ringger \\
-  Brigham Young University}
+  Brigham Young University \\
+  \texttt{ringger@byu.edu}}
 
 \begin{document}
 \maketitle
 \input{macros_generated}
 
-\begin{abstract}
-How well an automatic machine translation (MT) metric agrees with human judgment depends on which human judgments it is compared with. We study this with AmanaMT, a benchmark spanning \TotalSegments\ segments, \NumLanguages\ languages, three annotation tiers, and \NumMetrics\ metrics. Under WMT Direct Assessment (DA) labels, translation direction is the largest predictor of between-language variance in metric--human correlation ($\eta^2_{\text{dir}}=\EtaSqDir$), well ahead of morphological type ($\eta^2_{\text{morph}}=\EtaSqMorph$). This direction effect does not replicate consistently under expert MQM labels: on the same segments, into-English pairs are evaluated worse than out-of-English pairs in all \MqmCtrlNYearsDA\ WMT years under DA, but better in \MqmCtrlNNegMQM\ of \MqmCtrlNYearsMQM\ years under MQM. This is consistent with WMT's own finding that into-English crowd reference-based DA is unreliable at segment level. Label quality also mattered inside our own pipeline: correcting how the MQM labels were assembled (Russian scores on two different scales normalized together, and error markup left in the Hebrew and Spanish hypotheses) changed several per-language results and reversed several conclusions of the originally published version. Neural metrics outperform $n$-gram baselines in every tier and direction, and MetricX-24 has the highest mean correlation in every tier. We recommend checking metric-reliability findings against expert labels before attributing them to languages or translation directions.
-\end{abstract}
+\noindent\fbox{\parbox{\dimexpr\columnwidth-2\fboxsep-2\fboxrule\relax}{\small
+\textbf{Version note.} This is a corrected version of the paper published at WMT 2026 as ``AmanaMT: Translation Direction Predicts Automatic Metric Reliability.'' Every number was recomputed.
 
-\noindent\textbf{Version note.} This is a corrected version of the paper published at WMT 2026 as ``AmanaMT: Translation Direction Predicts Automatic Metric Reliability.'' We corrected (i)~the MQM labels: en-ru WMT21 and WMT22 scores, which use different scales, were normalized together, and the he-en and en-es span files were parsed with error markup left in the hypotheses and one row per error, and scored with non-standard MQM weights; (ii)~MetricX-24 input formatting, which did not handle end-of-sequence tokens as the official implementation does; (iii)~the formulas for $\eta^2_{\text{cell}}$, the Williams test, and win-fraction confidence intervals; bootstrap intervals now resample source sentences. We also removed GEMBA, whose scores were degenerate, and restricted BLEURT to English-target segments. Every number was recomputed. Claims that no longer hold were removed or revised: that medium-resource languages are better evaluated than high-resource ones, that Russian shows Simpson's paradox, that Spanish is the best-evaluated MQM language, that Ukrainian's failure is a domain confound, and that translation direction itself predicts metric reliability (\S\ref{sec:mqm_control}).
+\smallskip\textbf{Corrected.} (i)~MQM labels: en-ru WMT21 and WMT22 scores, which use different scales, had been normalized together; the he-en and en-es span files had been parsed with error markup left in the hypotheses, one row per error, and non-standard MQM weights. (ii)~MetricX-24 input formatting, which did not handle end-of-sequence tokens as the official implementation does. (iii)~The formulas for $\eta^2_{\text{cell}}$, the Williams test and win-fraction confidence intervals; bootstrap intervals now resample source sentences. (iv)~GEMBA (degenerate scores) and BLEURT (English-only checkpoint) were removed, and BLEU uses SentencePiece tokenization for Japanese, Thai, Lao and Burmese targets. We also added an expert-MQM control (\S\ref{sec:mqm_control}) and a training-data overlap check (\S\ref{sec:overlap}).
+
+\smallskip\textbf{Withdrawn.} That translation direction itself predicts metric reliability (\S\ref{sec:mqm_control}); that medium-resource languages are better evaluated than high-resource ones; that Russian shows Simpson's paradox; that Spanish is the best-evaluated MQM language; that Ukrainian's failure is a domain confound.
+
+\smallskip\textbf{Unchanged.} The benchmark's data, three-tier design and language set; the direction effect under DA labels; neural metrics outperforming $n$-gram metrics in every tier and direction; the masking of year-level variation by pooling (cs-en).}}
+
+\vspace{0.6em}
+\begin{abstract}
+How well an automatic machine translation (MT) metric agrees with human judgment depends on which human judgments it is compared with. We study this with AmanaMT, a benchmark spanning \TotalSegments\ segments, \NumLanguages\ languages, three annotation tiers, and \NumMetrics\ metrics. Under WMT Direct Assessment (DA) labels, translation direction is the largest predictor of between-language variance in metric--human correlation ($\eta^2_{\text{dir}}=\EtaSqDir$), well ahead of morphological type ($\eta^2_{\text{morph}}=\EtaSqMorph$). This direction effect does not replicate consistently under expert MQM labels: on the same segments, into-English pairs are evaluated worse than out-of-English pairs in all \MqmCtrlNYearsDA\ WMT years under DA, but better in \MqmCtrlNNegMQM\ of \MqmCtrlNYearsMQM\ years under MQM. This is consistent with WMT's own finding that into-English crowd reference-based DA is unreliable at segment level. Label quality also mattered inside our own pipeline: correcting how the MQM labels were assembled (Russian scores on two different scales normalized together, and error markup left in the Hebrew and Spanish hypotheses) changed several per-language results and reversed several conclusions of the originally published version. Neural metrics outperform $n$-gram baselines in every tier and direction, and MetricX-24 has the highest mean correlation in every tier, although its training data overlaps our test sets more than any other metric's. We recommend checking metric-reliability findings against expert labels before attributing them to languages or translation directions.
+\end{abstract}
 
 %% ------------------------------------------
 \section{Introduction}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{figures/presentation_direction_morphology_teaser.pdf}
-  \caption{Under WMT DA labels, COMET correlates better with human judgment for en$\to$X (dark green) than for X$\to$en (light green) within both morphological types that have Tier-1 data in both directions (\S\ref{sec:dir_morph}). This direction effect does not replicate consistently under expert MQM labels (\S\ref{sec:mqm_control}). Isolating is omitted because the main pipeline has no en$\to$X isolating pair (en$\to$zh DA exists but was excluded by a configuration rule; see Limitations).}
-  \label{fig:teaser}
+  \includegraphics[width=\columnwidth]{figures/presentation_mqm_control.pdf}
+  \caption{Same-year direction gap (mean en$\to$X minus mean X$\to$en COMET Spearman $\rho$) under WMT DA and expert MQM labels on the same segments (\S\ref{sec:mqm_control}); bars are 95\% bootstrap CIs over source segments. Under DA, en$\to$X is better evaluated in every year; under MQM, X$\to$en is better evaluated in \MqmCtrlNNegMQM\ of \MqmCtrlNYearsMQM\ years. The shaded years are those whose into-English DA is crowd reference-based.}
+  \label{fig:mqm_control}
 \end{figure}
 
 Automated MT metrics are the connective tissue of modern MT research: they drive model selection, benchmark comparisons, and shared-task rankings across hundreds of language pairs. Yet the conditions under which these metrics are trustworthy remain poorly understood. A practitioner evaluating a new Hindi or Swahili translation system reaches for BLEU or COMET without knowing whether those metrics bear any reliable relationship to human judgment for that language, domain, or translation direction.
 
 The WMT Metrics Shared Task \cite{freitag2023results} has produced annual meta-evaluations for over a decade, but each edition covers only the language pairs in that year's shared task, typically 5--15 pairs, nearly always news-domain, and never with a systematic typological framing. Efforts to extend coverage to low-resource languages \cite{yari2025item} remain limited in scope. No prior work has unified professional Multidimensional Quality Metrics (MQM) annotations, crowd-sourced Direct Assessment (DA), and synthetic annotations across a common evaluation framework spanning the full range of typological diversity.
 
-We fill this gap with AmanaMT\footnote{\emph{Amana} (Hausa, borrowed from Arabic \emph{am\=ana}): trust, reliability, honesty. Named for the benchmark's purpose: determining when and where automatic MT metrics can be trusted. Code and data: \url{https://github.com/byu-matrix-lab/amana-mt}.}, a unified three-tier benchmark across \NumLanguages\ languages, \NumMetrics\ metrics, and \TotalSegments\ segments. Our design compares metric reliability across resource tiers, translation directions, and morphological types in a single study. The main lesson is about the human labels: several patterns that look like properties of languages or translation directions trace instead to the annotation protocol, to how labels are pooled across years, or to how they were assembled.
+We fill this gap with AmanaMT\footnote{\emph{Amana} (Hausa, borrowed from Arabic \emph{am\=ana}): trust, reliability, honesty. Named for the benchmark's purpose: determining when and where automatic MT metrics can be trusted. Code and data: \url{https://github.com/byu-matrix-lab/amana-mt}.}, a unified three-tier benchmark across \NumLanguages\ languages, \NumMetrics\ metrics, and \TotalSegments\ segments. Our design compares metric reliability across resource tiers, translation directions, and morphological types in a single study. The main lesson is about the human labels: several patterns that look like properties of languages or translation directions trace instead to the annotation protocol, to how labels are pooled across years, or to how they were assembled (Figure~\ref{fig:mqm_control}).
 
 \subsection{Contributions}
 
-\textbf{Direction under DA, but not consistently under MQM.} Across a grid of translation direction (en$\to$X, X$\to$en, X$\leftrightarrow$Y) and morphological type (isolating, agglutinative, fusional), direction is the largest predictor of metric--human correlation under WMT DA labels ($\eta^2_{\text{dir}}=\EtaSqDir$, against $\eta^2_{\text{morph}}=\EtaSqMorph$). On segments that also have expert MQM labels, the into-English deficit reverses sign in \MqmCtrlNNegMQM\ of \MqmCtrlNYearsMQM\ WMT years (\S\ref{sec:mqm_control}), so the effect is better explained by into-English crowd DA than by direction itself.
+\textbf{Direction dominates under crowd DA and mostly reverses under expert MQM.} Across a grid of translation direction (en$\to$X, X$\to$en, X$\leftrightarrow$Y) and morphological type (isolating, agglutinative, fusional), direction is the largest predictor of metric--human correlation under WMT DA labels ($\eta^2_{\text{dir}}=\EtaSqDir$, against $\eta^2_{\text{morph}}=\EtaSqMorph$). On segments that also have expert MQM labels, the into-English deficit reverses sign in \MqmCtrlNNegMQM\ of \MqmCtrlNYearsMQM\ WMT years (\S\ref{sec:mqm_control}), so the effect is better explained by into-English crowd DA than by direction itself.
 
 \textbf{Label assembly changes conclusions.} Correcting how we assembled the MQM labels moved per-language correlations substantially (e.g.\ Russian COMET $\rho=\LangCOMETRU$, Spanish $\LangCOMETES$) and reversed several claims of the original version (Version note). We describe the errors so that others building on the same public files can avoid them.
 
 \textbf{Pooling across years can mask failure.} Czech cs-en pooled across WMT years ($\rho=\CsEnPooled$) hides per-year correlations ranging from $\CsEnRangeLo$ to $\CsEnRangeHi$.
 
-\textbf{Neural metrics dominate.} MetricX-24, xCOMET, and COMET outperform surface metrics in every direction and tier, and MetricX-24 has the highest mean correlation in every tier. Which neural metric wins a given language pair is less stable (\S\ref{sec:predictor}).
+\textbf{Neural metrics dominate.} MetricX-24, xCOMET, and COMET outperform surface metrics in every direction and tier, and MetricX-24 has the highest mean correlation in every tier, although part of that lead may reflect overlap with its training data (\S\ref{sec:overlap}). Which neural metric wins a given language pair is less stable (\S\ref{sec:predictor}).
 
 %% ------------------------------------------
 \section{Related Work}
@@ -102,12 +113,12 @@ A core contribution is the unified three-tier data pipeline that brings together
 
 \paragraph{Embedding-based.}
 \textbf{BERTScore} \cite{zhang2019bertscore}: Contextual embedding cosine similarity (mDeBERTa-v3-base).
-\textbf{BLEURT} \cite{sellam2020bleurt}: Fine-tuned BERT regression on human ratings. We use \texttt{Elron/bleurt-large-512}, a port of the original English BLEURT-large, and therefore report BLEURT only for English-target segments.
+BLEURT \cite{sellam2020bleurt}, which the original version reported, is excluded: the checkpoint we used (\texttt{Elron/bleurt-large-512}) is a port of the English-only BLEURT-large, so it is not valid for most of the benchmark's target languages.
 
 \paragraph{Learned regression (reference-based).}
 \textbf{COMET} \cite{rei2022comet22}: Regression over source+hypothesis+reference (wmt22-comet-da).
 \textbf{xCOMET} \cite{guerreiro2023xcomet}: COMET with MQM error-span detection (XCOMET-XL).
-\textbf{MetricX-24} \cite{juraska2024metricx}: Google's WMT 2024 winning hybrid metric (metricx-24-hybrid-large-v2p6-bfloat16).
+\textbf{MetricX-24} \cite{juraska2024metricx}: Google's WMT 2024 winning hybrid metric (metricx-24-hybrid-large-v2p6-bfloat16). It predicts an error score from 0 (best) to 25 (worst); we use 25 minus that score, so that higher is better for every metric. This only changes the sign of its correlations.
 
 \paragraph{Reference-free quality estimation.}
 \textbf{CometKiwi-22} \cite{rei2022cometkiwi} (Kiwi-22 in tables): Reference-free QE using source+hypothesis only (wmt22-cometkiwi-da).
@@ -183,7 +194,6 @@ We explicitly ruled out a data-pipeline explanation: Tier~2's segment identifier
 \midrule
 \multirow{2}{*}{Embed.}
   & BERTScore  & \TierBERTScoreHighRho{} / \TierBERTScoreHighSPA & \TierBERTScoreMedRho{} / \TierBERTScoreMedSPA & \TierBERTScoreLowRho{} / \TierBERTScoreLowSPA \\
-  & BLEURT     & \TierBLEURTHighRho{} / \TierBLEURTHighSPA & \TierBLEURTMedRho{} / \TierBLEURTMedSPA & \TierBLEURTLowRho{} / \TierBLEURTLowSPA \\
 \midrule
 \multirow{3}{*}{Regr.}
   & COMET      & \TierCOMETHighRho{} / \TierCOMETHighSPA & \TierCOMETMedRho{} / \TierCOMETMedSPA & \TierCOMETLowRho{} / \TierCOMETLowSPA \\
@@ -197,24 +207,26 @@ We explicitly ruled out a data-pipeline explanation: Tier~2's segment identifier
 --  & Ensemble & \TierEnsembleHighRho{} / \TierEnsembleHighSPA & \TierEnsembleMedRho{} / \TierEnsembleMedSPA & \TierEnsembleLowRho{} / \TierEnsembleLowSPA \\
 \bottomrule
 \end{tabular}
-\caption{Average Spearman $\rho$ / tie-credited pairwise accuracy (\PAhalf{}) by resource tier. High = Tier~1a MQM (de, ru, zh, he); Med = Tier~1b DA plus en-es WMT24 MQM; Low = Tier~1b DA. Values are averaged across annotation tiers within each resource tier. BLEURT is computed on English-target segments only. \textbf{Bold}: best single metric per tier. Resource tier is confounded with annotation protocol, test set and year (Limitations), so differences between columns should not be read as effects of resource level.}
+\caption{Average Spearman $\rho$ / tie-credited pairwise accuracy (\PAhalf{}) by resource tier. High = Tier~1a MQM (de, ru, zh, he); Med = Tier~1b DA plus en-es WMT24 MQM; Low = Tier~1b DA. Values are averaged across annotation tiers within each resource tier. \textbf{Bold}: best single metric per tier. Resource tier is confounded with annotation protocol, test set and year (Limitations), so differences between columns should not be read as effects of resource level.}
 \label{tab:tier}
 \end{table}
 
 \subsection{Per-Language Analysis}
 \label{sec:per_lang}
 
-Figure~\ref{fig:heatmap} shows per-language Spearman $\rho$ for COMET. Notable patterns:
+Figure~\ref{fig:heatmap} shows Spearman $\rho$ for every metric and language pair. Notable patterns:
 
 \begin{figure*}[t]
-  \includegraphics[width=\textwidth]{figures/presentation_language_heatmap.pdf}
-  \caption{Per-language Spearman $\rho$ heatmap for all evaluated metrics. Languages sorted by resource tier. Black horizontal lines divide tiers. Ukrainian (\textbf{\textcolor{red!60!black}{uk}}) is near zero for every metric (\S\ref{sec:per_lang}). \textit{Tier~2 languages} (am, ht, ka, lo, my, sw, th) use synthetic MQM annotations generated by Llama-3.1-8B; their correlations are exploratory and unvalidated against human judgments. BLEURT is blank for languages with no English-target segments.}
+  \centering
+  \includegraphics[width=\textwidth]{figures/presentation_language_direction_heatmap_T_textwidth.pdf}
+  \caption{Spearman $\rho$ between each metric and human scores, one column per language pair (the \NumMixedLangs\ bidirectional languages appear once per direction). Columns are grouped by label type and direction and, within each group, sorted by the mean $\rho$ of the five learned metrics; rows are grouped by metric family. Tier~2 labels are synthetic and exploratory. Values are $\rho\times100$. Each column pools all WMT years of its pair. Figure~\ref{fig:heatmap_full} (appendix) repeats the figure with two-decimal values.}
   \label{fig:heatmap}
 \end{figure*}
 
+
 \textbf{Top performers}: Latvian achieves the highest individual COMET correlation ($\rho = \LangCOMETLV$), followed by Lithuanian ($\SepCOMETLTEX$), Finnish ($\SepCOMETFIEX$), Turkish ($\SepCOMETTREX$), and Estonian ($\SepCOMETETEX$) -- all en$\to$X-specific values for the languages with data in both directions (Table~\ref{tab:dir_sep}), not the direction-pooled averages, which would understate them -- spanning two morphological types. All five are en$\to$X pairs, so their high correlations are part of the direction pattern examined in \S\ref{sec:mqm_control}, not evidence about these languages as such.
 
-\textbf{Ukrainian} (uk-en, WMT22) collapses to near-zero correlation for all metrics ($\rho_{\text{COMET}} = \LangCOMETUK$, pairwise acc.\ $= \LangUKCOMETPairwiseAcc$). A uniform near-zero result across unrelated metric families is also the signature of a broken human-score join, so we independently rebuilt Ukrainian's quality scores from the raw WMT DA data and rejoined them to every metric checkpoint by segment ID: the alignment is correct. The original version attributed the collapse to domain, because every Ukrainian segment carries the domain label \texttt{other}. That explanation does not hold up. The same collapse appears for another WMT22 into-English pair under the same kind of label: on \MqmCtrlZhTwentyTwoN\ WMT22 zh-en segments, COMET correlates at $\rho=\MqmCtrlZhTwentyTwoCOMETCrowdDA$ with the crowd reference-based DA scores but at $\rho=\MqmCtrlZhTwentyTwoCOMETMQM$ with expert MQM and $\rho=\MqmCtrlZhTwentyTwoCOMETSrcDA$ with source-based DA. The likelier cause is therefore the label: WMT22 into-English crowd reference-based DA, which \citet{freitag2022results} found to be uninformative at segment level. We applied the same rebuild-and-rejoin check to is-en and ha-en, the two other pairs with weak correlations (Table~\ref{tab:dir_sep}); both alignments are correct, and both are also into-English crowd DA.
+\textbf{Ukrainian} (uk-en, WMT22) collapses to near-zero correlation for all metrics ($\rho_{\text{COMET}} = \LangCOMETUK$, pairwise acc.\ $= \LangUKCOMETPairwiseAcc$). A uniform near-zero result across unrelated metric families is also the signature of a broken human-score join, so we independently rebuilt Ukrainian's quality scores from the raw WMT DA data and rejoined them to every metric checkpoint by segment ID: the alignment is correct. The original version attributed the collapse to domain, because every Ukrainian segment carries the domain label \texttt{other}. That explanation does not hold up. The same collapse appears for another WMT22 into-English pair under the same kind of label: on \MqmCtrlZhTwentyTwoN\ WMT22 zh-en segments, COMET correlates at $\rho=\MqmCtrlZhTwentyTwoCOMETCrowdDA$ with the crowd reference-based DA scores but at $\rho=\MqmCtrlZhTwentyTwoCOMETMQM$ with expert MQM and $\rho=\MqmCtrlZhTwentyTwoCOMETSrcDA$ with source-based DA. The likelier cause is therefore the label: WMT22 into-English crowd reference-based DA, which \citet{freitag2022results} found to be uninformative at segment level. We applied the same rebuild-and-rejoin check to is-en and ha-en, the two other pairs with weak correlations (Table~\ref{tab:dir_sep}); both alignments are correct, and both used into-English crowd reference-based DA \citep[pp.~11, 14]{akhbardeh-etal-2021-findings}.
 
 \textbf{Resource tiers.} For every neural metric, the High tier has the higher mean correlation (COMET: $\rho=\TierCOMETHighRho$ vs.\ Medium $\TierCOMETMedRho$; MetricX: $\TierMetricXHighRho$ vs.\ $\TierMetricXMedRho$; Figure~\ref{fig:tierbar}), while BLEU, ChrF++ and BERTScore are slightly higher in Medium. The High--Medium margin for neural metrics depends on how the tier mean is formed: these means average over annotation tiers, so Spanish, the only Medium MQM language, weighs as much as all Medium DA languages together, and averaging over languages instead narrows the margin to near zero. The original version reported the reverse ordering for all metrics and explained it by cross-year pooling; that result came from the MQM label errors corrected in this version. Because the tiers also differ in annotation protocol, test sets and years, we draw no conclusion about resource level from these means.
 
@@ -222,7 +234,7 @@ Figure~\ref{fig:heatmap} shows per-language Spearman $\rho$ for COMET. Notable p
 
 \textbf{Khmer}: Despite being classified as low-resource, Khmer achieves COMET $\rho=\LangCOMETKM$ and MetricX $\rho=\LangMetricXKM$, higher than several medium-tier languages (e.g., Japanese $\LangCOMETJA$, Hindi $\LangCOMETHI$). Khmer is Austroasiatic (Mon-Khmer) and typologically \emph{isolating}. Its data are a single year of X$\to$en Wikipedia-domain DA; we do not test why it correlates well, and a single test set is weak evidence about the language.
 
-\textbf{Hebrew} (he-en, WMT23 MQM, \LangNHE\ segments): xCOMET has the strongest correlation ($\rho=\LangXCOMETHE$), followed by MetricX ($\LangMetricXHE$), COMET ($\LangCOMETHE$), CometKiwi-22 ($\LangKiwiHE$), CometKiwi-23 ($\LangKiwiXXIIIHE$), and BERTScore ($\LangBERTScoreHE$). Because he-en is into English, the hypotheses are English; Hebrew enters only through the source. The he-en and en-es labels and hypotheses come from Google's span-level MQM files, which the original version parsed incorrectly: error-span markup was left inside the hypotheses, and each error annotation became its own row. Because the markup appears only in hypotheses that contain errors, it gives metrics a signal correlated with the labels, which can inflate correlations; both languages' correlations fell after the correction. We validated the corrected metric scores at segment level against the official \texttt{mt-metrics-eval-v2} \citep{freitag2023results} per-(system, segment) baseline releases for WMT23 he-en and WMT24 en-es, across all \BaselineValNChecks\ (language, metric) checks. COMET and xCOMET, whose checkpoints match the official baselines (\texttt{wmt22-comet-da}, \texttt{XCOMET-XL}), agree closely with the official scores (Pearson/Spearman $r\geq\BaselineValCoreMinPearson$/$\BaselineValCoreMinSpearman$). BLEURT and MetricX agree more weakly (Pearson/Spearman $r\geq\BaselineValMinPearson$/$\BaselineValMinSpearman$), which traces to checkpoint differences rather than alignment: we score BLEURT with an unofficial port of English BLEURT-large rather than \texttt{BLEURT-20}, and the official WMT23 he-en baseline is \texttt{MetricX-23} while we use \texttt{MetricX-24}.
+\textbf{Hebrew} (he-en, WMT23 MQM, \LangNHE\ segments): xCOMET has the strongest correlation ($\rho=\LangXCOMETHE$), followed by MetricX ($\LangMetricXHE$), COMET ($\LangCOMETHE$), CometKiwi-22 ($\LangKiwiHE$), CometKiwi-23 ($\LangKiwiXXIIIHE$), and BERTScore ($\LangBERTScoreHE$). Because he-en is into English, the hypotheses are English; Hebrew enters only through the source. The he-en and en-es labels and hypotheses come from Google's span-level MQM files, which the original version parsed incorrectly: error-span markup was left inside the hypotheses, and each error annotation became its own row. Because the markup appears only in hypotheses that contain errors, it gives metrics a signal correlated with the labels, which can inflate correlations; both languages' correlations fell after the correction. We validated the corrected metric scores at segment level against the official \texttt{mt-metrics-eval-v2} \citep{freitag2023results} per-(system, segment) baseline releases for WMT23 he-en and WMT24 en-es, across all \BaselineValNChecks\ (language, metric) checks. COMET and xCOMET, whose checkpoints match the official baselines (\texttt{wmt22-comet-da}, \texttt{XCOMET-XL}), agree closely with the official scores (Pearson/Spearman $r\geq\BaselineValCoreMinPearson$/$\BaselineValCoreMinSpearman$). BLEURT and MetricX agree more weakly (Pearson/Spearman $r\geq\BaselineValMinPearson$/$\BaselineValMinSpearman$), which traces to checkpoint differences rather than alignment: we scored BLEURT (excluded from all analyses) with an unofficial port of English BLEURT-large rather than \texttt{BLEURT-20}, and the official WMT23 he-en baseline is \texttt{MetricX-23} while we use \texttt{MetricX-24}.
 
 \begin{figure*}[t]
   \includegraphics[width=\textwidth]{figures/presentation_kiwi23_vs_comet.pdf}
@@ -242,6 +254,25 @@ Figure~\ref{fig:heatmap} shows per-language Spearman $\rho$ for COMET. Notable p
 
 Bootstrap 95\% CIs, which resample source sentences, are narrower for large test sets (de COMET: $[\LangCOMETDECIlo, \LangCOMETDECIhi]$, $n=\LangNDE$) than for small ones (ps COMET: $[\LangCOMETPSCIlo, \LangCOMETPSCIhi]$, $n=\LangNPS$). All Tier~1a and Tier~1b COMET correlations except Ukrainian are significant at $p < 10^{-10}$ or better; Ukrainian COMET $p = \LangUKCOMETPval$. With test sets this large, statistical significance says little about practical reliability.
 
+\paragraph{Training-data overlap.}\label{sec:overlap} The learned metrics were trained on WMT human judgments, and those overlap our test sets (Table~\ref{tab:training}). COMET-22, xCOMET and both CometKiwi models were trained on WMT DA up to 2019 or 2020, so they have seen most of our WMT17--20 DA test sets but none from 2021--22; xCOMET, the CometKiwi models and MetricX-24 were also trained on WMT MQM from 2020--22, which overlaps our en-de, en-ru and zh-en MQM test sets. MetricX-24 was trained on WMT DA from 2015--2022, excluding only into-English WMT21--22 and en-zh WMT22, so it is the only metric that has also seen our WMT21--22 out-of-English and non-English test sets. This includes every X$\leftrightarrow$Y pair, where its lead over the other metrics is largest (Figure~\ref{fig:heatmap}). Part of MetricX-24's advantage may therefore be in-sample. Only two of our test sets are outside every metric's training data: WMT23 he-en and WMT24 en-es MQM. On these, MetricX-24 is not the best: xCOMET correlates at $\rho=\LangXCOMETHE$ vs.\ $\LangMetricXHE$ on he-en and $\LangXCOMETES$ vs.\ $\LangMetricXES$ on en-es. A per-metric, per-year comparison of in-sample and out-of-sample test sets is left to follow-up work.
+
+\begin{table*}[t]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Metric} & \textbf{WMT DA years} & \textbf{WMT MQM years} & \textbf{Other training data} \\
+\midrule
+COMET-22 & 2017--2020 & -- & -- \\
+xCOMET-XL & 2017--2020 & 2020--2022 (2022 news held out) & MLQE-PE; IndicMT, DEMETR (MQM) \\
+CometKiwi-22 & 2017--2019 & 2020--2021 & MLQE-PE \\
+CometKiwi-23 & 2017--2020$^a$ & en-de, zh-en (years not stated) & MLQE-PE; WMT23 Indic-language DA \\
+MetricX-24 & 2015--2022, except into-English 2021--22 and en-zh 2022 & 2021--2022 & synthetic examples \\
+\bottomrule
+\end{tabularx}
+\caption{Human-judgment training data of the learned metrics, as stated in their papers \citep{rei2022comet22,guerreiro2023xcomet,rei2022cometkiwi,rei2023scaling,juraska2024metricx}. Our test sets are WMT DA 2017--2022, WMT MQM 2020--2022 (en-de, en-ru, zh-en), WMT23 he-en MQM and WMT24 en-es MQM. $^a$The CometKiwi-23 paper gives 2017--2019 in one place and 2017--2020 in another. BERTScore, BLEU and chrF++ are not trained on human judgments.}
+\label{tab:training}
+\end{table*}
+
 \subsection{Translation Direction $\times$ Morphological Type}
 
 Table~\ref{tab:dir_morph} reports the cell means for COMET under the benchmark's labels, which are DA for every pair except the MQM languages (full results for all \NumMetrics\ metrics are in the released code and data repository). \NumMixedLangs\ languages contribute data in both translation directions; we separate them by language-pair code before computing cell means (per-language breakdowns in Table~\ref{tab:dir_sep}). The dominant pattern is directional: en$\to$X languages score substantially above X$\to$en across both morphological types.
@@ -260,9 +291,9 @@ The difference-in-differences between the fusional direction gap and the aggluti
 
 The direction effect above rests on DA labels, and for into-English WMT20--22 pairs these are mostly crowd reference-based DA, which \citet[App.~B]{freitag2022results} found to give near-zero, ``completely meaningless'' segment-level correlations for every metric. For \MqmCtrlNPairs\ pairs, WMT also released expert MQM labels (en-de, en-ru, zh-en, he-en), so we can recompute the same-year direction gap (mean en$\to$X minus mean X$\to$en COMET Spearman $\rho$) on the same segment sets under each label type (in WMT23 the MQM gap also includes he-en, which has no DA). This control reads the official \texttt{mt-metrics-eval-v2} files directly, so it does not depend on our data pipeline or on the label corrections in this version. Intervals are 95\% bootstrap CIs resampling source segments.
 
-Under DA the gap is positive in all \MqmCtrlNYearsDA\ years: \MqmCtrlGapDATwenty\ [\MqmCtrlGapDATwentyCIlo, \MqmCtrlGapDATwentyCIhi] in WMT20, \MqmCtrlGapDATwentyOne\ [\MqmCtrlGapDATwentyOneCIlo, \MqmCtrlGapDATwentyOneCIhi] in WMT21, \MqmCtrlGapDATwentyTwo\ [\MqmCtrlGapDATwentyTwoCIlo, \MqmCtrlGapDATwentyTwoCIhi] in WMT22, and \MqmCtrlGapDATwentyThree\ [\MqmCtrlGapDATwentyThreeCIlo, \MqmCtrlGapDATwentyThreeCIhi] in WMT23. Under MQM it is \MqmCtrlGapMQMTwenty\ [\MqmCtrlGapMQMTwentyCIlo, \MqmCtrlGapMQMTwentyCIhi], \MqmCtrlGapMQMTwentyOne\ [\MqmCtrlGapMQMTwentyOneCIlo, \MqmCtrlGapMQMTwentyOneCIhi], \MqmCtrlGapMQMTwentyTwo\ [\MqmCtrlGapMQMTwentyTwoCIlo, \MqmCtrlGapMQMTwentyTwoCIhi], and \MqmCtrlGapMQMTwentyThree\ [\MqmCtrlGapMQMTwentyThreeCIlo, \MqmCtrlGapMQMTwentyThreeCIhi]: X$\to$en is the \emph{better}-evaluated direction in \MqmCtrlNNegMQM\ of \MqmCtrlNYearsMQM\ years. The WMT22 zh-en segments with three label types show where the difference comes from: COMET correlates at $\rho=\MqmCtrlZhTwentyTwoCOMETMQM$ with MQM, $\MqmCtrlZhTwentyTwoCOMETSrcDA$ with source-based DA, and $\MqmCtrlZhTwentyTwoCOMETCrowdDA$ with crowd reference-based DA ($n=\MqmCtrlZhTwentyTwoN$).
+Figure~\ref{fig:mqm_control} shows the result. Under DA the gap is positive in all \MqmCtrlNYearsDA\ years: \MqmCtrlGapDATwenty\ [\MqmCtrlGapDATwentyCIlo, \MqmCtrlGapDATwentyCIhi] in WMT20, \MqmCtrlGapDATwentyOne\ [\MqmCtrlGapDATwentyOneCIlo, \MqmCtrlGapDATwentyOneCIhi] in WMT21, \MqmCtrlGapDATwentyTwo\ [\MqmCtrlGapDATwentyTwoCIlo, \MqmCtrlGapDATwentyTwoCIhi] in WMT22, and \MqmCtrlGapDATwentyThree\ [\MqmCtrlGapDATwentyThreeCIlo, \MqmCtrlGapDATwentyThreeCIhi] in WMT23. Under MQM it is \MqmCtrlGapMQMTwenty\ [\MqmCtrlGapMQMTwentyCIlo, \MqmCtrlGapMQMTwentyCIhi], \MqmCtrlGapMQMTwentyOne\ [\MqmCtrlGapMQMTwentyOneCIlo, \MqmCtrlGapMQMTwentyOneCIhi], \MqmCtrlGapMQMTwentyTwo\ [\MqmCtrlGapMQMTwentyTwoCIlo, \MqmCtrlGapMQMTwentyTwoCIhi], and \MqmCtrlGapMQMTwentyThree\ [\MqmCtrlGapMQMTwentyThreeCIlo, \MqmCtrlGapMQMTwentyThreeCIhi]: X$\to$en is the \emph{better}-evaluated direction in \MqmCtrlNNegMQM\ of \MqmCtrlNYearsMQM\ years. The WMT22 zh-en segments with three label types show where the difference comes from: COMET correlates at $\rho=\MqmCtrlZhTwentyTwoCOMETMQM$ with MQM, $\MqmCtrlZhTwentyTwoCOMETSrcDA$ with source-based DA, and $\MqmCtrlZhTwentyTwoCOMETCrowdDA$ with crowd reference-based DA ($n=\MqmCtrlZhTwentyTwoN$).
 
-We therefore do not claim that translation direction itself predicts metric reliability. The direction effect in Table~\ref{tab:dir_morph} does not replicate consistently under expert MQM, and it is largely explained by into-English crowd DA. This control has limits of its own: only \MqmCtrlNPairs\ pairs have expert labels, so direction is entangled with language; the WMT20--22 sets include human reference translations scored as systems, and excluding them or he-en leaves every sign unchanged in an independent recomputation; and in WMT23, whose DA is source-based, en$\to$X is better evaluated under both label types. A fuller treatment is left to follow-up work.
+We therefore do not claim that translation direction itself predicts metric reliability. The direction effect in Table~\ref{tab:dir_morph} does not replicate consistently under expert MQM, and it is largely explained by into-English crowd DA. This control has limits of its own: only \MqmCtrlNPairs\ pairs have expert labels, so direction is entangled with language; the WMT20--22 sets include human reference translations scored as systems, but excluding them changes the sign of \MqmCtrlNoHumanNSignChanges\ of the \MqmCtrlNoHumanNComparisons\ yearly label-specific gaps, and excluding he-en leaves the WMT23 MQM gap positive (\MqmCtrlGapMQMTwentyThreeNoHe); and in WMT23, whose DA is source-based, en$\to$X is better evaluated under both label types. A fuller treatment is left to follow-up work.
 
 \begin{table}[t]
 \centering
@@ -308,7 +339,7 @@ Contrast with \citet{mondshine2025ngrams}: in their summarization setting, COMET
 \subsection{Typological Predictors of Metric Choice}
 \label{sec:predictor}
 
-We now ask a practical question: which metric should a practitioner prefer for an unseen language pair? The analysis in this section is exploratory; cells are small and the labels are those of \S\ref{sec:dir_morph}.
+We now ask a practical question: which metric should a practitioner prefer for an unseen language pair? Figure~\ref{fig:kiwi_scatter} compares reference-free CometKiwi-23 with reference-based COMET for every language. The analysis in this section is exploratory; cells are small and the labels are those of \S\ref{sec:dir_morph}.
 
 For each of the \NumHumanAnnotatedLanguages\ languages with human annotations, we rank all metrics by Spearman $\rho$ and record the best-performing metric.
 Table~\ref{tab:lookup} summarizes these \TableFourTotalPairs\ direction-language pair observations (\TableFourMainPipelinePairs\ in the main pipeline; de-en held out as a blind validation), with leave-one-out (LOO) cross-validation for cells with $n \geq 6$ (overall \LOOOverallCorrect/\LOOOverallTotal\ = \LOOOverallPct\%). Isolating X$\to$en ($n{=}\WinTotalXtoEnIsolating$) and X$\leftrightarrow$Y ($n{=}\PivotN$) fall below this threshold and are marked `--' in the LOO column rather than validated.
@@ -397,7 +428,7 @@ What survives is less surprising but more robust: neural metrics are substantial
 \paragraph{A practical, exploratory procedure.} Table~\ref{tab:lookup} suggests a short recipe for choosing a metric on an unseen language pair. Margins between the top neural metrics are often small, and the recipe is based on the benchmark's mostly DA labels.
 \begin{enumerate}
   \item \textbf{Prefer a neural metric over BLEU/ChrF++.} The gain ranges from $+\TableFourXtoEnFusional$ to $+\TableFourEntoXAgglutin$ Spearman points across the profiles in Table~\ref{tab:lookup}.
-  \item \textbf{Among neural metrics, MetricX-24 is the safest default}: it has the highest mean correlation in every tier and direction, and wins every isolating X$\to$en and X$\leftrightarrow$Y pair.
+  \item \textbf{Among neural metrics, MetricX-24 leads on average}: it has the highest mean correlation in every tier and direction. Its training data, however, overlaps our test sets more than any other metric's, and on the two test sets no metric was trained on, xCOMET does as well or better (\S\ref{sec:overlap}).
   \item \textbf{CometKiwi-23 is competitive where no reference is available}: it beats COMET in \BeatsCometEntoXTotal/\EntoXTotalPairs\ en$\to$X pairs and wins most agglutinative X$\to$en pairs.
   \item \textbf{Typological features alone will not pick the metric}: our Ridge predictor over WALS \citep{wals} features reaches only \RidgeRecAcc\ recommendation accuracy.
   \item \textbf{Check the labels} before trusting any reliability estimate for a new pair: in particular, avoid segment-level conclusions from into-English crowd reference-based DA \citep{freitag2022results}.
@@ -417,7 +448,7 @@ Future work should test the direction question on more pairs with expert labels,
 
 \textbf{Empty en$\to$X isolating cell.} Because en$\to$zh was excluded, the main pipeline has no en$\to$X isolating observation, which limits what the design can say about isolating languages.
 
-\textbf{Metric implementations.} BLEURT is an unofficial port of English BLEURT-large, so we report it only for English-target segments. BLEU uses the \texttt{13a} tokenizer, which does not segment Japanese or Chinese, so BLEU is underestimated for en-ja and similar pairs; this narrows but does not remove the neural advantage. Several learned metrics were trained on earlier WMT human judgments, and we did not check every test year against each metric's training data.
+\textbf{Metric implementations.} BLEU uses sacreBLEU's \texttt{13a} tokenizer, except for Japanese, Thai, Lao and Burmese targets, which use FLORES-200 SentencePiece tokenization (spBLEU), because \texttt{13a} leaves unsegmented scripts as a few long tokens. BLEURT is excluded because our checkpoint is English-only. The learned metrics were trained on WMT human judgments that overlap many of our test sets (Table~\ref{tab:training}, \S\ref{sec:overlap}).
 
 \textbf{Pooling.} Per-language correlations pool test sets, years and domains (\S\ref{sec:discussion} reports per-year values for the multi-year languages).
 
@@ -452,6 +483,17 @@ Compute resources were provided by the BYU Office of Research Computing. This wo
 Table~\ref{tab:languages} lists all languages in the benchmark with their family, script, morphological type, resource tier, and annotation protocol, generated directly from the same classification dictionaries used throughout the analysis (\S\ref{sec:dir_morph}) so it cannot drift from what the pipeline actually used.
 
 \input{language_table_generated}
+
+\section{Per-Pair Correlations for All Metrics}
+
+Figure~\ref{fig:heatmap_full} (rotated, on its own page) repeats Figure~\ref{fig:heatmap} with two-decimal values.
+
+\begin{sidewaysfigure}
+  \centering
+  \includegraphics[width=\textheight]{figures/presentation_language_direction_heatmap_T_sideways.pdf}
+  \caption{Spearman $\rho$ between each metric and human scores, one column per language pair; the \NumMixedLangs\ languages with data in both directions appear once per direction. Columns are grouped by label type and direction (the expert-MQM pairs form their own group; Tier~2 labels are synthetic and exploratory) and, within each group, sorted by the mean $\rho$ of the five learned metrics. Rows are grouped by metric family. Each column pools all WMT years of its pair, so year-level variation such as cs-en's (Table~\ref{tab:yearstrat}) is not visible; de-cs, the only X$\leftrightarrow$Y pair inside a bidirectional language, is omitted. BLEU for ja, th, lo and my targets uses SentencePiece tokenization.}
+  \label{fig:heatmap_full}
+\end{sidewaysfigure}
 
 \section{Per-Language Spearman $\rho$ by Direction}
 \label{app:direction}

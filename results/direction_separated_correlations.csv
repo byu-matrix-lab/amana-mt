@@ -15,7 +15,6 @@ fi,x_to_en,agglutinative,metricx,0.5710049190524655,46145
 fi,x_to_en,agglutinative,bleu,0.30702444659721256,46145
 fi,x_to_en,agglutinative,chrf,0.3590896833449962,46145
 fi,x_to_en,agglutinative,bertscore,0.42880247167741115,46145
-fi,x_to_en,agglutinative,bleurt,0.5682400867118917,46145
 tr,en_to_x,agglutinative,comet,0.7235107647997103,5171
 tr,en_to_x,agglutinative,cometkiwi,0.729001297501354,5171
 tr,en_to_x,agglutinative,cometkiwi23,0.7836556975585204,5171
@@ -32,7 +31,6 @@ tr,x_to_en,agglutinative,metricx,0.5714334308935128,30186
 tr,x_to_en,agglutinative,bleu,0.32338456647385944,30186
 tr,x_to_en,agglutinative,chrf,0.3719177452652987,30186
 tr,x_to_en,agglutinative,bertscore,0.4475766872630035,30186
-tr,x_to_en,agglutinative,bleurt,0.5835477177393139,30186
 et,en_to_x,agglutinative,comet,0.721078776455211,13376
 et,en_to_x,agglutinative,cometkiwi,0.7531634656043555,13376
 et,en_to_x,agglutinative,cometkiwi23,0.8194852768074538,13376
@@ -49,7 +47,6 @@ et,x_to_en,agglutinative,metricx,0.6019970384237973,20496
 et,x_to_en,agglutinative,bleu,0.3558400523836499,20496
 et,x_to_en,agglutinative,chrf,0.3941688431282403,20496
 et,x_to_en,agglutinative,bertscore,0.4551009051832951,20496
-et,x_to_en,agglutinative,bleurt,0.6756609890747788,20496
 lt,en_to_x,fusional,comet,0.7418212598852029,8959
 lt,en_to_x,fusional,cometkiwi,0.768144389179505,8959
 lt,en_to_x,fusional,cometkiwi23,0.8156851502856943,8959
@@ -66,7 +63,6 @@ lt,x_to_en,fusional,metricx,0.5361855940155261,10315
 lt,x_to_en,fusional,bleu,0.3074171384742418,10315
 lt,x_to_en,fusional,chrf,0.3470173395233341,10315
 lt,x_to_en,fusional,bertscore,0.41897556482757686,10315
-lt,x_to_en,fusional,bleurt,0.48205254330516184,10315
 cs,en_to_x,fusional,comet,0.6994768647625406,70943
 cs,en_to_x,fusional,cometkiwi,0.70272364990199,70943
 cs,en_to_x,fusional,cometkiwi23,0.7681847922655795,70943
@@ -83,13 +79,12 @@ cs,x_to_en,fusional,metricx,0.31625286657190754,51097
 cs,x_to_en,fusional,bleu,0.15483571057517032,51097
 cs,x_to_en,fusional,chrf,0.17761779531281224,51097
 cs,x_to_en,fusional,bertscore,0.2100761943187748,51097
-cs,x_to_en,fusional,bleurt,0.3069263748578439,51097
 ja,en_to_x,agglutinative,comet,0.5432477596994874,24434
 ja,en_to_x,agglutinative,cometkiwi,0.5788633103630734,24434
 ja,en_to_x,agglutinative,cometkiwi23,0.6106335760866685,24434
 ja,en_to_x,agglutinative,xcomet,0.5571242360643884,24434
 ja,en_to_x,agglutinative,metricx,0.6567036229938068,24434
-ja,en_to_x,agglutinative,bleu,-0.00013473521471362484,24434
+ja,en_to_x,agglutinative,bleu,0.2377569506882999,24434
 ja,en_to_x,agglutinative,chrf,0.27286298185373326,24434
 ja,en_to_x,agglutinative,bertscore,0.4014414893322629,24434
 ja,x_to_en,agglutinative,comet,0.14375047026824067,46747
@@ -100,7 +95,6 @@ ja,x_to_en,agglutinative,metricx,0.14683071699666397,46747
 ja,x_to_en,agglutinative,bleu,0.11760321362616077,46747
 ja,x_to_en,agglutinative,chrf,0.12703833993035088,46747
 ja,x_to_en,agglutinative,bertscore,0.1283912387789109,46747
-ja,x_to_en,agglutinative,bleurt,0.13515946819740124,46747
 kk,en_to_x,agglutinative,comet,0.6742990283750989,8219
 kk,en_to_x,agglutinative,cometkiwi,0.7113638210422938,8219
 kk,en_to_x,agglutinative,cometkiwi23,0.7659594584077737,8219
@@ -117,7 +111,6 @@ kk,x_to_en,agglutinative,metricx,0.5446566969665587,6789
 kk,x_to_en,agglutinative,bleu,0.372703152633105,6789
 kk,x_to_en,agglutinative,chrf,0.4134829118464581,6789
 kk,x_to_en,agglutinative,bertscore,0.45640927878189563,6789
-kk,x_to_en,agglutinative,bleurt,0.5041014305313709,6789
 ta,en_to_x,agglutinative,comet,0.6518740364228691,7890
 ta,en_to_x,agglutinative,cometkiwi,0.6920786364186913,7890
 ta,en_to_x,agglutinative,cometkiwi23,0.7315736605213595,7890
@@ -134,7 +127,6 @@ ta,x_to_en,agglutinative,metricx,0.4198708078468798,7577
 ta,x_to_en,agglutinative,bleu,0.2589227312498695,7577
 ta,x_to_en,agglutinative,chrf,0.2873039111333423,7577
 ta,x_to_en,agglutinative,bertscore,0.3147309078595642,7577
-ta,x_to_en,agglutinative,bleurt,0.35484541197020303,7577
 ha,en_to_x,fusional,comet,0.3413609406990441,10812
 ha,en_to_x,fusional,cometkiwi,0.2559730855156922,10812
 ha,en_to_x,fusional,cometkiwi23,0.37802658815315815,10812
@@ -151,7 +143,6 @@ ha,x_to_en,fusional,metricx,0.03871359585804808,13171
 ha,x_to_en,fusional,bleu,0.04794689352185948,13171
 ha,x_to_en,fusional,chrf,0.04963339497431732,13171
 ha,x_to_en,fusional,bertscore,0.05179995413409517,13171
-ha,x_to_en,fusional,bleurt,0.037567216506390756,13171
 pl,en_to_x,fusional,comet,0.6320709088439932,10572
 pl,en_to_x,fusional,cometkiwi,0.6537871276536305,10572
 pl,en_to_x,fusional,cometkiwi23,0.7276776450529852,10572
@@ -168,7 +159,6 @@ pl,x_to_en,fusional,metricx,0.33684695131532616,11816
 pl,x_to_en,fusional,bleu,0.19939469224153197,11816
 pl,x_to_en,fusional,chrf,0.22222458432117445,11816
 pl,x_to_en,fusional,bertscore,0.24004116374032328,11816
-pl,x_to_en,fusional,bleurt,0.277134199558161,11816
 is,en_to_x,fusional,comet,0.6232667413935542,10838
 is,en_to_x,fusional,cometkiwi,0.603819221943536,10838
 is,en_to_x,fusional,cometkiwi23,0.6284922639496026,10838
@@ -185,7 +175,6 @@ is,x_to_en,fusional,metricx,0.06575295368850705,8903
 is,x_to_en,fusional,bleu,0.04697690031666465,8903
 is,x_to_en,fusional,chrf,0.05471025567677877,8903
 is,x_to_en,fusional,bertscore,0.0645726945920704,8903
-is,x_to_en,fusional,bleurt,0.058435704749020045,8903
 gu,en_to_x,fusional,comet,0.6732493107323024,6924
 gu,en_to_x,fusional,cometkiwi,0.7300013706247694,6924
 gu,en_to_x,fusional,cometkiwi23,0.7543432103817358,6924
@@ -202,7 +191,6 @@ gu,x_to_en,fusional,metricx,0.448594665060628,9063
 gu,x_to_en,fusional,bleu,0.2587372410019089,9063
 gu,x_to_en,fusional,chrf,0.2981489512592578,9063
 gu,x_to_en,fusional,bertscore,0.34803707778180004,9063
-gu,x_to_en,fusional,bleurt,0.38579520378419785,9063
 lv,en_to_x,fusional,comet,0.7461128452730666,5810
 lv,en_to_x,fusional,cometkiwi,0.7502076092014415,5810
 lv,en_to_x,fusional,cometkiwi23,0.8025815301454206,5810
@@ -219,7 +207,6 @@ km,x_to_en,isolating,metricx,0.5249384535544908,4722
 km,x_to_en,isolating,bleu,0.34164845837477387,4722
 km,x_to_en,isolating,chrf,0.38697791486773425,4722
 km,x_to_en,isolating,bertscore,0.4244909954137478,4722
-km,x_to_en,isolating,bleurt,0.456500952597186,4722
 ps,x_to_en,fusional,comet,0.3333213433630915,4611
 ps,x_to_en,fusional,cometkiwi,0.29508008523525514,4611
 ps,x_to_en,fusional,cometkiwi23,0.39285159845981366,4611
@@ -228,4 +215,3 @@ ps,x_to_en,fusional,metricx,0.39601331445347043,4611
 ps,x_to_en,fusional,bleu,0.23843636260270934,4611
 ps,x_to_en,fusional,chrf,0.2795219822959408,4611
 ps,x_to_en,fusional,bertscore,0.2935838855357721,4611
-ps,x_to_en,fusional,bleurt,0.32090707360484405,4611

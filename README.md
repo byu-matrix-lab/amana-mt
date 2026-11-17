@@ -1,12 +1,15 @@
 # AmanaMT
 
-Research code for **AmanaMT: Translation Direction Predicts Automatic Metric
-Reliability**.
+Research code for **AmanaMT: Translation Direction, Label Quality, and Automatic
+Metric Reliability**, the corrected version of the WMT 2026 paper "AmanaMT:
+Translation Direction Predicts Automatic Metric Reliability" (2026.wmt-1.42).
 
 AmanaMT is a multilingual machine-translation metric meta-evaluation spanning
-**730,748 segments, 33 languages, three annotation tiers, and 10 automatic
+**725,566 segments, 33 languages, three annotation tiers, and 9 automatic
 metrics**. It combines professional MQM annotations, crowd-sourced Direct
-Assessment, and a clearly separated exploratory synthetic-MQM tier.
+Assessment, and a clearly separated exploratory synthetic-MQM tier. The
+corrected version is in `arxiv_submission/`. Its version note lists what changed;
+[REPRODUCE.md](REPRODUCE.md) explains how to regenerate every number.
 
 [Read the WMT paper](https://www2.statmt.org/wmt26/pdf/2026.wmt-1.42.pdf)
 

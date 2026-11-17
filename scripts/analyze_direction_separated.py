@@ -35,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from mqmbench.data.wmt_da import load_wmt_da
 from mqmbench.analysis.correlation import MORPHOLOGY_TYPES
-from mqmbench.analysis.metric_scope import ENGLISH_TARGET_ONLY
+from mqmbench.analysis.metric_scope import ENGLISH_TARGET_ONLY, EXCLUDED_METRICS
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 
@@ -189,7 +189,7 @@ def main():
                 if metric not in grp.columns:
                     continue
                 # 2026-11-10 metric scope: BLEURT is English-target only.
-                if metric in ENGLISH_TARGET_ONLY and direction != "x_to_en":
+                if metric in EXCLUDED_METRICS or (metric in ENGLISH_TARGET_ONLY and direction != "x_to_en"):
                     continue
                 m_vals = grp[metric].values
                 valid = ~(np.isnan(human) | np.isnan(m_vals))

@@ -34,13 +34,29 @@ for tset, lps in PAIRS.items():
         # core comparison: MQM vs crowd DA on the identical segment set
         has_da = "DA" in df
         core = df.dropna(subset=["MQM"] + (["DA"] if has_da else []) + metrics)
+        # Human translations submitted as systems are useful for the primary
+        # WMT analysis, but some reference-based metrics cannot score them.
+        # Keep the published control unchanged and emit a second, explicitly
+        # identified sensitivity set with every ref*/human* system removed.
+        # These names come directly from the official mt-metrics-eval files.
+        _systems = core.index.get_level_values("system").unique()
+        human_systems = sorted(
+            s for s in _systems if str(s).lower().startswith(("ref", "human"))
+        )
+        core_nohuman = core[
+            ~core.index.get_level_values("system").isin(human_systems)
+        ]
         direction = "x_to_en" if lp.endswith("-en") else "en_to_x"
         rec = dict(testset=tset, lp=lp, direction=direction, da_protocol=da_protocol, n=len(core),
                    n_systems=core.index.get_level_values(0).nunique(),
+                   human_systems=",".join(human_systems), n_nohuman=len(core_nohuman),
                    rho_MQM_vs_DA=spearmanr(core.MQM, core.DA).correlation if has_da else np.nan)
         for lab in ["MQM", "DA"] if has_da else ["MQM"]:
             for m in metrics:
                 rec[f"{m}~{lab}"] = spearmanr(core[m], core[lab]).correlation
+            rec[f"COMET~{lab}_nohuman"] = spearmanr(
+                core_nohuman["COMET"], core_nohuman[lab]
+            ).correlation
         # metric-metric agreement on the same set
         for a, b in [("COMET", "chrF"), ("COMET", "BLEURT"), ("COMET", "COMET-QE")]:
             rec[f"{a}~{b}"] = spearmanr(core[a], core[b]).correlation

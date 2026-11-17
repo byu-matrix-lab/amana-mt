@@ -64,7 +64,7 @@ def load_macros(path: Path) -> dict[str, float]:
     """Parse \\newcommand{\\Name}{value} from a .tex file."""
     macros = {}
     for line in path.read_text().splitlines():
-        m = re.match(r'\\newcommand\{\\(\w+)\}\{([0-9.\-]+)\}', line)
+        m = re.match(r'\\newcommand\{\\(\w+)\}\{([+0-9.\-]+)\}', line)
         if m:
             macros[m.group(1)] = float(m.group(2))
     return macros
@@ -328,6 +328,43 @@ else:
     print(f"  SKIP  predictor/summary.json not found")
 
 
+# MQM-control sensitivity caveat: recompute the sign comparison directly
+# from the official-data CSV and require the generated macros to match.
+_ctrl = pd.read_csv(RESULTS / "mqm_control.csv")
+_sens_n = 0
+_sens_changes = 0
+for _ts, _y in _ctrl.groupby("testset"):
+    for _lab in ("MQM", "DA"):
+        _base_col = f"COMET~{_lab}"
+        _sens_col = f"{_base_col}_nohuman"
+        if _sens_col not in _y.columns:
+            continue
+        _base_e = _y[_y.direction == "en_to_x"][_base_col].dropna()
+        _base_x = _y[_y.direction == "x_to_en"][_base_col].dropna()
+        _sens_e = _y[_y.direction == "en_to_x"][_sens_col].dropna()
+        _sens_x = _y[_y.direction == "x_to_en"][_sens_col].dropna()
+        if any(v.empty for v in (_base_e, _base_x, _sens_e, _sens_x)):
+            continue
+        _base_gap = float(_base_e.mean() - _base_x.mean())
+        _sens_gap = float(_sens_e.mean() - _sens_x.mean())
+        _sens_n += 1
+        _sens_changes += int(np.sign(_base_gap) != np.sign(_sens_gap))
+check("MQM-control no-human comparison count matches generated macro",
+      _sens_n == int(macros.get("MqmCtrlNoHumanNComparisons", -1)),
+      f"CSV={_sens_n}, macro={macros.get('MqmCtrlNoHumanNComparisons')}")
+check("MQM-control no-human sign-change count matches generated macro",
+      _sens_changes == int(macros.get("MqmCtrlNoHumanNSignChanges", -1)),
+      f"CSV={_sens_changes}, macro={macros.get('MqmCtrlNoHumanNSignChanges')}")
+
+_wmt23_no_he = _ctrl[(_ctrl.testset == "wmt23") & (_ctrl.lp != "he-en")]
+_no_he_e = _wmt23_no_he[_wmt23_no_he.direction == "en_to_x"]["COMET~MQM"].dropna()
+_no_he_x = _wmt23_no_he[_wmt23_no_he.direction == "x_to_en"]["COMET~MQM"].dropna()
+_no_he_gap = float(_no_he_e.mean() - _no_he_x.mean())
+check("WMT23 MQM gap without he-en matches generated macro",
+      approx_eq(_no_he_gap, macros.get("MqmCtrlGapMQMTwentyThreeNoHe", float("nan"))),
+      f"CSV={_no_he_gap:.3f}, macro={macros.get('MqmCtrlGapMQMTwentyThreeNoHe')}")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 print("\n=== H. Table 6: direction_analysis.csv lang→direction consistent ===")
 # ─────────────────────────────────────────────────────────────────────────────
@@ -547,7 +584,7 @@ check(f"All {len(_fig_refs)} embedded figures match their results/plots/ source 
       "; ".join(_stale_figs))
 
 # ─────────────────────────────────────────────────────────────────────────────
-print("\n=== M. Metric scope (2026-11-10): GEMBA excluded, BLEURT English-target only ===")
+print("\n=== M. Metric scope: GEMBA and BLEURT excluded ===")
 # See src/mqmbench/analysis/metric_scope.py. GEMBA is degenerate (99.6% of
 # segments score "no errors") and is excluded from every analysis. BLEURT
 # (English BLEURT-large port) is reported only where the target is English.
@@ -555,17 +592,13 @@ print("\n=== M. Metric scope (2026-11-10): GEMBA excluded, BLEURT English-target
 _corr_full = pd.read_csv(RESULTS / "correlations.csv")
 check("GEMBA absent from correlations.csv", not (_corr_full.metric == "gemba").any(),
       f"found {int((_corr_full.metric == 'gemba').sum())} GEMBA rows")
-_tex_no_vnote = re.sub(r"\\noindent\\textbf\{Version note\.\}.*?\n\n", "", main_tex_text, flags=re.S)
+_tex_no_vnote = re.sub(r"\\noindent\\fbox\{\\parbox.*?\\textbf\{Version note\.\}.*?\}\}\n", "", main_tex_text, flags=re.S)
 check("GEMBA not mentioned in main.tex outside the version note", "GEMBA" not in _tex_no_vnote,
       "main.tex still mentions GEMBA")
 _ds = pd.read_csv(RESULTS / "direction_separated_correlations.csv")
-_bad_bleurt = _ds[(_ds.metric == "bleurt") & (_ds.direction != "x_to_en")]
-check("BLEURT appears only for X->en in direction_separated_correlations.csv", _bad_bleurt.empty,
-      f"found {len(_bad_bleurt)} non-X->en BLEURT rows")
-_bleurt_langs = set(_corr_full[(_corr_full.metric == "bleurt") & _corr_full.spearman_r.notna()].lang)
-_no_en_target = {"es", "ru", "de", "lv", "fr", "bn", "hi", "xh", "zu"} | set(TIER2_LANGS)
-check("No BLEURT correlation for languages with no English-target rows",
-      not (_bleurt_langs & _no_en_target), f"found {sorted(_bleurt_langs & _no_en_target)}")
+check("BLEURT absent from correlations.csv and direction_separated_correlations.csv (2026-11-16)",
+      not (_corr_full.metric == "bleurt").any() and not (_ds.metric == "bleurt").any(),
+      "BLEURT rows still present")
 
 print("\n=== N. Table direction_full's hand-placed COMET/MetricX bold markers match the data ===")
 # main.tex's per-language COMET-vs-MetricX table (\label{tab:direction_full})

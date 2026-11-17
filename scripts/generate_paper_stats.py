@@ -3,17 +3,13 @@ r"""
 Generate results/paper_stats.json — the single JSON SSOT for every numeric
 claim in the paper — from results CSVs.
 
-This is the ONLY script that computes paper statistics. It used to be four
+This is the primary script that computes paper statistics. It used to be four
 separate scripts (generate_macros.py, recompute_dir_morph_table.py,
-generate_yearstrat_macros.py, generate_hebrew_discrimination_macros.py) that
-each did their own read-merge-write against paper_stats.json, in a specific
-undocumented run order, each with its own copy of "purge my old keys first"
-boilerplate. That shape caused two real bugs in one night: a stale key
-(SepCK23*) left behind after a rename because merge-only-adds never
-removes anything, and hours lost to remembering which script owned which
-macro. One script that rebuilds the whole stats dict from scratch every run
-and writes it once cannot have either problem — there's no "old run" to
-leave stale keys from.
+generate_yearstrat_macros.py, generate_hebrew_discrimination_macros.py) with
+an undocumented run order. This script now computes its complete owned key
+set in one pass, then reads the existing paper_stats.json and merges those
+keys into it. The read-merge-write step preserves entries owned by any other
+paper-stat generator and follows the repository's SSOT rule.
 
 Every numeric claim in the paper should trace to an entry here. Run this,
 then scripts/render_macros.py to render the JSON into
@@ -1305,6 +1301,7 @@ def main():
     _n_gap_ci_excl_zero = {"MQM": 0, "DA": 0}
     _n_gap = {"MQM": 0, "DA": 0}
     _mqm_gap_signs = []
+    _baseline_gap_signs = {}
     for _ts, _yw in _YEAR_WORD.items():
         _y = _ctrl[_ctrl.testset == _ts]
         for _stat, _lw in _LABEL_WORD.items():
@@ -1325,6 +1322,7 @@ def main():
                 f"{_ts} {_lw} gap, 95% CI high")
             _n_gap[_lw] += 1
             _n_gap_ci_excl_zero[_lw] += int(_lo > 0 or _hi < 0)
+            _baseline_gap_signs[(_ts, _lw)] = int(np.sign(_pt))
             if _lw == "MQM":
                 _mqm_gap_signs.append(_pt > 0)
     for _lw in ("MQM", "DA"):
@@ -1338,6 +1336,52 @@ def main():
     _n_pairs = int(_ctrl.lp.nunique())
     add("MqmCtrlNPairs", _n_pairs, str(_n_pairs), "mqm_control.csv",
         "Language pairs with expert MQM in the control (en-de, en-ru, zh-en, he-en)")
+
+    # Sensitivity checks for the caveat in sec:mqm_control. These were first
+    # computed by the independent recompute, but paper-facing claims must be
+    # reproduced by the main SSOT pipeline. mqm_control.py now emits COMET
+    # correlations after removing official systems named ref* or human*.
+    _sensitivity_n = 0
+    _sensitivity_sign_changes = 0
+    for _ts, _yw in _YEAR_WORD.items():
+        _y = _ctrl[_ctrl.testset == _ts]
+        for _base_stat, _lw in _LABEL_WORD.items():
+            _sens_stat = f"{_base_stat}_nohuman"
+            if _sens_stat not in _y.columns:
+                raise SystemExit(
+                    f"mqm_control.csv lacks {_sens_stat}; rerun scripts/audit/mqm_control.py"
+                )
+            _e = _y[_y.direction == "en_to_x"][_sens_stat].dropna()
+            _x = _y[_y.direction == "x_to_en"][_sens_stat].dropna()
+            if _e.empty or _x.empty:
+                continue
+            _gap = float(_e.mean() - _x.mean())
+            add(f"MqmCtrlGap{_lw}NoHuman{_yw}", _gap, fmt_signed3(_gap),
+                "mqm_control.csv",
+                f"{_ts}: {_lw} direction gap after excluding ref*/human* systems")
+            _sensitivity_n += 1
+            _sensitivity_sign_changes += int(
+                int(np.sign(_gap)) != _baseline_gap_signs[(_ts, _lw)]
+            )
+    add("MqmCtrlNoHumanNComparisons", _sensitivity_n, str(_sensitivity_n),
+        "mqm_control.csv",
+        "Year-by-label direction gaps recomputed without human-reference systems")
+    add("MqmCtrlNoHumanNSignChanges", _sensitivity_sign_changes,
+        str(_sensitivity_sign_changes), "mqm_control.csv",
+        "Sensitivity gaps whose sign differs after excluding human-reference systems")
+
+    _wmt23_no_he = _ctrl[(_ctrl.testset == "wmt23") & (_ctrl.lp != "he-en")]
+    _wmt23_no_he_e = _wmt23_no_he[_wmt23_no_he.direction == "en_to_x"]["COMET~MQM"].dropna()
+    _wmt23_no_he_x = _wmt23_no_he[_wmt23_no_he.direction == "x_to_en"]["COMET~MQM"].dropna()
+    if _wmt23_no_he_e.empty or _wmt23_no_he_x.empty:
+        raise SystemExit("Cannot compute WMT23 MQM direction gap without he-en")
+    _wmt23_no_he_gap = float(_wmt23_no_he_e.mean() - _wmt23_no_he_x.mean())
+    if int(np.sign(_wmt23_no_he_gap)) != _baseline_gap_signs[("wmt23", "MQM")]:
+        raise SystemExit("Excluding he-en changes the WMT23 MQM direction-gap sign")
+    add("MqmCtrlGapMQMTwentyThreeNoHe", _wmt23_no_he_gap,
+        fmt_signed3(_wmt23_no_he_gap), "mqm_control.csv",
+        "WMT23 MQM direction gap after excluding he-en")
+
     _tri = pd.read_csv(RESULTS / "mqm_control_three_labels.csv").set_index("label")
     for _lab, _w in (("MQM", "MQM"), ("DA", "CrowdDA"), ("DA-appraise", "SrcDA")):
         _v = float(_tri.loc[_lab, "COMET"])
@@ -1350,18 +1394,38 @@ def main():
     # ─────────────────────────────────────────────────────────────────────
     # WRITE paper_stats.json
     #
-    # This script is the ONLY generator of computed stats, so it doesn't need
-    # read-merge-write's complexity: the stats dict built above is complete
-    # and deterministic every run. Overwriting wholesale (rather than
-    # merging) means there is no such thing as a stale leftover key from a
-    # previous run's now-renamed or now-removed macro.
+    # Read-merge-write is required even though this script currently owns most
+    # keys: another generator may add independently sourced paper statistics.
+    # Never discard those entries by blind-overwriting the canonical SSOT.
     # ─────────────────────────────────────────────────────────────────────
     json_path = RESULTS / "paper_stats.json"
-    json_out = {k: {"value": v["value"], "fmt": v["fmt"], "source": v["source"], "note": v["note"]}
-                for k, v in stats.items()}
+    generated = {k: {"value": v["value"], "fmt": v["fmt"], "source": v["source"], "note": v["note"]}
+                 for k, v in stats.items()}
+    if json_path.exists():
+        with open(json_path) as f:
+            json_out = json.load(f)
+        if not isinstance(json_out, dict):
+            raise SystemExit(f"{json_path} must contain a JSON object")
+    else:
+        json_out = {}
+    # Ownership (2026-11-17): drop keys this script wrote on a previous run but
+    # no longer produces (e.g. BLEURT's tier macros after BLEURT was excluded),
+    # so merge-not-overwrite cannot leave stale numbers behind. Keys owned by any
+    # other generator are untouched. Bootstrap: with no ownership file yet, every
+    # existing key is treated as ours (this was the only generator).
+    owned_path = RESULTS / "paper_stats.owned_by_generate_paper_stats.json"
+    prev_owned = set(json.load(open(owned_path))) if owned_path.exists() else set(json_out)
+    stale = sorted((prev_owned - set(generated)) & set(json_out))
+    for k in stale:
+        del json_out[k]
+    if stale:
+        print(f"Removed {len(stale)} stale keys this script no longer produces: {stale}")
+    json_out.update(generated)
+    with open(owned_path, "w") as f:
+        json.dump(sorted(generated), f, indent=0)
     with open(json_path, "w") as f:
         json.dump(json_out, f, indent=2, default=str, sort_keys=True)
-    print(f"\nWrote {len(json_out)} entries -> {json_path}")
+    print(f"\nMerged {len(generated)} generated entries; {len(json_out)} total -> {json_path}")
 
     manual_keys = [k for k, v in stats.items() if v["source"].startswith("manual")]
     if manual_keys:

@@ -10,10 +10,14 @@ Run from project root:
 """
 
 import re
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-MAIN_TEX = ROOT / "latex" / "main.tex"
+PAPER_DIR = Path(os.environ.get("PAPER_DIR", str(ROOT / "latex")))
+if not PAPER_DIR.is_absolute():
+    PAPER_DIR = ROOT / PAPER_DIR
+MAIN_TEX = PAPER_DIR / "main.tex"
 
 # Decimal number: optional sign, 0.XXX or X.XXX, 2-4 significant digits.
 # Deliberately excludes bare integers (page/table/section numbers, years) and

@@ -82,9 +82,9 @@ def test_metric_scope():
     ids = pd.Series(["en-de_2020_news_0", "zh-en_2021_news_3", "he_sysA_12", "es_sysB_4",
                      "flores_devtest_0001", "de-fr_2022_x_1", "cs-en_2019_y"])
     assert target_language(ids).fillna("-").tolist() == ["de", "en", "en", "es", "-", "fr", "en"]
-    assert in_scope("bleurt", ids).tolist() == [False, True, True, False, False, False, True]
+    # 2026-11-16: BLEURT and GEMBA are excluded outright.
+    assert not in_scope("bleurt", ids).any()
     assert not in_scope("gemba", ids).any()
     assert in_scope("comet", ids).all()
     df = pd.DataFrame({"segment_id": ids, "bleurt": 1.0})
-    assert apply_metric_scope(df, "bleurt").bleurt.notna().tolist() == \
-        [False, True, True, False, False, False, True]
+    assert apply_metric_scope(df, "bleurt").bleurt.isna().all()

@@ -234,10 +234,10 @@
     "value": 0.06548426086841103
   },
   "DirMetricBLEUEntoX": {
-    "fmt": "0.304",
+    "fmt": "0.319",
     "note": "Mean rho: bleu x en_to_x, n=16",
     "source": "recompute:direction_metric",
-    "value": 0.30376613858926516
+    "value": 0.3186343689582035
   },
   "DirMetricBLEUPivot": {
     "fmt": "0.202",
@@ -474,10 +474,10 @@
     "value": 33
   },
   "GapCometBleuAgglutinEntoX": {
-    "fmt": "0.351",
+    "fmt": "0.311",
     "note": "COMET-BLEU gap, agglutinative en->X",
     "source": "recompute:gaps",
-    "value": 0.35091895103450016
+    "value": 0.3112703367173313
   },
   "GapCometBleuAgglutinXtoEn": {
     "fmt": "0.151",
@@ -2463,7 +2463,7 @@
     "fmt": "-0.289",
     "note": "LMM fixed effect: X->en vs en->X (reference), controlling for morphology, language random intercept",
     "source": "recompute:mixed_effects",
-    "value": -0.28858065576091235
+    "value": -0.2885806557609124
   },
   "MixedModelDirXtoEnP": {
     "fmt": "2.8\\times10^{-18}",
@@ -2475,19 +2475,19 @@
     "fmt": "0.71",
     "note": "Intraclass correlation: fraction of variance from the language random intercept",
     "source": "recompute:mixed_effects",
-    "value": 0.7069753107255246
+    "value": 0.7069753107255244
   },
   "MixedModelMorphFusionalCoef": {
     "fmt": "-0.150",
     "note": "LMM fixed effect: fusional vs agglutinative (reference), controlling for direction, language random intercept",
     "source": "recompute:mixed_effects",
-    "value": -0.14958217976678026
+    "value": -0.14958217976678018
   },
   "MixedModelMorphFusionalP": {
     "fmt": "0.037",
     "note": "LMM p-value for fusional morphology effect",
     "source": "recompute:mixed_effects",
-    "value": 0.03719548678462566
+    "value": 0.037195486784625836
   },
   "MixedModelNLangs": {
     "fmt": "26",
@@ -2500,6 +2500,30 @@
     "note": "LMM observation count",
     "source": "recompute:mixed_effects",
     "value": 38
+  },
+  "MqmCtrlGapDANoHumanTwenty": {
+    "fmt": "+0.098",
+    "note": "wmt20: DA direction gap after excluding ref*/human* systems",
+    "source": "mqm_control.csv",
+    "value": 0.09843585835872021
+  },
+  "MqmCtrlGapDANoHumanTwentyOne": {
+    "fmt": "+0.346",
+    "note": "wmt21.news: DA direction gap after excluding ref*/human* systems",
+    "source": "mqm_control.csv",
+    "value": 0.34622863624456046
+  },
+  "MqmCtrlGapDANoHumanTwentyThree": {
+    "fmt": "+0.163",
+    "note": "wmt23: DA direction gap after excluding ref*/human* systems",
+    "source": "mqm_control.csv",
+    "value": 0.1630372903793862
+  },
+  "MqmCtrlGapDANoHumanTwentyTwo": {
+    "fmt": "+0.394",
+    "note": "wmt22: DA direction gap after excluding ref*/human* systems",
+    "source": "mqm_control.csv",
+    "value": 0.39383981107867616
   },
   "MqmCtrlGapDATwenty": {
     "fmt": "+0.073",
@@ -2573,6 +2597,30 @@
     "source": "followup_bootstrap_ci.csv",
     "value": 0.3543746041513742
   },
+  "MqmCtrlGapMQMNoHumanTwenty": {
+    "fmt": "-0.058",
+    "note": "wmt20: MQM direction gap after excluding ref*/human* systems",
+    "source": "mqm_control.csv",
+    "value": -0.058366484856886
+  },
+  "MqmCtrlGapMQMNoHumanTwentyOne": {
+    "fmt": "-0.119",
+    "note": "wmt21.news: MQM direction gap after excluding ref*/human* systems",
+    "source": "mqm_control.csv",
+    "value": -0.11852287792571048
+  },
+  "MqmCtrlGapMQMNoHumanTwentyThree": {
+    "fmt": "+0.109",
+    "note": "wmt23: MQM direction gap after excluding ref*/human* systems",
+    "source": "mqm_control.csv",
+    "value": 0.1092789588359977
+  },
+  "MqmCtrlGapMQMNoHumanTwentyTwo": {
+    "fmt": "-0.046",
+    "note": "wmt22: MQM direction gap after excluding ref*/human* systems",
+    "source": "mqm_control.csv",
+    "value": -0.04584304821817242
+  },
   "MqmCtrlGapMQMTwenty": {
     "fmt": "-0.102",
     "note": "wmt20: mean en->X minus mean X->en COMET Spearman under MQM",
@@ -2626,6 +2674,12 @@
     "note": "wmt23 MQM gap, 95% CI low (1000 resamples of source segments)",
     "source": "followup_bootstrap_ci.csv",
     "value": 0.0641061960277623
+  },
+  "MqmCtrlGapMQMTwentyThreeNoHe": {
+    "fmt": "+0.122",
+    "note": "WMT23 MQM direction gap after excluding he-en",
+    "source": "mqm_control.csv",
+    "value": 0.12203237813685652
   },
   "MqmCtrlGapMQMTwentyTwo": {
     "fmt": "-0.039",
@@ -2681,6 +2735,18 @@
     "source": "mqm_control.csv",
     "value": 4
   },
+  "MqmCtrlNoHumanNComparisons": {
+    "fmt": "8",
+    "note": "Year-by-label direction gaps recomputed without human-reference systems",
+    "source": "mqm_control.csv",
+    "value": 8
+  },
+  "MqmCtrlNoHumanNSignChanges": {
+    "fmt": "0",
+    "note": "Sensitivity gaps whose sign differs after excluding human-reference systems",
+    "source": "mqm_control.csv",
+    "value": 0
+  },
   "MqmCtrlZhTwentyTwoCOMETCrowdDA": {
     "fmt": ".023",
     "note": "WMT22 zh-en COMET Spearman vs DA labels, identical segment set",
@@ -2724,10 +2790,10 @@
     "value": 33
   },
   "NumMetrics": {
-    "fmt": "9",
+    "fmt": "8",
     "note": "Distinct metrics in correlations.csv, excluding the ensemble (GEMBA removed 2026-11-10)",
     "source": "correlations.csv",
-    "value": 9
+    "value": 8
   },
   "NumMixedLangs": {
     "fmt": "12",
@@ -2775,13 +2841,13 @@
     "fmt": "0.54",
     "note": "Ridge LOLO-CV Pearson r, CometKiwi",
     "source": "predictor/summary.json",
-    "value": 0.543
+    "value": 0.537
   },
   "RidgeCKXXIIIPearson": {
-    "fmt": "0.50",
+    "fmt": "0.51",
     "note": "Ridge LOLO-CV Pearson r, CometKiwi23",
     "source": "predictor/summary.json",
-    "value": 0.501
+    "value": 0.511
   },
   "RidgeNLangs": {
     "fmt": "26",
@@ -3468,10 +3534,10 @@
     "value": 30186
   },
   "TableFourEntoXAgglutin": {
-    "fmt": "0.446",
+    "fmt": "0.406",
     "note": "n=6",
     "source": "recompute:table4",
-    "value": 0.44614064831352734
+    "value": 0.40649203399635847
   },
   "TableFourEntoXFusional": {
     "fmt": "0.356",
@@ -3576,52 +3642,16 @@
     "value": 0.5761536025501595
   },
   "TierBLEUMedRho": {
-    "fmt": ".215",
+    "fmt": ".219",
     "note": "bleu mean Spearman rho, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.21451778983034242
+    "value": 0.21926840941960302
   },
   "TierBLEUMedSPA": {
-    "fmt": ".597",
+    "fmt": ".599",
     "note": "bleu mean SPA, medium tier (averaged across annotation tiers)",
     "source": "tier_summary.csv",
-    "value": 0.5973165154460532
-  },
-  "TierBLEURTHighRho": {
-    "fmt": ".448",
-    "note": "bleurt mean Spearman rho, high tier (averaged across annotation tiers)",
-    "source": "tier_summary.csv",
-    "value": 0.4484279570467853
-  },
-  "TierBLEURTHighSPA": {
-    "fmt": ".683",
-    "note": "bleurt mean SPA, high tier (averaged across annotation tiers)",
-    "source": "tier_summary.csv",
-    "value": 0.6834843914569346
-  },
-  "TierBLEURTLowRho": {
-    "fmt": ".272",
-    "note": "bleurt mean Spearman rho, low tier (averaged across annotation tiers)",
-    "source": "tier_summary.csv",
-    "value": 0.2716584142361403
-  },
-  "TierBLEURTLowSPA": {
-    "fmt": ".593",
-    "note": "bleurt mean SPA, low tier (averaged across annotation tiers)",
-    "source": "tier_summary.csv",
-    "value": 0.5934413092320519
-  },
-  "TierBLEURTMedRho": {
-    "fmt": ".362",
-    "note": "bleurt mean Spearman rho, medium tier (averaged across annotation tiers)",
-    "source": "tier_summary.csv",
-    "value": 0.3622515649497269
-  },
-  "TierBLEURTMedSPA": {
-    "fmt": ".628",
-    "note": "bleurt mean SPA, medium tier (averaged across annotation tiers)",
-    "source": "tier_summary.csv",
-    "value": 0.6280202841930174
+    "value": 0.5989753021808306
   },
   "TierCOMETHighPlusEsRho": {
     "fmt": ".436",
@@ -3849,19 +3879,19 @@
     "fmt": "0.389",
     "note": "Tier 1b (DA-only) low-resource mean rho, ha additionally excluded (documented annotation-noise outlier)",
     "source": "recompute:tier1b_check",
-    "value": 0.38896997954933954
+    "value": 0.3889995313769312
   },
   "TierOneBLowMean": {
-    "fmt": "0.311",
+    "fmt": "0.315",
     "note": "Tier 1b (DA-only) low-resource mean rho across all metrics, uk excluded",
     "source": "recompute:tier1b_check",
-    "value": 0.31104699780773176
+    "value": 0.31542350709346423
   },
   "TierOneBMedMean": {
-    "fmt": "0.451",
+    "fmt": "0.456",
     "note": "Tier 1b (DA-only) medium-resource mean rho across all metrics, uk excluded",
     "source": "recompute:tier1b_check",
-    "value": 0.451205860126464
+    "value": 0.4564502237612689
   },
   "TierOneTotalSegments": {
     "fmt": "718{,}482",

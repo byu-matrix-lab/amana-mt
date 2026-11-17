@@ -19,12 +19,13 @@ def v(d, key):
 
 
 TIERS = ("High", "Med", "Low")
-SINGLE = ("BLEU", "ChrF", "BERTScore", "BLEURT", "COMET", "xCOMET", "MetricX", "KiwiXXII", "KiwiXXIII")
-NEURAL = ("COMET", "xCOMET", "MetricX", "KiwiXXII", "KiwiXXIII", "BLEURT")
+SINGLE = ("BLEU", "ChrF", "BERTScore", "COMET", "xCOMET", "MetricX", "KiwiXXII", "KiwiXXIII")
+NEURAL = ("COMET", "xCOMET", "MetricX", "KiwiXXII", "KiwiXXIII")
 MQM_LANGS = ("DE", "RU", "ZH", "HE", "ES")
 YEARS = ("Twenty", "TwentyOne", "TwentyTwo", "TwentyThree")
 # A paragraph that reports a withdrawn finding as withdrawn may name it.
-HEDGES = [re.compile(r"original version|corrected version|originally published|mislabel")]
+HEDGES = [re.compile(r"original version|corrected version|originally published|mislabel"),
+          re.compile(r"\\textbf\{(?:Withdrawn|Corrected)\.\}")]   # the version-note box paragraphs
 
 
 def _metricx_best_every_tier(d):
@@ -79,6 +80,10 @@ CLAIMS = [
           require=["CometKiwi-23 usually wins agglutinative pairs; fusional is split"]),
     Claim("metricx-wins-all-pivot", lambda d: v(d, "PivotMetricXWins") == v(d, "PivotN"),
           require=[re.compile(r"and all X\W{0,20}Y pairs")]),
+    Claim("oos-metricx-not-best",
+          lambda d: v(d, "LangXCOMETHE") >= v(d, "LangMetricXHE") and v(d, "LangXCOMETES") >= v(d, "LangMetricXES"),
+          require=["On these, MetricX-24 is not the best"],
+          why="the out-of-sample check (WMT23 he-en, WMT24 en-es) is what qualifies the MetricX-best claim"),
     # ---- wording withdrawn from the published version ----
     Retracted("simpson", re.compile(r"simpson'?s paradox"), unless=HEDGES, scope="paragraph",
               why="Russian's pooled rho was a scale-mixing artifact"),
@@ -98,7 +103,7 @@ CLAIMS = [
     Retracted("spa-standard", re.compile(r"soft pairwise accuracy"),
               unless=[re.compile(r"not the system-level soft pairwise accuracy")], scope="paragraph",
               why="the statistic is segment-level tie-credited PA, not SPA"),
-    Retracted("gemba", Cased(r"GEMBA(?!-MQM)"), unless=[re.compile(r"removed GEMBA")],
+    Retracted("gemba", Cased(r"GEMBA(?!-MQM)"), unless=[re.compile(r"removed GEMBA"), re.compile(r"\\textbf\{Corrected\.\}")],
               scope="paragraph", why="degenerate scores; removed"),
     Retracted("textbook", "textbook"),
     Retracted("ck23-abbrev", Cased(r"\bCK-?23\b"), why="author preference: always write CometKiwi-23"),

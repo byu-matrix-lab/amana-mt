@@ -42,7 +42,7 @@
 \newcommand{\DeWmtTwoTwoRho}{.456}  % tier_anomaly.csv
 \newcommand{\DeWmtTwoZeroRho}{.497}  % tier_anomaly.csv
 \newcommand{\DiDValue}{0.065}  % recompute:gaps
-\newcommand{\DirMetricBLEUEntoX}{0.304}  % recompute:direction_metric
+\newcommand{\DirMetricBLEUEntoX}{0.319}  % recompute:direction_metric
 \newcommand{\DirMetricBLEUPivot}{0.202}  % recompute:direction_metric
 \newcommand{\DirMetricBLEUXtoEn}{0.223}  % recompute:direction_metric
 \newcommand{\DirMetricCKXXIIIEntoX}{0.657}  % recompute:direction_metric
@@ -82,7 +82,7 @@
 \newcommand{\EtaSqMorph}{0.094}  % recompute:direction_morphology
 \newcommand{\EtaSqNCells}{5}  % recompute:direction_morphology
 \newcommand{\EtaSqNUnits}{33}  % recompute:direction_morphology
-\newcommand{\GapCometBleuAgglutinEntoX}{0.351}  % recompute:gaps
+\newcommand{\GapCometBleuAgglutinEntoX}{0.311}  % recompute:gaps
 \newcommand{\GapCometBleuAgglutinXtoEn}{0.151}  % recompute:gaps
 \newcommand{\GapCometBleuFusionalXtoEn}{0.110}  % recompute:gaps
 \newcommand{\GapDirAgglutin}{0.235}  % recompute:gaps
@@ -420,6 +420,10 @@
 \newcommand{\MixedModelMorphFusionalP}{0.037}  % recompute:mixed_effects
 \newcommand{\MixedModelNLangs}{26}  % recompute:mixed_effects
 \newcommand{\MixedModelNObs}{38}  % recompute:mixed_effects
+\newcommand{\MqmCtrlGapDANoHumanTwenty}{+0.098}  % mqm_control.csv
+\newcommand{\MqmCtrlGapDANoHumanTwentyOne}{+0.346}  % mqm_control.csv
+\newcommand{\MqmCtrlGapDANoHumanTwentyThree}{+0.163}  % mqm_control.csv
+\newcommand{\MqmCtrlGapDANoHumanTwentyTwo}{+0.394}  % mqm_control.csv
 \newcommand{\MqmCtrlGapDATwenty}{+0.073}  % mqm_control.csv
 \newcommand{\MqmCtrlGapDATwentyCIhi}{+0.105}  % followup_bootstrap_ci.csv
 \newcommand{\MqmCtrlGapDATwentyCIlo}{+0.039}  % followup_bootstrap_ci.csv
@@ -432,6 +436,10 @@
 \newcommand{\MqmCtrlGapDATwentyTwo}{+0.382}  % mqm_control.csv
 \newcommand{\MqmCtrlGapDATwentyTwoCIhi}{+0.410}  % followup_bootstrap_ci.csv
 \newcommand{\MqmCtrlGapDATwentyTwoCIlo}{+0.354}  % followup_bootstrap_ci.csv
+\newcommand{\MqmCtrlGapMQMNoHumanTwenty}{-0.058}  % mqm_control.csv
+\newcommand{\MqmCtrlGapMQMNoHumanTwentyOne}{-0.119}  % mqm_control.csv
+\newcommand{\MqmCtrlGapMQMNoHumanTwentyThree}{+0.109}  % mqm_control.csv
+\newcommand{\MqmCtrlGapMQMNoHumanTwentyTwo}{-0.046}  % mqm_control.csv
 \newcommand{\MqmCtrlGapMQMTwenty}{-0.102}  % mqm_control.csv
 \newcommand{\MqmCtrlGapMQMTwentyCIhi}{-0.065}  % followup_bootstrap_ci.csv
 \newcommand{\MqmCtrlGapMQMTwentyCIlo}{-0.142}  % followup_bootstrap_ci.csv
@@ -441,6 +449,7 @@
 \newcommand{\MqmCtrlGapMQMTwentyThree}{+0.109}  % mqm_control.csv
 \newcommand{\MqmCtrlGapMQMTwentyThreeCIhi}{+0.154}  % followup_bootstrap_ci.csv
 \newcommand{\MqmCtrlGapMQMTwentyThreeCIlo}{+0.064}  % followup_bootstrap_ci.csv
+\newcommand{\MqmCtrlGapMQMTwentyThreeNoHe}{+0.122}  % mqm_control.csv
 \newcommand{\MqmCtrlGapMQMTwentyTwo}{-0.039}  % mqm_control.csv
 \newcommand{\MqmCtrlGapMQMTwentyTwoCIhi}{-0.005}  % followup_bootstrap_ci.csv
 \newcommand{\MqmCtrlGapMQMTwentyTwoCIlo}{-0.072}  % followup_bootstrap_ci.csv
@@ -450,6 +459,8 @@
 \newcommand{\MqmCtrlNPairs}{4}  % mqm_control.csv
 \newcommand{\MqmCtrlNYearsDA}{4}  % mqm_control.csv
 \newcommand{\MqmCtrlNYearsMQM}{4}  % mqm_control.csv
+\newcommand{\MqmCtrlNoHumanNComparisons}{8}  % mqm_control.csv
+\newcommand{\MqmCtrlNoHumanNSignChanges}{0}  % mqm_control.csv
 \newcommand{\MqmCtrlZhTwentyTwoCOMETCrowdDA}{.023}  % mqm_control_three_labels.csv
 \newcommand{\MqmCtrlZhTwentyTwoCOMETMQM}{.533}  % mqm_control_three_labels.csv
 \newcommand{\MqmCtrlZhTwentyTwoCOMETSrcDA}{.458}  % mqm_control_three_labels.csv
@@ -457,7 +468,7 @@
 \newcommand{\NumHumanAnnotatedLanguages}{26}  % correlations.csv
 \newcommand{\NumLanguageFamilies}{12}  % src/mqmbench/analysis/correlation.py:LANGUAGE_FAMILIES
 \newcommand{\NumLanguages}{33}  % correlations.csv
-\newcommand{\NumMetrics}{9}  % correlations.csv
+\newcommand{\NumMetrics}{8}  % correlations.csv
 \newcommand{\NumMixedLangs}{12}  % manual
 \newcommand{\NumScriptTypes}{4}  % src/mqmbench/analysis/correlation.py:SCRIPT_TYPES
 \newcommand{\NumSepLangs}{15}  % manual/tab:dir_sep
@@ -466,7 +477,7 @@
 \newcommand{\PivotN}{5}  % recompute:pivot
 \newcommand{\PsKiwiCometDelta}{-0.038}  % recompute:pashto
 \newcommand{\RidgeCKPearson}{0.54}  % predictor/summary.json
-\newcommand{\RidgeCKXXIIIPearson}{0.50}  % predictor/summary.json
+\newcommand{\RidgeCKXXIIIPearson}{0.51}  % predictor/summary.json
 \newcommand{\RidgeNLangs}{26}  % predictor/summary.json
 \newcommand{\RidgeNUnits}{38}  % predictor/summary.json
 \newcommand{\RidgeRecAcc}{6/38}  % predictor/summary.json
@@ -581,7 +592,7 @@
 \newcommand{\SepNTAXE}{7{,}577}  % recompute:table6
 \newcommand{\SepNTREX}{5{,}171}  % recompute:table6
 \newcommand{\SepNTRXE}{30{,}186}  % recompute:table6
-\newcommand{\TableFourEntoXAgglutin}{0.446}  % recompute:table4
+\newcommand{\TableFourEntoXAgglutin}{0.406}  % recompute:table4
 \newcommand{\TableFourEntoXFusional}{0.356}  % recompute:table4
 \newcommand{\TableFourMainPipelinePairs}{34}  % recompute:table4
 \newcommand{\TableFourPivotFusional}{0.346}  % recompute:table4
@@ -599,14 +610,8 @@
 \newcommand{\TierBLEUHighSPA}{.581}  % tier_summary.csv
 \newcommand{\TierBLEULowRho}{.230}  % tier_summary.csv
 \newcommand{\TierBLEULowSPA}{.576}  % tier_summary.csv
-\newcommand{\TierBLEUMedRho}{.215}  % tier_summary.csv
-\newcommand{\TierBLEUMedSPA}{.597}  % tier_summary.csv
-\newcommand{\TierBLEURTHighRho}{.448}  % tier_summary.csv
-\newcommand{\TierBLEURTHighSPA}{.683}  % tier_summary.csv
-\newcommand{\TierBLEURTLowRho}{.272}  % tier_summary.csv
-\newcommand{\TierBLEURTLowSPA}{.593}  % tier_summary.csv
-\newcommand{\TierBLEURTMedRho}{.362}  % tier_summary.csv
-\newcommand{\TierBLEURTMedSPA}{.628}  % tier_summary.csv
+\newcommand{\TierBLEUMedRho}{.219}  % tier_summary.csv
+\newcommand{\TierBLEUMedSPA}{.599}  % tier_summary.csv
 \newcommand{\TierCOMETHighPlusEsRho}{.436}  % correlations.csv
 \newcommand{\TierCOMETHighRho}{.463}  % tier_summary.csv
 \newcommand{\TierCOMETHighSPA}{.684}  % tier_summary.csv
@@ -645,8 +650,8 @@
 \newcommand{\TierMetricXMedRho}{.458}  % tier_summary.csv
 \newcommand{\TierMetricXMedSPA}{.712}  % tier_summary.csv
 \newcommand{\TierOneBLowExHaMean}{0.389}  % recompute:tier1b_check
-\newcommand{\TierOneBLowMean}{0.311}  % recompute:tier1b_check
-\newcommand{\TierOneBMedMean}{0.451}  % recompute:tier1b_check
+\newcommand{\TierOneBLowMean}{0.315}  % recompute:tier1b_check
+\newcommand{\TierOneBMedMean}{0.456}  % recompute:tier1b_check
 \newcommand{\TierOneTotalSegments}{718{,}482}  % correlations.csv
 \newcommand{\TierxCOMETHighRho}{.531}  % tier_summary.csv
 \newcommand{\TierxCOMETHighSPA}{.713}  % tier_summary.csv
