@@ -1,4 +1,4 @@
-\begin{thebibliography}{28}
+\begin{thebibliography}{29}
 \providecommand{\natexlab}[1]{#1}
 
 \bibitem[{Akhbardeh et~al.(2021)}]{akhbardeh-etal-2021-findings}
@@ -207,6 +207,16 @@ Brian Thompson, Nitika Mathur, Daniel Deutsch, and Huda Khayrallah. 2024.
   pairwise accuracy}.
 \newblock In \emph{Proceedings of the Ninth Conference on Machine Translation},
   pages 1222--1234.
+
+\bibitem[{Thompson et~al.(2026)Thompson, Rogers, and
+  Ringger}]{thompson-etal-2026-bringing}
+Isaac Thompson, Brandon Rogers, and Eric Ringger. 2026.
+\newblock \href {https://doi.org/10.18653/v1/2026.americasnlp-6.16} {Bringing
+  {M}apudungun into the {M}odern {MT} ecosystem: Morphology-aware tokenization
+  for {NLLB}-200 fine-tuning}.
+\newblock In \emph{Proceedings of the Sixth Workshop on {NLP} for Indigenous
+  Languages of the {A}mericas ({A}mericas{NLP})}, pages 173--185, San Diego,
+  California, USA. Association for Computational Linguistics.
 
 \bibitem[{Williams(1959)}]{williams1959}
 Evan~James Williams. 1959.

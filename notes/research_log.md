@@ -1897,3 +1897,4 @@ Not fixed (deferred, disclose): static direction labels in direction_analysis.cs
   - No stated scope or page limits, but unsuitable submissions "will be rejected, potentially without notice".
   - Original stays available; revisions are watermarked.
   - The GitHub issue template was not readable (login wall).
+- 2026-11-17: Added one Related Work sentence citing the published Mapudungun paper (2026.americasnlp-6.16, official Anthology bib), agreed with the Mapudungun session and approved by Isaac. The cite is only for: COMET unvalidated for Mapudungun, and chrF++ used as primary. No reverse citation.
