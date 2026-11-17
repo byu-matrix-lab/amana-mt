@@ -1,6 +1,6 @@
 # Reproducing the corrected AmanaMT paper (v2)
 
-The paper is in `arxiv_submission/` (the directory name is historical; v2 is an ACL Anthology revision of 2026.wmt-1.42). Every number in it is a LaTeX macro, rendered from `results/paper_stats.json`, which `scripts/generate_paper_stats.py` writes. No number is typed by hand.
+The paper is in `arxiv_submission/` (the directory name is historical; v2 is an ACL Anthology revision of 2026.wmt-main.42). Every number in it is a LaTeX macro, rendered from `results/paper_stats.json`, which `scripts/generate_paper_stats.py` writes. No number is typed by hand.
 
 There are two levels of reproduction:
 
