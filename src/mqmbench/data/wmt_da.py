@@ -6,8 +6,9 @@ configure wmt_da_target_langs in settings.toml to filter to desired languages.
 
 DA scores are z-scores (mean 0, unit variance per annotator). They are
 normalized per-language to [0, 1] for compatibility with the unified
-quality_score column. Since all correlation measures (Pearson/Spearman/Kendall)
-are rank-invariant, the normalization does not affect results.
+quality_score column. Min-max scaling is a monotone linear transform, so it
+leaves Spearman and Kendall (rank-based) and Pearson (invariant to linear
+rescaling) unchanged.
 """
 
 import logging
